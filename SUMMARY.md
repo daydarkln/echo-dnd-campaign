@@ -65,3 +65,6 @@
   * [Атака по всем состояниям](bestiarii/ataka-po-vsem-sostoyaniyam/README.md)
     * [Примеры энкаунтеров](bestiarii/ataka-po-vsem-sostoyaniyam/primery-enkaunterov.md)
 * [Книга/готовый блок](kniga-gotovyi-blok.md)
+* [Проводник Мастера](master/README.md)
+  * [Отслеживание состояний](master/otslezhivanie-sostoyanii.md)
+  * [Твисты и Fail‑Forward](master/tvisti-i-failforward.md)
