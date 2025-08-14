@@ -1,0 +1,663 @@
+{
+  "schemaVersion": 2,
+  "notes": "Точки интереса по ключевым локациям. Усилители/ослабители теперь включают теги механик: spores (споры), hidden_will (скрытая воля), wild_magic (дикая магия). В каждом POI есть энкаунтеры, лут и улики.",
+  "areas": [
+    {
+      "area": "Поверхность: Окраины и лес",
+      "pointsOfInterest": [
+        {
+          "id": "okrainy-tropa-ohotnika",
+          "name": "Тропа охотника",
+          "tags": ["следы", "скрытые тропы"],
+          "amplifiers": [
+            {"effect": "безветрие", "mechanics": ["spores"]},
+            {"effect": "сырость после тумана", "mechanics": ["spores"]}
+          ],
+          "dampeners": [
+            {"effect": "костры путников (огонь)", "mechanics": ["spores"]},
+            {"effect": "сквозняк оврагов (ветер)", "mechanics": ["spores"]}
+          ],
+          "encounters": [
+            { "name": "Заражённые волки", "count": "3-5", "level": "1-2", "notes": "укус со спорами" }
+          ],
+          "loot": ["потрёпанный охотничий журнал", "амулет-капкан (простая ловушка)"],
+          "clues": ["следы тащили добычу к глубине леса", "в дневнике — намёки на странные шёпоты по ночам"]
+        },
+        {
+          "id": "okrainy-zabytaya-polyana",
+          "name": "Забытая поляна",
+          "tags": ["укрытие", "растения"],
+          "amplifiers": [
+            {"effect": "монотонный шелест трав", "mechanics": ["hidden_will"]},
+            {"effect": "тёплая сырая подстилка", "mechanics": ["spores"]}
+          ],
+          "dampeners": [
+            {"effect": "яркий солнечный свет", "mechanics": ["hidden_will"]},
+            {"effect": "благовония/дымок трав", "mechanics": ["spores"]}
+          ],
+          "encounters": [
+            { "name": "Заражённые звери", "count": "1-2", "level": "1-2" }
+          ],
+          "loot": ["мешочек целебных трав", "фляга с настоем против сырости"],
+          "clues": ["цветки направлены к одной точке в лесу", "на камнях — спорыньи как стрелки"]
+        },
+        {
+          "id": "les-granica",
+          "name": "Граница леса",
+          "tags": ["ориентир", "стража"],
+          "amplifiers": [
+            {"effect": "туман на рассвете", "mechanics": ["spores"]},
+            {"effect": "зеркальная роса", "mechanics": ["hidden_will"]}
+          ],
+          "dampeners": [
+            {"effect": "колокольчик у идола", "mechanics": ["hidden_will"]},
+            {"effect": "соль на пороге тропы", "mechanics": ["hidden_will"]}
+          ],
+          "encounters": [
+            { "name": "Патруль стражи/лесничий", "count": "1 группа", "level": "1-2", "notes": "социальная сцена" }
+          ],
+          "loot": ["сигнальные колокольчики", "камни с соляными прожилками"],
+          "clues": ["лесничий слышал о пульсирующем свете вглуби", "жители жалуются на навязчивые сны"]
+        },
+        {
+          "id": "les-zarazhennaya-tropa",
+          "name": "Заражённая тропа",
+          "tags": ["споры", "пыльца"],
+          "amplifiers": [
+            {"effect": "безветрие", "mechanics": ["spores"]},
+            {"effect": "узкое русло между кустами", "mechanics": ["spores"]}
+          ],
+          "dampeners": [
+            {"effect": "маски/влажные повязки", "mechanics": ["spores"]},
+            {"effect": "факелы/лампы (жар)", "mechanics": ["spores"]}
+          ],
+          "encounters": [
+            { "name": "Споровые облака (ловушка)", "level": "2-3" },
+            { "name": "Заражённые кабаны", "count": "2", "level": "2-3" }
+          ],
+          "loot": ["связка пропитанных повязок", "масляная чаша"],
+          "clues": ["на деревьях — узоры, напоминающие русла рек", "пыльца слабо тянется в сторону оврага"]
+        },
+        {
+          "id": "les-anomalnoe-ozero",
+          "name": "Аномальное озеро",
+          "tags": ["вода", "лей-линии", "прорицание"],
+          "amplifiers": [
+            {"effect": "стоячая вода (зеркало)", "mechanics": ["hidden_will", "wild_magic"]},
+            {"effect": "полнолуние", "mechanics": ["wild_magic"]}
+          ],
+          "dampeners": [
+            {"effect": "заземление (мокрая глина)", "mechanics": ["wild_magic"]},
+            {"effect": "контр-песнопения/метроном", "mechanics": ["hidden_will", "wild_magic"]}
+          ],
+          "encounters": [
+            { "name": "Споровые элементали", "count": "1-2", "level": "3-4" }
+          ],
+          "loot": ["черпак Свонлейка (вода для ритуала)", "глиняные подвески для заземления"],
+          "clues": ["в зеркале воды видны каменные арки", "эхо шёпота повторяется ровно через три удара сердца"]
+        },
+        {
+          "id": "tikhaya-opushka",
+          "name": "Тихая опушка",
+          "tags": ["аномальная зона", "тишина", "усиление Тени"],
+          "amplifiers": [
+            {"effect": "полная тишина (звук не распространяется)", "mechanics": ["hidden_will"]},
+            {"effect": "отсутствие эха и отражений", "mechanics": ["hidden_will"]},
+            {"effect": "предметы не отбрасывают тени. Преобладание серых оттенков", "mechanics": ["hidden_will"]},
+            {"effect": "усиленное действие Тени", "mechanics": ["hidden_will"]}
+          ],
+          "dampeners": [
+            {"effect": "громкие магические звуки (заклинания)", "mechanics": ["hidden_will"]},
+            {"effect": "яркие вспышки света", "mechanics": ["hidden_will"]},
+            {"effect": "групповые действия (нарушают изоляцию)", "mechanics": ["hidden_will"]}
+          ],
+          "encounters": [
+            { "name": "Тени-имитаторы", "count": "по числу игроков", "level": "4-5", "notes": "копируют движения без звука" },
+            { "name": "Безмолвные грибы-шпионы", "count": "скрытно", "level": "3-4", "notes": "следят и докладывают" }
+          ],
+          "loot": ["амулет тишины", "свиток 'Зона тишины'", "кристалл поглощения звука"],
+          "clues": ["здесь Тень экспериментирует с изоляцией", "персонажи не слышат собственных шагов", "магия работает, но беззвучно"]
+        }
+      ]
+    },
+    {
+      "area": "Поверхность: Каньон, плато и шахта",
+      "pointsOfInterest": [
+        {
+          "id": "kanyon-sklon-loz",
+          "name": "Склон с лозами",
+          "tags": ["вертикальность", "ловушки"],
+          "amplifiers": [
+            {"effect": "тёплые полости", "mechanics": ["spores"]},
+            {"effect": "монотонный гул воды", "mechanics": ["hidden_will"]}
+          ],
+          "dampeners": [
+            {"effect": "ветер с перил", "mechanics": ["spores"]},
+            {"effect": "дымовые шашки (рассеивание)", "mechanics": ["spores"]}
+          ],
+          "encounters": [
+            { "name": "Лозы-удушители (ловушка)", "level": "3-4" }
+          ],
+          "loot": ["смоляные факелы", "верёвки с узлами"],
+          "clues": ["на камнях — отпечатки спор, тянущиеся вверх", "сухие лозы хрупки при свете"]
+        },
+        {
+          "id": "shahta-vhod",
+          "name": "Вход в шахту",
+          "tags": ["шахта", "обвал"],
+          "amplifiers": [
+            {"effect": "сырость и жара", "mechanics": ["spores"]},
+            {"effect": "кровь на перекладине", "mechanics": ["spores"]}
+          ],
+          "dampeners": [
+            {"effect": "сквозняк из вентиляций", "mechanics": ["spores"]},
+            {"effect": "соляные линии на балках", "mechanics": ["hidden_will"]}
+          ],
+          "encounters": [
+            { "name": "Заражённые крысы", "count": "6", "level": "4-5" }
+          ],
+          "loot": ["кирка старого мастера", "мешочек соли"],
+          "clues": ["записи о странном давлении внизу", "рабочие слышали песни камня"]
+        }
+      ]
+    },
+    {
+      "area": "Подземелье роя",
+      "pointsOfInterest": [
+        {
+          "id": "dungeon-vhod",
+          "name": "Вход в подземелье",
+          "tags": ["страж", "ауры"],
+          "amplifiers": [
+            {"effect": "тишь перед аркой", "mechanics": ["hidden_will"]},
+            {"effect": "символы на пороге", "mechanics": ["hidden_will"]}
+          ],
+          "dampeners": [
+            {"effect": "яркий свет у входа", "mechanics": ["hidden_will"]},
+            {"effect": "железные гвозди/соль на пороге", "mechanics": ["hidden_will"]}
+          ],
+          "encounters": [
+            { "name": "Грибной охранитель", "count": "1", "level": "5-6" }
+          ],
+          "loot": ["свечи из пчелиного воска", "железные гвозди"],
+          "clues": ["пульсирующий ритм совпадает с ударами сердца", "на камне — следы воды, как от чаш"]
+        },
+        {
+          "id": "dungeon-peshchera-koloniy",
+          "name": "Пещера с грибными колониями",
+          "tags": ["биомасса", "разведчики"],
+          "amplifiers": [
+            {"effect": "влажность", "mechanics": ["spores"]},
+            {"effect": "монотонный капеж", "mechanics": ["hidden_will"]}
+          ],
+          "dampeners": [
+            {"effect": "курительные смеси/благовония", "mechanics": ["spores"]},
+            {"effect": "сквозняк", "mechanics": ["spores"]}
+          ],
+          "encounters": [
+            { "name": "Разумные грибы-разведчики", "count": "роем", "level": "5-6" }
+          ],
+          "loot": ["курительные смеси", "мешочек благовоний"],
+          "clues": ["колонии как будто прислушиваются", "на стенах — споровые карты троп"]
+        },
+        {
+          "id": "dungeon-toksichnye-reki",
+          "name": "Токсичные реки",
+          "tags": ["кислота", "мосты"],
+          "amplifiers": [
+            {"effect": "тёплые испарения", "mechanics": ["spores"]},
+            {"effect": "стоячие заводи (зеркала)", "mechanics": ["hidden_will"]}
+          ],
+          "dampeners": [
+            {"effect": "ветровые коридоры", "mechanics": ["spores"]},
+            {"effect": "заземление на каменных пятнах", "mechanics": ["wild_magic"]}
+          ],
+          "encounters": [
+            { "name": "Мутировавшие жабы", "count": "4", "level": "5-6" }
+          ],
+          "loot": ["шкура жабы (устойчивость к кислоте)", "камни-резонаторы"],
+          "clues": ["мосты образуют созвездия символов", "в заводях — отражение арок, которых нет рядом"]
+        },
+        {
+          "id": "dungeon-altar-energii",
+          "name": "Алтарь с тёмной энергией",
+          "tags": ["ядро", "пульс"],
+          "amplifiers": [
+            {"effect": "символы/алтарь", "mechanics": ["hidden_will"]},
+            {"effect": "зеркальные чаши", "mechanics": ["hidden_will"]}
+          ],
+          "dampeners": [
+            {"effect": "святая вода/свечи", "mechanics": ["hidden_will", "spores"]},
+            {"effect": "метроном/пение", "mechanics": ["hidden_will"]}
+          ],
+          "encounters": [
+            { "name": "Грибной аватар (мини-босс)", "count": "1", "level": "7-8" }
+          ],
+          "loot": ["зеркальная чаша", "камень-пульсатор (слабый)"],
+          "clues": ["чаша гасит шёпоты, если наполнена водой", "символы теплеют при ритмичном пении"]
+        }
+      ]
+    },
+    {
+      "area": "Дополнительные поверхностные локации",
+      "pointsOfInterest": [
+        {
+          "id": "zabytaya-polyana",
+          "name": "Забытая поляна",
+          "tags": ["укрытие", "NPC"],
+          "amplifiers": [
+            {"effect": "монотонный шелест трав", "mechanics": ["hidden_will"]},
+            {"effect": "тёплая подстилка", "mechanics": ["spores"]}
+          ],
+          "dampeners": [
+            {"effect": "яркий солнечный свет", "mechanics": ["hidden_will"]},
+            {"effect": "благовония", "mechanics": ["spores"]}
+          ],
+          "encounters": [
+            { "name": "Следопыт (союзник)", "count": "1", "level": "3-4", "notes": "социальная сцена" }
+          ],
+          "loot": ["карта секретных троп", "зелья лечения"],
+          "clues": ["следопыт знает о странных движениях в лесу", "животные избегают определённых направлений"]
+        },
+        {
+          "id": "razrushennyy-lager",
+          "name": "Разрушенный лагерь",
+          "tags": ["руины", "следы битвы"],
+          "amplifiers": [
+            {"effect": "запах крови", "mechanics": ["spores"]},
+            {"effect": "тишина среди обломков", "mechanics": ["hidden_will"]}
+          ],
+          "dampeners": [
+            {"effect": "ветер рассеивает споры", "mechanics": ["spores"]},
+            {"effect": "дым от тлеющих углей", "mechanics": ["spores"]}
+          ],
+          "encounters": [
+            { "name": "Заражённые мародёры", "count": "2-3", "level": "3-4" }
+          ],
+          "loot": ["потрёпанное снаряжение", "записи о странных снах"],
+          "clues": ["лагерь покинут внезапно", "на палатках — споровые узоры как знаки"]
+        },
+        {
+          "id": "gribnaya-peshchera-surface",
+          "name": "Грибная пещера (поверхностная)",
+          "tags": ["споры", "вход"],
+          "amplifiers": [
+            {"effect": "влажность", "mechanics": ["spores"]},
+            {"effect": "эхо капели", "mechanics": ["hidden_will"]}
+          ],
+          "dampeners": [
+            {"effect": "факелы у входа", "mechanics": ["spores"]},
+            {"effect": "соляные отложения", "mechanics": ["hidden_will"]}
+          ],
+          "encounters": [
+            { "name": "Споровые облака", "level": "2-3" },
+            { "name": "Заражённые летучие мыши", "count": "рой", "level": "2-3" }
+          ],
+          "loot": ["грибы (алхимические компоненты)", "кристаллы слабого свечения"],
+          "clues": ["пещера ведёт глубже", "на стенах — отпечатки рук разного размера"]
+        },
+        {
+          "id": "ritualnyy-zal",
+          "name": "Ритуальный зал",
+          "tags": ["древние руины", "магия"],
+          "amplifiers": [
+            {"effect": "круги силы на полу", "mechanics": ["wild_magic"]},
+            {"effect": "зеркальные поверхности", "mechanics": ["hidden_will"]}
+          ],
+          "dampeners": [
+            {"effect": "святая вода в чашах", "mechanics": ["hidden_will", "spores"]},
+            {"effect": "колокольчики на арках", "mechanics": ["hidden_will"]}
+          ],
+          "encounters": [
+            { "name": "Чародейка (союзник в битве)", "count": "1", "level": "5-6", "notes": "помогает против грибов" }
+          ],
+          "loot": ["зеркальная чаша ритуала", "свитки защиты от спор"],
+          "clues": ["алтарь настроен на изгнание тёмной магии", "символы указывают на Сердце роя"]
+        }
+      ]
+    },
+    {
+      "area": "Расширенное подземелье роя",
+      "pointsOfInterest": [
+        {
+          "id": "dungeon-temnye-koridory",
+          "name": "Тёмные коридоры",
+          "tags": ["лабиринт", "дезориентация"],
+          "amplifiers": [
+            {"effect": "полная темнота", "mechanics": ["hidden_will"]},
+            {"effect": "эхо шагов", "mechanics": ["hidden_will"]}
+          ],
+          "dampeners": [
+            {"effect": "яркие фонари", "mechanics": ["hidden_will"]},
+            {"effect": "громкая музыка/пение", "mechanics": ["hidden_will"]}
+          ],
+          "encounters": [
+            { "name": "Блуждающие споры", "level": "4-5" },
+            { "name": "Грибные ловушки", "level": "4-5" }
+          ],
+          "loot": ["светящиеся кристаллы", "верёвка с узлами (ориентиры)"],
+          "clues": ["коридоры меняют конфигурацию", "шёпот доносится из стен"]
+        },
+        {
+          "id": "dungeon-gribnye-artefakty",
+          "name": "Грибные артефакты",
+          "tags": ["сокровища", "магические предметы"],
+          "amplifiers": [
+            {"effect": "магические ауры предметов", "mechanics": ["wild_magic"]},
+            {"effect": "резонанс кристаллов", "mechanics": ["wild_magic"]}
+          ],
+          "dampeners": [
+            {"effect": "железные сетки", "mechanics": ["hidden_will"]},
+            {"effect": "соляные круги", "mechanics": ["hidden_will"]}
+          ],
+          "encounters": [
+            { "name": "Страж артефактов", "count": "1", "level": "6-7" }
+          ],
+          "loot": ["кристаллы магии", "эссенция света", "зелья очищения"],
+          "clues": ["артефакты — ключи к остановке роя", "некоторые предметы защищают от Тени"]
+        },
+        {
+          "id": "dungeon-gribnaya-shahta",
+          "name": "Грибная шахта",
+          "tags": ["вертикальность", "добыча"],
+          "amplifiers": [
+            {"effect": "эхо в шахтных стволах", "mechanics": ["hidden_will"]},
+            {"effect": "тёплые восходящие потоки", "mechanics": ["spores"]}
+          ],
+          "dampeners": [
+            {"effect": "верёвки и платформы", "mechanics": ["hidden_will"]},
+            {"effect": "лебёдки", "mechanics": ["hidden_will"]}
+          ],
+          "encounters": [
+            { "name": "Грибные горняки (заражённые)", "count": "4-6", "level": "4-5" }
+          ],
+          "loot": ["старые инструменты", "руда с магическими свойствами"],
+          "clues": ["шахта ведёт к древним пластам", "в глубине слышны ритмичные удары"]
+        },
+        {
+          "id": "dungeon-pogibshie-zony",
+          "name": "Погибшие зоны",
+          "tags": ["мёртвая магия", "антимагия"],
+          "amplifiers": [
+            {"effect": "полная тишина", "mechanics": ["hidden_will"]},
+            {"effect": "отсутствие магических аур", "mechanics": ["wild_magic"]}
+          ],
+          "dampeners": [
+            {"effect": "обычные предметы работают лучше", "mechanics": ["wild_magic"]},
+            {"effect": "физическая сила не ослаблена", "mechanics": ["wild_magic"]}
+          ],
+          "encounters": [
+            { "name": "Антимагические конструкты", "count": "2-3", "level": "6-7" }
+          ],
+          "loot": ["немагические артефакты", "свитки восстановления магии"],
+          "clues": ["здесь магия Тени ослаблена", "зоны появились недавно — защитная реакция"]
+        },
+        {
+          "id": "dungeon-zarazhennyy-khram",
+          "name": "Заражённый храм",
+          "tags": ["религия", "осквернение"],
+          "amplifiers": [
+            {"effect": "искажённые молитвы", "mechanics": ["hidden_will"]},
+            {"effect": "грибные наросты на алтарях", "mechanics": ["spores"]}
+          ],
+          "dampeners": [
+            {"effect": "святая вода", "mechanics": ["hidden_will", "spores"]},
+            {"effect": "правильные молитвы", "mechanics": ["hidden_will"]}
+          ],
+          "encounters": [
+            { "name": "Оскверённые жрецы", "count": "2-3", "level": "6-7" },
+            { "name": "Тёмный дух храма", "count": "1", "level": "7-8" }
+          ],
+          "loot": ["оскверённые реликвии", "свитки очищения"],
+          "clues": ["храм был посвящён защите от Тени", "ритуалы изгнания всё ещё возможны"]
+        },
+        {
+          "id": "dungeon-gnezdo-teni",
+          "name": "Гнездо Тени",
+          "tags": ["финальная локация", "босс"],
+          "amplifiers": [
+            {"effect": "пульсирующая тьма", "mechanics": ["hidden_will"]},
+            {"effect": "шёпот Тени", "mechanics": ["hidden_will"]},
+            {"effect": "искажение реальности", "mechanics": ["wild_magic"]}
+          ],
+          "dampeners": [
+            {"effect": "ритуалы очищения", "mechanics": ["hidden_will", "spores"]},
+            {"effect": "святые символы", "mechanics": ["hidden_will"]},
+            {"effect": "коллективная воля группы", "mechanics": ["hidden_will"]}
+          ],
+          "encounters": [
+            { "name": "Карающая Тень (финальный босс)", "count": "1", "level": "9-10" },
+            { "name": "Тёмные отражения героев", "count": "по числу игроков", "level": "8-9" }
+          ],
+          "loot": ["сердце Тени (артефакт)", "освобождённые души"],
+          "clues": ["Тень питается страхом и отчаянием", "рой можно освободить, изгнав Тень"]
+        }
+      ]
+    },
+    {
+      "area": "Город Скайлхольм",
+      "pointsOfInterest": [
+        {
+          "id": "gornaya-krepost",
+          "name": "Горная крепость",
+          "tags": ["управление", "артефакты"],
+          "amplifiers": [
+            {"effect": "символы власти", "mechanics": ["hidden_will"]},
+            {"effect": "магические артефакты", "mechanics": ["wild_magic"]}
+          ],
+          "dampeners": [
+            {"effect": "стража и защитники", "mechanics": ["hidden_will"]},
+            {"effect": "антимагические барьеры", "mechanics": ["wild_magic"]}
+          ],
+          "encounters": [
+            { "name": "Мэр города (союзник/противник)", "count": "1", "level": "5-6", "notes": "социальная сцена, возможен конфликт" }
+          ],
+          "loot": ["городские ключи", "доступ к архивам"],
+          "clues": ["артефакты Древа хранятся здесь", "мэр знает больше, чем говорит"]
+        },
+        {
+          "id": "remeslennyy-kvartal",
+          "name": "Ремесленный квартал",
+          "tags": ["торговля", "снаряжение"],
+          "amplifiers": [
+            {"effect": "шум работы", "mechanics": ["hidden_will"]},
+            {"effect": "дым от кузниц", "mechanics": ["spores"]}
+          ],
+          "dampeners": [
+            {"effect": "железо ослабляет грибную магию", "mechanics": ["spores", "hidden_will"]},
+            {"effect": "огонь очищает споры", "mechanics": ["spores"]}
+          ],
+          "encounters": [
+            { "name": "Заражённые ремесленники", "count": "2-3", "level": "2-3" },
+            { "name": "Торговцы информацией", "count": "1-2", "level": "N/A", "notes": "социальная сцена" }
+          ],
+          "loot": ["качественное снаряжение", "противогрибные зелья"],
+          "clues": ["ремесленники начали видеть странные сны", "спрос на железные изделия вырос"]
+        },
+        {
+          "id": "gorod-kladbishche-detailed",
+          "name": "Городское кладбище",
+          "tags": ["ритуалы", "споры", "социальные различия"],
+          "amplifiers": [
+            {"effect": "сырость", "mechanics": ["spores"]},
+            {"effect": "монотонные ходы в склепах", "mechanics": ["hidden_will"]},
+            {"effect": "социальное недовольство", "mechanics": ["hidden_will"]}
+          ],
+          "dampeners": [
+            {"effect": "святая вода", "mechanics": ["spores", "hidden_will"]},
+            {"effect": "яркие лампы", "mechanics": ["hidden_will"]},
+            {"effect": "патрули стражи", "mechanics": ["hidden_will"]}
+          ],
+          "encounters": [
+            { "name": "Неспокойные духи", "count": "2-3", "level": "3-4" },
+            { "name": "Заражённые работники", "count": "1-2", "level": "2-3" },
+            { "name": "Недовольные горожане", "count": "группа", "level": "N/A", "notes": "социальная сцена" }
+          ],
+          "loot": ["жезл распыления святой воды", "книга погребальных песнопений", "информация о социальных конфликтах"],
+          "clues": ["на надгробиях — свежие споровые узоры", "в склепах слышно далёкое пульсирование", "горожане завидуют элитным захоронениям"]
+        },
+        {
+          "id": "svetlaya-polyana-district",
+          "name": "Светлая поляна (район)",
+          "tags": ["храмы", "магические школы"],
+          "amplifiers": [
+            {"effect": "концентрация магии", "mechanics": ["wild_magic"]},
+            {"effect": "ритуальные круги", "mechanics": ["wild_magic"]}
+          ],
+          "dampeners": [
+            {"effect": "святые символы", "mechanics": ["hidden_will"]},
+            {"effect": "обученные маги", "mechanics": ["wild_magic"]}
+          ],
+          "encounters": [
+            { "name": "Студенты магии", "count": "3-5", "level": "1-2", "notes": "могут помочь информацией" },
+            { "name": "Мастер магии", "count": "1", "level": "6-7", "notes": "потенциальный наставник" }
+          ],
+          "loot": ["магические компоненты", "свитки заклинаний"],
+          "clues": ["маги изучают аномалии Древа", "некоторые заклинания перестают работать"]
+        },
+        {
+          "id": "gavan-svonleyk",
+          "name": "Гавань Свонлейк",
+          "tags": ["рыболовство", "магические материалы", "вода"],
+          "amplifiers": [
+            {"effect": "близость к воде", "mechanics": ["wild_magic"]},
+            {"effect": "магические материалы озера", "mechanics": ["wild_magic"]}
+          ],
+          "dampeners": [
+            {"effect": "соляной воздух", "mechanics": ["hidden_will"]},
+            {"effect": "постоянное движение", "mechanics": ["hidden_will"]}
+          ],
+          "encounters": [
+            { "name": "Заражённые рыбаки", "count": "2-3", "level": "2-3" },
+            { "name": "Водные элементали", "count": "1", "level": "4-5" }
+          ],
+          "loot": ["редкие материалы из озера", "рыболовные снасти", "водное снаряжение"],
+          "clues": ["в озере появились странные течения", "рыба стала агрессивнее"]
+        },
+        {
+          "id": "gornye-sklepy",
+          "name": "Горные склепы",
+          "tags": ["элита", "мощные ритуалы"],
+          "amplifiers": [
+            {"effect": "магические символы", "mechanics": ["wild_magic"]},
+            {"effect": "души элиты", "mechanics": ["hidden_will"]},
+            {"effect": "гномская магическая инженерия", "mechanics": ["wild_magic"]}
+          ],
+          "dampeners": [
+            {"effect": "гномская защита", "mechanics": ["hidden_will", "wild_magic"]},
+            {"effect": "священные барьеры", "mechanics": ["hidden_will"]}
+          ],
+          "encounters": [
+            { "name": "Гномы-хранители", "count": "2-3", "level": "4-5", "notes": "могут стать союзниками" },
+            { "name": "Духи знати", "count": "1-2", "level": "5-6", "notes": "могут дать информацию" }
+          ],
+          "loot": ["элитные артефакты", "доступ к мощным ритуалам"],
+          "clues": ["гномы обеспокоены ростом Тени", "древние ритуалы могут помочь"]
+        }
+      ]
+    },
+    {
+      "area": "Деревни и отдалённые поселения",
+      "pointsOfInterest": [
+        {
+          "id": "copper-reach",
+          "name": "Copper Reach",
+          "tags": ["деревня", "перекрёсток", "фермерство"],
+          "amplifiers": [
+            {"effect": "близость к лесу", "mechanics": ["spores"]},
+            {"effect": "традиционные ритуалы Воздаяния", "mechanics": ["hidden_will"]}
+          ],
+          "dampeners": [
+            {"effect": "сельская практичность", "mechanics": ["hidden_will"]},
+            {"effect": "знание природы", "mechanics": ["spores"]}
+          ],
+          "encounters": [
+            { "name": "Деревенские жители", "count": "группа", "level": "N/A", "notes": "социальная сцена" },
+            { "name": "Заражённый скот", "count": "2-3", "level": "1-2" }
+          ],
+          "loot": ["сельские припасы", "информация о лесе"],
+          "clues": ["деревенские знают старые способы защиты", "конфликт с городскими порядками"]
+        },
+        {
+          "id": "derevenskye-ritualy",
+          "name": "Место ритуалов Воздаяния",
+          "tags": ["ритуалы", "мицелиане", "традиции"],
+          "amplifiers": [
+            {"effect": "древние связи с грибами", "mechanics": ["spores"]},
+            {"effect": "место силы", "mechanics": ["wild_magic"]}
+          ],
+          "dampeners": [
+            {"effect": "нарушение традиций ослабляет место", "mechanics": ["wild_magic"]},
+            {"effect": "присутствие городских жителей", "mechanics": ["hidden_will"]}
+          ],
+          "encounters": [
+            { "name": "Деревенские старейшины", "count": "2-3", "level": "N/A", "notes": "источник знаний" },
+            { "name": "Мирные мицелиане", "count": "группа", "level": "N/A", "notes": "информанты" }
+          ],
+          "loot": ["благословения предков", "древние знания о симбиозе"],
+          "clues": ["ритуалы Воздаяния поддерживали баланс", "Тень нарушила древний договор"]
+        }
+      ]
+    },
+    {
+      "area": "Свонлейк и водные локации",
+      "pointsOfInterest": [
+        {
+          "id": "svonleyk-pristan",
+          "name": "Длинная пристань",
+          "tags": ["вода", "поющие волны"],
+          "amplifiers": [
+            {"effect": "полнолуние", "mechanics": ["wild_magic"]},
+            {"effect": "штиль (зеркало воды)", "mechanics": ["hidden_will"]}
+          ],
+          "dampeners": [
+            {"effect": "колокол у причала", "mechanics": ["hidden_will"]},
+            {"effect": "заземление через мокрую верёвку", "mechanics": ["wild_magic"]}
+          ],
+          "encounters": [
+            { "name": "Споровые элементали", "count": "1-2", "level": "4-5" }
+          ],
+          "loot": ["черпак Свонлейка", "оберег рыбака"],
+          "clues": ["вода повторяет шёпот с задержкой", "волны складываются в трёхударный ритм"]
+        },
+        {
+          "id": "svonleyk-vodovorot",
+          "name": "Водоворот ветров",
+          "tags": ["лей-линии", "дикость эфира"],
+          "amplifiers": [
+            {"effect": "гроза/схождение лун", "mechanics": ["wild_magic"]},
+            {"effect": "кристаллы в набережной", "mechanics": ["wild_magic"]}
+          ],
+          "dampeners": [
+            {"effect": "ритуал снятия фона", "mechanics": ["wild_magic"]},
+            {"effect": "контр-песнопения", "mechanics": ["wild_magic", "hidden_will"]}
+          ],
+          "encounters": [
+            { "name": "Магический всплеск (дикой магии)", "level": "4-6" }
+          ],
+          "loot": ["кристалл набережной", "металлический маятник"],
+          "clues": ["маятник стабилизирует направление ветра", "искра тянется туда, где ближе арки"]
+        },
+        {
+          "id": "svonleyk-glubiny",
+          "name": "Глубины озера Свонлейк",
+          "tags": ["подводное", "древние руины"],
+          "amplifiers": [
+            {"effect": "давление воды", "mechanics": ["hidden_will"]},
+            {"effect": "подводные течения", "mechanics": ["wild_magic"]}
+          ],
+          "dampeners": [
+            {"effect": "магические пузыри воздуха", "mechanics": ["wild_magic"]},
+            {"effect": "подводное снаряжение", "mechanics": ["wild_magic"]}
+          ],
+          "encounters": [
+            { "name": "Подводные элементали", "count": "2-3", "level": "5-6" },
+            { "name": "Заражённые водные существа", "count": "рой", "level": "4-5" }
+          ],
+          "loot": ["подводные артефакты", "жемчуг магического озера"],
+          "clues": ["на дне — затопленные руины древнего храма", "источник магических аномалий озера"]
+        }
+      ]
+    }
+  ]
+}
