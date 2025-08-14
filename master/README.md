@@ -44,6 +44,7 @@
 ## Навигация Мастера
 - [Состояния и их DC](./otslezhivanie-sostoyanii.md)
 - [Твисты, тайминги, fail‑forward](./tvisti-i-failforward.md)
+- [Ваншоты](../vanshoty/README.md)
 - [Прогрессия уровней и давление](../progressiya/README.md)
 - [Карта кампании/данжа (быстрый взгляд)](../globalnyi-syuzhet/karta-kampanii.md)
 - Босс и фразы: [Финальный босс](../npc/finalnyi-boss/README.md) · [Паттерн поведения](../npc/finalnyi-boss/pattern-povedeniya.md) · [Фразочки](../npc/finalnyi-boss/frazochki.md)

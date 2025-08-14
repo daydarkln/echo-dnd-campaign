@@ -1,0 +1,345 @@
+/* Общие стили для приложения */
+.app-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Стили для React Flow */
+.react-flow__node {
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.react-flow__node:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+}
+
+/* Базовые стили для рёбер */
+.react-flow__edge-path {
+  stroke: #8c8c8c;
+  stroke-width: 2;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+}
+
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke-width: 4;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #1890ff;
+  stroke-width: 4;
+  filter: drop-shadow(0 2px 6px rgba(24, 144, 255, 0.4));
+}
+
+/* Стили для разных типов дорог */
+.react-flow__edge.edge-main_road .react-flow__edge-path {
+  stroke: #1890ff !important;
+  stroke-width: 3 !important;
+}
+
+.react-flow__edge.edge-narrow_road .react-flow__edge-path {
+  stroke: #52c41a !important;
+  stroke-width: 2 !important;
+}
+
+.react-flow__edge.edge-obstructed_road .react-flow__edge-path {
+  stroke: #f5222d !important;
+  stroke-width: 2 !important;
+  stroke-dasharray: 8,4 !important;
+}
+
+.react-flow__edge.edge-hidden_path .react-flow__edge-path {
+  stroke: #fa8c16 !important;
+  stroke-width: 2 !important;
+  stroke-dasharray: 4,4 !important;
+  opacity: 0.8 !important;
+}
+
+/* Стили для подписей рёбер */
+.react-flow__edge-text {
+  font-size: 10px;
+  fill: #333;
+  font-weight: 600;
+  text-shadow: 0 0 3px white, 0 0 3px white, 0 0 3px white;
+}
+
+.react-flow__edge-textbg {
+  fill: rgba(255, 255, 255, 0.9);
+  stroke: rgba(0, 0, 0, 0.1);
+  stroke-width: 1;
+  rx: 4;
+  ry: 4;
+}
+
+/* Анимация для выделения маршрутов */
+.react-flow__edge:hover .react-flow__edge-path {
+  animation: pulse-edge 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-edge {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+/* Стили для групп регионов */
+.region-background {
+  border-radius: 20px;
+  backdrop-filter: blur(1px);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.region-background:hover {
+  backdrop-filter: blur(2px);
+  transform: scale(1.01);
+}
+
+/* Заголовки регионов */
+.region-title {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  letter-spacing: 0.5px;
+}
+
+/* Улучшенные стили для узлов в цветных регионах */
+.react-flow__node.location-node-in-region {
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.react-flow__node.location-node-in-region:hover {
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+}
+
+/* Стили для групповых узлов */
+.group-node {
+  transition: all 0.3s ease;
+}
+
+.group-node:hover {
+  transform: scale(1.02);
+}
+
+/* Обновлённые стили для узлов в subflows */
+.react-flow__node-group {
+  background: transparent !important;
+  border: none !important;
+}
+
+.react-flow__node-locationNode { z-index: 10; pointer-events: auto; }
+.react-flow__node-group { z-index: 1; pointer-events: none; }
+.react-flow__edge { z-index: 5; }
+
+/* Стили для карточек локаций */
+.location-card {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.location-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Стили для детальной страницы */
+.location-detail-container {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Стили для различных типов карточек */
+.amplifier-card .ant-card-head {
+  background-color: #fff2f0;
+  border-bottom: 1px solid #ffccc7;
+}
+
+.dampener-card .ant-card-head {
+  background-color: #f6ffed;
+  border-bottom: 1px solid #b7eb8f;
+}
+
+.encounter-card .ant-card-head {
+  background-color: #fff7e6;
+  border-bottom: 1px solid #ffd591;
+}
+
+.loot-card .ant-card-head {
+  background-color: #f9f0ff;
+  border-bottom: 1px solid #d3adf7;
+}
+
+.clue-card .ant-card-head {
+  background-color: #e6fffb;
+  border-bottom: 1px solid #87e8de;
+}
+
+/* Кастомные цвета для тегов */
+.tag-spores {
+  background-color: #ff7875 !important;
+  border-color: #ff7875 !important;
+}
+
+.tag-hidden-will {
+  background-color: #ffc069 !important;
+  border-color: #ffc069 !important;
+}
+
+.tag-wild-magic {
+  background-color: #b37feb !important;
+  border-color: #b37feb !important;
+}
+
+/* Custom styles for group management */
+.group-color-selector {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.group-color-option {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid #d9d9d9;
+}
+
+.group-color-option:hover {
+  transform: scale(1.1);
+  border-color: #1890ff;
+}
+
+.group-color-option.selected {
+  border: 3px solid #1890ff;
+  transform: scale(1.1);
+}
+
+.group-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.group-in-location {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin: 2px 0;
+  border-left: 3px solid;
+  font-size: 11px;
+}
+
+.ant-list-item-meta-title {
+  font-size: 14px !important;
+}
+
+.ant-card-head-title {
+  font-size: 16px !important;
+}
+
+/* Стили для групп на узлах локаций */
+.groups-in-location-container {
+  border-top: 1px solid #f0f0f0;
+  padding-top: 4px;
+  margin-top: 4px;
+}
+
+.group-badge {
+  display: flex;
+  align-items: center;
+  margin: 2px 0;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+/* Стили для разделения групп */
+.split-group-preview {
+  background: #f5f5f5;
+  border-radius: 4px;
+  padding: 12px;
+  margin-top: 16px;
+}
+
+.split-group-result-item {
+  margin: 4px 0;
+  padding: 4px 0;
+}
+
+.ant-checkbox-wrapper + .ant-list-item-meta {
+  margin-left: 0 !important;
+}
+
+.ant-list-item-meta {
+  align-items: center;
+}
+
+/* Стили для кнопки разделения */
+.split-button {
+  border-color: #722ed1 !important;
+  color: #722ed1 !important;
+}
+
+.split-button:hover {
+  border-color: #531dab !important;
+  color: #531dab !important;
+  background-color: #f9f0ff !important;
+}
+
+/* Стили для кнопки добавления группы на узлах локаций */
+.location-node .ant-btn-link {
+  color: #52c41a !important;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+.location-node .ant-btn-link:hover {
+  opacity: 1 !important;
+  color: #389e0d !important;
+  transform: scale(1.1);
+}
+
+/* Стили для модального окна выбора группы */
+.group-selection-button {
+  transition: all 0.2s ease;
+  border: 1px solid #d9d9d9;
+}
+
+.group-selection-button:hover {
+  border-color: #40a9ff !important;
+  background-color: #f0f8ff !important;
+}
+
+/* Responsive стили */
+@media (max-width: 768px) {
+  .location-detail-container {
+    padding: 12px !important;
+  }
+  
+  .react-flow__controls {
+    right: 10px !important;
+  }
+  
+  .react-flow__minimap {
+    right: 10px !important;
+    top: 10px !important;
+  }
+}
