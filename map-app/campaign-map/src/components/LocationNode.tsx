@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Handle, Position, NodeProps, useReactFlow } from 'reactflow';
 import { Card, Tag, Button, Modal, Select, message } from 'antd';
-import { EnvironmentOutlined, TeamOutlined, PlusOutlined } from '@ant-design/icons';
+import { EnvironmentOutlined, TeamOutlined, PlusOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import { useGroups } from '../hooks/useGroups';
 import { getLocationName } from '../utils/locationUtils';
+import { useLocationVisibility } from '../hooks/useLocationVisibility';
+import { useRegionVisibility } from '../hooks/useRegionVisibility';
 
 interface LocationNodeData {
   label: string;
@@ -11,12 +13,15 @@ interface LocationNodeData {
   area: string;
   color?: string;
   onNodeClick?: (nodeId: string) => void;
+  enableLocationVisibility?: boolean;
 }
 
 const LocationNode: React.FC<NodeProps<LocationNodeData>> = ({ id, data, selected }) => {
   const rf = useReactFlow();
   const { groups, moveGroupToLocation } = useGroups();
   const [showGroupModal, setShowGroupModal] = useState(false);
+  const { isLocationVisible, toggleLocationVisibility, setLocationVisibilityWithRegionUpdate } = useLocationVisibility();
+  const { autoOpenRegionIfNeeded } = useRegionVisibility();
   
   // Найти группы, которые находятся в этой локации
   const groupsAtLocation = groups.filter(group => group.currentLocation === id);
@@ -91,6 +96,25 @@ const LocationNode: React.FC<NodeProps<LocationNodeData>> = ({ id, data, selecte
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <EnvironmentOutlined style={{ color: data.color || '#1890ff', marginRight: 4 }} />
             <strong style={{ fontSize: 14, color: '#262626' }}>{data.label}</strong>
+            {data.enableLocationVisibility && (
+              <Button
+                type="text"
+                size="small"
+                icon={isLocationVisible(id) ? <EyeOutlined /> : <EyeInvisibleOutlined />}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (isLocationVisible(id)) {
+                    // Если локация скрывается, просто переключаем
+                    toggleLocationVisibility(id);
+                  } else {
+                    // Если локация открывается, автоматически открываем регион
+                    setLocationVisibilityWithRegionUpdate(id, true, data.area, autoOpenRegionIfNeeded);
+                  }
+                }}
+                style={{ marginLeft: 8, color: isLocationVisible(id) ? '#52c41a' : '#d9d9d9' }}
+                title={isLocationVisible(id) ? 'Скрыть локацию' : 'Показать локацию'}
+              />
+            )}
           </div>
           {availableGroups.length > 0 && (
             <Button

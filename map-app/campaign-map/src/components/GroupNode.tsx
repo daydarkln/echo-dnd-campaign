@@ -1,15 +1,19 @@
 import React from 'react';
 import { NodeProps } from 'reactflow';
-import { GlobalOutlined } from '@ant-design/icons';
+import { GlobalOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
+import { useRegionVisibility } from '../hooks/useRegionVisibility';
 
 interface GroupNodeData {
   label: string;
   area: string;
   locationCount: number;
   color: string;
+  enableLocationVisibility?: boolean;
 }
 
 const GroupNode: React.FC<NodeProps<GroupNodeData>> = ({ data, selected }) => {
+  const { isRegionVisible, toggleRegionVisibility, autoOpenRegionIfNeeded } = useRegionVisibility();
+  
   return (
     <div
       className="group-node"
@@ -63,6 +67,7 @@ const GroupNode: React.FC<NodeProps<GroupNodeData>> = ({ data, selected }) => {
         >
           {data.locationCount}
         </span>
+        
       </div>
 
       {/* Дочерние узлы рендерятся React Flow внутри extent: 'parent' */}
