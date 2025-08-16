@@ -5,6 +5,7 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
   Node,
+  ReactFlowInstance,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Button, Card, Typography, Modal, Descriptions, Tag, List, Tooltip } from 'antd';
@@ -22,6 +23,7 @@ interface RegionFocusedMapProps {
   pathsData: PathsData;
   onBack: () => void;
   onNodeClick: (location: PointOfInterest, area: string) => void;
+  enableDragging?: boolean;
 }
 
 const nodeTypes = {
@@ -195,15 +197,77 @@ function buildRegionFocusedGraph(
   return { nodes, edges };
 }
 
-const RegionFocusedMap: React.FC<RegionFocusedMapProps> = ({ areaName, pointsData, pathsData, onBack, onNodeClick }) => {
+const RegionFocusedMap: React.FC<RegionFocusedMapProps> = ({ areaName, pointsData, pathsData, onBack, onNodeClick, enableDragging = false }) => {
   const { nodes: initialNodes, edges: initialEdges } = buildRegionFocusedGraph(areaName, pointsData, pathsData);
-  const [graphNodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [graphEdges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [selectedRoute, setSelectedRoute] = useState<any>(null);
   const [showRouteModal, setShowRouteModal] = useState(false);
   const edgesRef = useRef<GraphEdge[]>(initialEdges);
   const { state: trackers } = useTrackers();
+
+  // Функция для сохранения позиций узлов
+  const saveNodePositions = useCallback(() => {
+    if (!enableDragging) return;
+    
+    const positions: Record<string, { x: number; y: number }> = {};
+    nodes.forEach(node => {
+      positions[node.id] = { x: node.position.x, y: node.position.y };
+    });
+    
+    const storageKey = `region-${areaName}-positions`;
+    localStorage.setItem(storageKey, JSON.stringify(positions));
+    console.log(`RegionFocusedMap - Сохранены позиции для региона "${areaName}":`, positions);
+  }, [nodes, areaName, enableDragging]);
+
+  // Функция для загрузки сохраненных позиций
+  const loadSavedPositions = useCallback(() => {
+    if (!enableDragging) return;
+    
+    try {
+      const storageKey = `region-${areaName}-positions`;
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const positions = JSON.parse(saved);
+        setNodes(prevNodes => 
+          prevNodes.map(node => {
+            const savedPos = positions[node.id];
+            return savedPos ? { ...node, position: savedPos } : node;
+          })
+        );
+        console.log(`RegionFocusedMap - Загружены сохраненные позиции для региона "${areaName}":`, positions);
+      }
+    } catch (error) {
+      console.warn(`RegionFocusedMap - Ошибка загрузки позиций для региона "${areaName}":`, error);
+    }
+  }, [areaName, enableDragging, setNodes]);
+
+  // Загружаем сохраненные позиции при инициализации
+  useEffect(() => {
+    loadSavedPositions();
+  }, [loadSavedPositions]);
+
+  // Обработчик перетаскивания узлов
+  const handleNodeDragStop = useCallback((event: any, node: Node) => {
+    if (!enableDragging) return;
+    
+    console.log(`RegionFocusedMap - Узел "${node.id}" перетащен в позицию:`, node.position);
+    // Позиции автоматически сохраняются в ReactFlow
+  }, [enableDragging]);
+
+  // Автоматическое сохранение позиций при изменении
+  useEffect(() => {
+    if (!enableDragging) return;
+    
+    const timeoutId = setTimeout(() => {
+      saveNodePositions();
+    }, 500); // Сохраняем через 500мс после последнего изменения
+    
+    return () => clearTimeout(timeoutId);
+  }, [nodes, saveNodePositions, enableDragging]);
+
   const cityDesc = [
     '0 — Город дышит ровно: рынки гудят, стража вальяжна, слухи не задерживаются.',
     '1 — Лёгкая нервозность: двери закрывают пораньше, у колодцев шёпот короче.',
@@ -304,6 +368,13 @@ const RegionFocusedMap: React.FC<RegionFocusedMapProps> = ({ areaName, pointsDat
         <div>
           <Title level={3} style={{ margin: 0 }}>Регион: {areaName}</Title>
           <Text type="secondary">В центре — локации региона, по краям — соседние локации, связанные маршрутами</Text>
+          {enableDragging && (
+            <div style={{ marginTop: '8px' }}>
+              <Text type="secondary" style={{ fontSize: '12px' }}>
+                💡 <strong>Подсказка:</strong> Перетаскивайте узлы для изменения их расположения. Позиции автоматически сохраняются.
+              </Text>
+            </div>
+          )}
         </div>
         <Button onClick={onBack} type="primary">Назад к общей карте</Button>
       </div>
@@ -316,7 +387,7 @@ const RegionFocusedMap: React.FC<RegionFocusedMapProps> = ({ areaName, pointsDat
           bodyStyle={{ padding: 8 }}
           title={<span style={{ fontSize: 12, color: '#555' }}>Общие трекеры</span>}
         >
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 6, alignItems: 'center', fontSize: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 6, alignItems: 'center', fontSize: '12px' }}>
             <span>Городская паника</span>
             <Tooltip title={cityDesc} placement="left">
               <Tag color="blue" style={{ margin: 0, cursor: 'help' }}>{trackers.cityPanic}</Tag>
@@ -331,9 +402,21 @@ const RegionFocusedMap: React.FC<RegionFocusedMapProps> = ({ areaName, pointsDat
             </Tooltip>
           </div>
         </Card>
+        
+        {/* Кнопка сохранения позиций */}
+        {enableDragging && (
+          <Button
+            type="default"
+            size="middle"
+            style={{ position: 'absolute', zIndex: 5, top: 12, left: 12 }}
+            onClick={saveNodePositions}
+          >
+            💾 Сохранить позиции
+          </Button>
+        )}
         <ReactFlow
-          nodes={graphNodes}
-          edges={graphEdges}
+          nodes={nodes}
+          edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onNodeClick={handleNodeClick}
@@ -342,6 +425,9 @@ const RegionFocusedMap: React.FC<RegionFocusedMapProps> = ({ areaName, pointsDat
           minZoom={0.25}
           fitView
           attributionPosition="bottom-left"
+          onPaneClick={() => setHoveredNodeId(null)} // Сбрасываем hover при клике по панели
+          onNodeDragStop={handleNodeDragStop} // Обработчик перетаскивания
+          onInit={(reactFlowInstance) => setRfInstance(reactFlowInstance)} // Сохраняем экземпляр ReactFlow
         >
           <Background />
           <Controls />

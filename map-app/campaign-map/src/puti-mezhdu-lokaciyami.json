@@ -175,7 +175,7 @@
     {
       "id": "copper-reach-to-berezovka",
       "from": "copper-reach",
-      "to": "derevnya-berezovka",
+      "to": "derevnya-tropper",
       "pathType": "narrow_road",
       "description": "Сельская дорога между деревнями",
       "travelTime": "25 минут",
@@ -393,9 +393,9 @@
       "notes": "Официальный путь для патрулирования"
     },
     {
-      "id": "pole-yarko-zheltyh-cvetov-to-berezovka",
+      "id": "pole-yarko-zheltyh-cvetov-to-tropper",
       "from": "pole-yarko-zheltyh-cvetov",
-      "to": "derevnya-berezovka",
+      "to": "derevnya-tropper",
       "pathType": "narrow_road",
       "description": "Сельская тропа к полю цветов",
       "travelTime": "45 минут",
@@ -492,6 +492,17 @@
       "notes": "Внутренняя связь города"
     },
     {
+      "id": "gornaya-krepost-to-gornye-sklepy",
+      "from": "gornaya-krepost",
+      "to": "gornye-sklepy",
+      "pathType": "mountain_path",
+      "description": "Горная тропа к склепам",
+      "travelTime": "1 час",
+      "obstacles": ["горные перевалы", "ветер"],
+      "requirements": ["проверка Выживания DC 12"],
+      "notes": "Путь от крепости к элитным захоронениям"
+    },
+    {
       "id": "svetlaya-polyana-district-to-gornye-sklepy",
       "from": "svetlaya-polyana-district",
       "to": "gornye-sklepy",
@@ -512,6 +523,17 @@
       "obstacles": ["ловушки", "тайные двери"],
       "requirements": ["проверка Воровства DC 14"],
       "notes": "Тайная связь элиты с рынком"
+    },
+    {
+      "id": "gornye-sklepy-to-gavan-svonleyk",
+      "from": "gornye-sklepy",
+      "to": "gavan-svonleyk",
+      "pathType": "mountain_path",
+      "description": "Горная тропа к гавани",
+      "travelTime": "2 часа",
+      "obstacles": ["горные перевалы", "ветер", "дикие звери"],
+      "requirements": ["проверка Выживания DC 14"],
+      "notes": "Путь от склепов к гавани через горы"
     },
     {
       "id": "gorod-gribnoy-rynok-to-akademiya-rezonansa",
@@ -699,6 +721,248 @@
       "obstacles": ["узкие проходы", "памятники"],
       "requirements": [],
       "notes": "Скрытый путь к кладбищу от военного квартала"
+    },
+    {
+      "id": "zolotistaya-to-vesenniy-kluch",
+      "from": "derevnya-zolotistaya",
+      "to": "derevnya-vesenniy-kluch",
+      "pathType": "main_road",
+      "description": "Главная дорога между деревнями",
+      "travelTime": "2 часа",
+      "obstacles": ["магические барьеры", "проверка разрешений"],
+      "requirements": ["пропуск или проверка Убеждения DC 12"],
+      "notes": "Официальный путь между защищенными деревнями"
+    },
+    {
+      "id": "zolotistaya-to-vihrevaya-dolina",
+      "from": "derevnya-zolotistaya",
+      "to": "vihrevaya-dolina",
+      "pathType": "mountain_path",
+      "description": "Горная тропа к вихревой долине",
+      "travelTime": "1.5 часа",
+      "obstacles": ["магические вихри", "ветер"],
+      "requirements": ["проверка Магии DC 13", "защитные амулеты"],
+      "notes": "Путь для адептов дикой магии"
+    },
+    {
+      "id": "vesenniy-kluch-to-ozero-otrazheniy",
+      "from": "derevnya-vesenniy-kluch",
+      "to": "ozero-otrazheniy",
+      "pathType": "narrow_road",
+      "description": "Тропа к озеру отражений",
+      "travelTime": "1 час",
+      "obstacles": ["заросшие участки", "дикие звери"],
+      "requirements": ["проверка Выживания DC 10"],
+      "notes": "Безопасный путь к озеру"
+    },
+    {
+      "id": "vihrevaya-dolina-to-kamennyy-krug",
+      "from": "vihrevaya-dolina",
+      "to": "kamennyy-krug-strazhey",
+      "pathType": "hidden_path",
+      "description": "Скрытая тропа к каменному кругу",
+      "travelTime": "45 минут",
+      "obstacles": ["магические ловушки", "иллюзии"],
+      "requirements": ["проверка Расследования DC 13", "проверка Магии DC 12"],
+      "notes": "Тайный путь для посвященных"
+    },
+    {
+      "id": "kamennyy-krug-to-pole-kamney",
+      "from": "kamennyy-krug-strazhey",
+      "to": "pole-pulsiruyushchih-kamney",
+      "pathType": "main_road",
+      "description": "Дорога к полю пульсирующих камней",
+      "travelTime": "1 час",
+      "obstacles": ["стражи", "проверка разрешений"],
+      "requirements": ["разрешение стражей", "проверка Мудрости DC 14"],
+      "notes": "Контролируемый доступ к опасной аномалии"
+    },
+    {
+      "id": "pole-yarko-zheltyh-to-zolotistaya",
+      "from": "pole-yarko-zheltyh-cvetov",
+      "to": "derevnya-zolotistaya",
+      "pathType": "narrow_road",
+      "description": "Тропа от поля цветов к деревне",
+      "travelTime": "1.5 часа",
+      "obstacles": ["магические барьеры", "проверка доступа"],
+      "requirements": ["проверка Магии DC 11"],
+      "notes": "Путь для адептов дикой магии"
+    },
+    {
+      "id": "ozero-otrazheniy-to-pole-kamney",
+      "from": "ozero-otrazheniy",
+      "to": "pole-pulsiruyushchih-kamney",
+      "pathType": "hidden_path",
+      "description": "Скрытая тропа через равнины",
+      "travelTime": "2 часа",
+      "obstacles": ["магические ловушки", "иллюзии"],
+      "requirements": ["проверка Расследования DC 13"],
+      "notes": "Тайный путь для опытных путешественников"
+    },
+    {
+      "id": "les-zarazhennaya-tropa-to-zabroshennaya-derevnya",
+      "from": "les-zarazhennaya-tropa",
+      "to": "zabroshennaya-derevnya-lesnikov",
+      "pathType": "forest_trail",
+      "description": "Заражённая тропа к заброшенной деревне",
+      "travelTime": "1 час",
+      "obstacles": ["споровые облака", "заражённая растительность"],
+      "requirements": ["защита от спор", "проверка Выживания DC 12"],
+      "notes": "Опасный путь через заражённые земли"
+    },
+    {
+      "id": "zabroshennaya-derevnya-to-altar",
+      "from": "zabroshennaya-derevnya-lesnikov",
+      "to": "drevniy-altar-vozdaniya",
+      "pathType": "hidden_path",
+      "description": "Скрытая тропа к древнему алтарю",
+      "travelTime": "45 минут",
+      "obstacles": ["магические ловушки", "иллюзии"],
+      "requirements": ["проверка Расследования DC 13", "проверка Религии DC 12"],
+      "notes": "Тайный путь для посвящённых"
+    },
+    {
+      "id": "altar-to-pole-gribov",
+      "from": "drevniy-altar-vozdaniya",
+      "to": "pole-pulsiruyushchih-gribov",
+      "pathType": "forest_trail",
+      "description": "Лесная тропа к полю грибов",
+      "travelTime": "1.5 часа",
+      "obstacles": ["заражённая местность", "пульсирующие грибы"],
+      "requirements": ["защита от спор", "проверка Выживания DC 14"],
+      "notes": "Опасный путь к аномальной зоне"
+    },
+    {
+      "id": "pole-gribov-to-kolonii",
+      "from": "pole-pulsiruyushchih-gribov",
+      "to": "les-kolonii-miceliuma",
+      "pathType": "narrow_road",
+      "description": "Узкая дорога к колониям мицелиума",
+      "travelTime": "1 час",
+      "obstacles": ["споровые облака", "заражённые растения"],
+      "requirements": ["защита от спор", "проверка Магии DC 11"],
+      "notes": "Путь к сердцу заражения"
+    },
+    {
+      "id": "kolonii-to-temnye-koridory",
+      "from": "les-kolonii-miceliuma",
+      "to": "temnye-koridory-lesa",
+      "pathType": "hidden_path",
+      "description": "Скрытая тропа к тёмным коридорам",
+      "travelTime": "30 минут",
+      "obstacles": ["магические ловушки", "споровые облака"],
+      "requirements": ["проверка Расследования DC 13"],
+      "notes": "Тайный путь в лабиринт"
+    },
+    {
+      "id": "temnye-koridory-to-ozero-mostov",
+      "from": "temnye-koridory-lesa",
+      "to": "ozero-magicheskih-mostov",
+      "pathType": "forest_trail",
+      "description": "Лесная тропа к озеру мостов",
+      "travelTime": "1 час",
+      "obstacles": ["заражённая местность", "споровые облака"],
+      "requirements": ["защита от спор", "проверка Выживания DC 12"],
+      "notes": "Путь к магическому озеру"
+    },
+    {
+      "id": "ozero-mostov-to-peshchera-artefaktov",
+      "from": "ozero-magicheskih-mostov",
+      "to": "peshchera-artefaktov",
+      "pathType": "mountain_path",
+      "description": "Горная тропа к пещере артефактов",
+      "travelTime": "1.5 часа",
+      "obstacles": ["горные тропы", "споровые ловушки"],
+      "requirements": ["проверка Атлетики DC 12", "защита от спор"],
+      "notes": "Путь к древним сокровищам"
+    },
+    {
+      "id": "peshchera-artefaktov-to-shahta",
+      "from": "peshchera-artefaktov",
+      "to": "shahta-drevnih-znaniy",
+      "pathType": "underground_tunnel",
+      "description": "Подземный туннель к шахте",
+      "travelTime": "45 минут",
+      "obstacles": ["заражённые ловушки", "споровые облака"],
+      "requirements": ["защита от спор", "проверка Магии DC 12"],
+      "notes": "Подземная связь между локациями"
+    },
+    {
+      "id": "shahta-to-svyashchennaya-chasha",
+      "from": "shahta-drevnih-znaniy",
+      "to": "svyashchennaya-chasha",
+      "pathType": "hidden_path",
+      "description": "Скрытая тропа к священной чаше",
+      "travelTime": "1 час",
+      "obstacles": ["магические ловушки", "споровые облака"],
+      "requirements": ["проверка Расследования DC 13", "проверка Религии DC 12"],
+      "notes": "Тайный путь к святыне"
+    },
+    {
+      "id": "svyashchennaya-chasha-to-zona-oslableniya",
+      "from": "svyashchennaya-chasha",
+      "to": "zona-oslableniya-teni",
+      "pathType": "main_road",
+      "description": "Главная дорога к зоне ослабления",
+      "travelTime": "1 час",
+      "obstacles": ["заражённая местность", "споровые облака"],
+      "requirements": ["защита от спор", "проверка Выживания DC 11"],
+      "notes": "Безопасный путь к убежищу"
+    },
+    {
+      "id": "zona-oslableniya-to-khram",
+      "from": "zona-oslableniya-teni",
+      "to": "khram-izgnaniya",
+      "pathType": "narrow_road",
+      "description": "Узкая дорога к храму изгнания",
+      "travelTime": "1.5 часа",
+      "obstacles": ["заражённая местность", "споровые облака"],
+      "requirements": ["защита от спор", "проверка Религии DC 13"],
+      "notes": "Путь к священному месту"
+    },
+    {
+      "id": "khram-to-gnezdo-teni",
+      "from": "khram-izgnaniya",
+      "to": "gnezdo-teni",
+      "pathType": "hidden_path",
+      "description": "Скрытая тропа к гнезду Тени",
+      "travelTime": "2 часа",
+      "obstacles": ["магические ловушки", "споровые облака", "тёмная магия"],
+      "requirements": ["проверка Расследования DC 15", "проверка Магии DC 14", "защита от Тени"],
+      "notes": "Финальный путь к боссу"
+    },
+    {
+      "id": "anomalnoe-ozero-to-zabroshennaya-derevnya",
+      "from": "les-anomalnoe-ozero",
+      "to": "zabroshennaya-derevnya-lesnikov",
+      "pathType": "forest_trail",
+      "description": "Лесная тропа от озера к деревне",
+      "travelTime": "1.5 часа",
+      "obstacles": ["заражённая местность", "споровые облака"],
+      "requirements": ["защита от спор", "проверка Выживания DC 12"],
+      "notes": "Альтернативный путь к заброшенной деревне"
+    },
+    {
+      "id": "tikhaya-opushka-to-temnye-koridory",
+      "from": "tikhaya-opushka",
+      "to": "temnye-koridory-lesa",
+      "pathType": "hidden_path",
+      "description": "Скрытая тропа от опушки к коридорам",
+      "travelTime": "45 минут",
+      "obstacles": ["магические ловушки", "споровые облака"],
+      "requirements": ["проверка Расследования DC 13"],
+      "notes": "Тайный путь через заражённые земли"
+    },
+    {
+      "id": "gribnaya-peshchera-to-peshchera-artefaktov",
+      "from": "gribnaya-peshchera-surface",
+      "to": "peshchera-artefaktov",
+      "pathType": "underground_tunnel",
+      "description": "Подземный туннель между пещерами",
+      "travelTime": "1 час",
+      "obstacles": ["споровые ловушки", "заражённые существа"],
+      "requirements": ["защита от спор", "проверка Магии DC 12"],
+      "notes": "Подземная связь пещер"
     }
   ]
 }

@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Spin, Alert, FloatButton, Modal, Tabs } from 'antd';
-import { TeamOutlined, PartitionOutlined, DashboardOutlined } from '@ant-design/icons';
+import { TeamOutlined, PartitionOutlined, DashboardOutlined, UserOutlined } from '@ant-design/icons';
 import TrackersPage from './pages/TrackersPage';
+import PlayerMapPage from './pages/PlayerMapPage';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import GroupedMindMap from './components/GroupedMindMap';
 import RegionFocusedMap from './components/RegionFocusedMap';
 import LocationDetail from './components/LocationDetail';
+import PlayerLocationDetail from './components/PlayerLocationDetail';
+import PlayerMap from './components/PlayerMap';
 import { GroupManager } from './components/GroupManager';
 import { PointsData, PathsData, PointOfInterest, GraphNode, GraphEdge } from './types';
 import { parseToSubflows } from './utils/dataParser';
@@ -42,6 +45,7 @@ function App() {
       );
       setNodes(parsedNodes);
       setEdges(parsedEdges);
+      
       setLoading(false);
     } catch (err) {
       setError('Ошибка при загрузке данных: ' + (err as Error).message);
@@ -99,6 +103,7 @@ function App() {
             pathsData={pathsData as PathsData}
             onNodeClick={handleLocationClick}
             onRegionClick={(areaName) => { setFocusedRegion(areaName); setCurrentView('region'); }}
+            enableDragging={true}
           />
         );
       
@@ -110,6 +115,7 @@ function App() {
             pathsData={pathsData as PathsData}
             onBack={handleBackToMindMap}
             onNodeClick={handleLocationClick}
+            enableDragging={true}
           />
         ) : null;
       
@@ -122,10 +128,10 @@ function App() {
     <Layout style={{ minHeight: '100vh', backgroundColor: '#f0f2f5' }}>
       <Content style={{ padding: 24 }}>
         <Tabs
-          activeKey={location.pathname.startsWith('/groups') ? 'groups' : location.pathname.startsWith('/trackers') ? 'trackers' : 'map'}
+          activeKey={location.pathname.startsWith('/groups') ? 'groups' : location.pathname.startsWith('/trackers') ? 'trackers' : location.pathname.startsWith('/player-map') ? 'player-map' : 'map'}
           onChange={(key) => {
             setActiveTab(key);
-            navigate(key === 'groups' ? '/groups' : key === 'trackers' ? '/trackers' : '/');
+            navigate(key === 'groups' ? '/groups' : key === 'trackers' ? '/trackers' : key === 'player-map' ? '/player-map' : '/');
           }}
           items={[
             {
@@ -149,6 +155,14 @@ function App() {
               label: (
                 <span>
                   <DashboardOutlined /> Трекеры
+                </span>
+              ),
+            },
+            {
+              key: 'player-map',
+              label: (
+                <span>
+                  <UserOutlined /> Карта для игроков
                 </span>
               ),
             },
@@ -182,6 +196,10 @@ function App() {
             path="/trackers"
             element={<TrackersPage />}
           />
+          <Route
+            path="/player-map"
+            element={<PlayerMapPage />}
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
 
@@ -201,12 +219,21 @@ function App() {
           style={{ top: 20 }}
         >
           {selectedLocation && (
-            <LocationDetail
-              location={selectedLocation}
-              area={currentArea}
-              onBack={handleBackToMindMap}
-              isModal={true}
-            />
+            location.pathname.startsWith('/player-map') ? (
+              <PlayerLocationDetail
+                location={selectedLocation}
+                area={currentArea}
+                onBack={handleBackToMindMap}
+                isModal={true}
+              />
+            ) : (
+              <LocationDetail
+                location={selectedLocation}
+                area={currentArea}
+                onBack={handleBackToMindMap}
+                isModal={true}
+              />
+            )
           )}
         </Modal>
       </Content>
