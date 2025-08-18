@@ -24,6 +24,8 @@ interface RegionFocusedMapProps {
   onBack: () => void;
   onNodeClick: (location: PointOfInterest, area: string) => void;
   enableDragging?: boolean;
+  isPlayerMap?: boolean;
+  visibleLocationIds?: string[];
 }
 
 const nodeTypes = {
@@ -33,12 +35,25 @@ const nodeTypes = {
 function buildRegionFocusedGraph(
   areaName: string,
   pointsData: PointsData,
-  pathsData: PathsData
+  pathsData: PathsData,
+  isPlayerMap: boolean = false,
+  visibleLocationIds: string[] = []
 ): { nodes: GraphNode[]; edges: GraphEdge[] } {
   const area = pointsData.areas.find((a) => a.area === areaName);
   if (!area) return { nodes: [], edges: [] };
 
-  const regionIds = new Set(area.pointsOfInterest.map((p) => p.id));
+  // Фильтруем локации для карты игроков
+  let filteredPointsOfInterest = area.pointsOfInterest;
+  if (isPlayerMap && visibleLocationIds.length > 0) {
+    filteredPointsOfInterest = area.pointsOfInterest.filter(poi => visibleLocationIds.includes(poi.id));
+  }
+
+  // Если нет видимых локаций в регионе для карты игроков, возвращаем пустой граф
+  if (isPlayerMap && filteredPointsOfInterest.length === 0) {
+    return { nodes: [], edges: [] };
+  }
+
+  const regionIds = new Set(filteredPointsOfInterest.map((p) => p.id));
   const allPoiIndex = new Map<string, { poi: PointOfInterest; area: string }>();
   pointsData.areas.forEach((a) => a.pointsOfInterest.forEach((p) => allPoiIndex.set(p.id, { poi: p, area: a.area })));
 
@@ -103,7 +118,7 @@ function buildRegionFocusedGraph(
   // Позиционирование: регион — центральный узел (макс. связей) в центре, остальные по окружности; соседи — по внешней окружности
   // Находим узел с наибольшим количеством внутренних связей в регионе
   const degreeMap = new Map<string, number>();
-  area.pointsOfInterest.forEach((p) => degreeMap.set(p.id, 0));
+  filteredPointsOfInterest.forEach((p) => degreeMap.set(p.id, 0));
   pathsData.routes.forEach((r) => {
     const inA = regionIds.has(r.from);
     const inB = regionIds.has(r.to);
@@ -112,7 +127,7 @@ function buildRegionFocusedGraph(
       degreeMap.set(r.to, (degreeMap.get(r.to) ?? 0) + 1);
     }
   });
-  let centerNodeId: string = area.pointsOfInterest[0]?.id;
+  let centerNodeId: string = filteredPointsOfInterest[0]?.id;
   let maxDegree = -1;
   degreeMap.forEach((deg, id) => {
     if (deg > maxDegree) {
@@ -126,7 +141,7 @@ function buildRegionFocusedGraph(
   const centerY = 700;
 
   // Добавляем центральный узел
-  const centerPoi = area.pointsOfInterest.find((p) => p.id === centerNodeId);
+  const centerPoi = filteredPointsOfInterest.find((p) => p.id === centerNodeId);
   if (centerPoi) {
     nodes.push({
       id: centerPoi.id,
@@ -138,7 +153,7 @@ function buildRegionFocusedGraph(
   }
 
   // Круговое расположение остальных локаций региона
-  const otherPois = area.pointsOfInterest.filter((p) => p.id !== centerNodeId);
+  const otherPois = filteredPointsOfInterest.filter((p) => p.id !== centerNodeId);
   const regionPositions = applyCircularLocationLayout(otherPois, {
     radius: 500,
     centerX,
@@ -177,12 +192,18 @@ function buildRegionFocusedGraph(
   });
 
   const neighbors = Array.from(neighborIds);
+  
+  // Фильтруем соседние локации для карты игроков
+  const filteredNeighbors = isPlayerMap && visibleLocationIds.length > 0 
+    ? neighbors.filter(id => visibleLocationIds.includes(id))
+    : neighbors;
+  
   const radius = 700;
   const startAngle = -Math.PI / 2;
-  neighbors.forEach((id, idx) => {
+  filteredNeighbors.forEach((id, idx) => {
     const o = allPoiIndex.get(id);
     if (!o) return;
-    const angle = startAngle + (2 * Math.PI * idx) / Math.max(1, neighbors.length);
+    const angle = startAngle + (2 * Math.PI * idx) / Math.max(1, filteredNeighbors.length);
     const x = centerX + radius * Math.cos(angle);
     const y = centerY + radius * Math.sin(angle);
     nodes.push({
@@ -197,8 +218,8 @@ function buildRegionFocusedGraph(
   return { nodes, edges };
 }
 
-const RegionFocusedMap: React.FC<RegionFocusedMapProps> = ({ areaName, pointsData, pathsData, onBack, onNodeClick, enableDragging = false }) => {
-  const { nodes: initialNodes, edges: initialEdges } = buildRegionFocusedGraph(areaName, pointsData, pathsData);
+const RegionFocusedMap: React.FC<RegionFocusedMapProps> = ({ areaName, pointsData, pathsData, onBack, onNodeClick, enableDragging = false, isPlayerMap = false, visibleLocationIds = [] }) => {
+  const { nodes: initialNodes, edges: initialEdges } = buildRegionFocusedGraph(areaName, pointsData, pathsData, isPlayerMap, visibleLocationIds);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
@@ -291,11 +312,11 @@ const RegionFocusedMap: React.FC<RegionFocusedMapProps> = ({ areaName, pointsDat
   ][trackers.swarm];
 
   useEffect(() => {
-    const { nodes, edges } = buildRegionFocusedGraph(areaName, pointsData, pathsData);
+    const { nodes, edges } = buildRegionFocusedGraph(areaName, pointsData, pathsData, isPlayerMap, visibleLocationIds);
     setNodes(nodes);
     setEdges(edges);
     edgesRef.current = edges;
-  }, [areaName, pointsData, pathsData, setNodes, setEdges]);
+  }, [areaName, pointsData, pathsData, isPlayerMap, visibleLocationIds, setNodes, setEdges]);
 
   // Миникарта отключена по запросу
 
