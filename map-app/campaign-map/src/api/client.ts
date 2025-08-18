@@ -9,6 +9,8 @@ import {
   PaginatedResponse,
   UpdateVisibilityRequest,
   BulkUpdateVisibilityRequest,
+  UpdateFieldVisibilityRequest,
+  BulkUpdateFieldVisibilityRequest,
   LocationFilter,
   RouteFilter,
   VisibilityFilter
@@ -249,16 +251,75 @@ class VisibilityApi extends BaseApiClient {
   }
 }
 
+// API для управления видимостью полей
+class FieldVisibilityApi extends BaseApiClient {
+  // Обновление видимости конкретного поля
+  async updateFieldVisibility(request: UpdateFieldVisibilityRequest): Promise<ApiResponse<void>> {
+    return this.patch('/field-visibility/field', request);
+  }
+
+  // Массовое обновление видимости полей
+  async bulkUpdateFieldVisibility(request: BulkUpdateFieldVisibilityRequest): Promise<ApiResponse<void>> {
+    return this.patch('/field-visibility/bulk', request);
+  }
+
+  // Получение статистики видимости полей
+  async getFieldVisibilityStats(): Promise<{
+    totalEntities: number;
+    totalFields: number;
+    visibleFields: number;
+    hiddenFields: number;
+    byEntityType: Record<string, {
+      totalEntities: number;
+      totalFields: number;
+      visibleFields: number;
+      hiddenFields: number;
+    }>;
+    byFieldType: Record<string, {
+      totalInstances: number;
+      visibleInstances: number;
+      hiddenInstances: number;
+    }>;
+  }> {
+    return this.get('/field-visibility/stats');
+  }
+
+  // Сброс видимости полей к значениям по умолчанию
+  async resetFieldVisibility(entityType?: 'location' | 'route'): Promise<ApiResponse<void>> {
+    const params = entityType ? { entityType } : {};
+    return this.post('/field-visibility/reset', params);
+  }
+
+  // Экспорт настроек видимости полей
+  async exportFieldVisibilitySettings(): Promise<{
+    locations: Record<string, Record<string, string>>;
+    routes: Record<string, Record<string, string>>;
+    exportedAt: string;
+  }> {
+    return this.get('/field-visibility/export');
+  }
+
+  // Импорт настроек видимости полей
+  async importFieldVisibilitySettings(settings: {
+    locations?: Record<string, Record<string, string>>;
+    routes?: Record<string, Record<string, string>>;
+  }): Promise<ApiResponse<void>> {
+    return this.post('/field-visibility/import', settings);
+  }
+}
+
 // Главный API клиент
 export class CampaignMapApi {
   public locations: LocationsApi;
   public routes: RoutesApi;
   public visibility: VisibilityApi;
+  public fieldVisibility: FieldVisibilityApi;
 
   constructor(baseUrl?: string) {
     this.locations = new LocationsApi(baseUrl);
     this.routes = new RoutesApi(baseUrl);
     this.visibility = new VisibilityApi(baseUrl);
+    this.fieldVisibility = new FieldVisibilityApi(baseUrl);
   }
 }
 

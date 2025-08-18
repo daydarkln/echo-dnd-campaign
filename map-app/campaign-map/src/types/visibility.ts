@@ -81,3 +81,42 @@ export function updateFieldVisibility<T extends { id: any }>(
     }
   };
 }
+
+// Типы для видимости полей локаций
+export interface LocationFieldVisibility {
+  amplifiers: VisibilityStatus;
+  dampeners: VisibilityStatus;
+  encounters: VisibilityStatus;
+  loot: VisibilityStatus;
+  clues: VisibilityStatus;
+}
+
+// Типы для видимости полей путей
+export interface RouteFieldVisibility {
+  obstacles: VisibilityStatus;
+  requirements: VisibilityStatus;
+  notes: VisibilityStatus;
+}
+
+// Общий тип для управления видимостью полей
+export interface FieldVisibilityState {
+  locations: { [locationId: string]: LocationFieldVisibility };
+  routes: { [routeId: string]: RouteFieldVisibility };
+}
+
+// Дефолтные настройки видимости
+export const defaultLocationFieldVisibility: LocationFieldVisibility = {
+  amplifiers: 'visible',
+  dampeners: 'visible', 
+  encounters: 'visible',
+  loot: 'visible',
+  clues: 'visible'
+};
+
+export const defaultRouteFieldVisibility: RouteFieldVisibility = {
+  obstacles: 'visible',
+  requirements: 'visible',
+  notes: 'visible'
+};
+
+// Типы для запросов видимости полей определены в types/api.ts

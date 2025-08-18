@@ -106,7 +106,8 @@ const PlayerMapPage: React.FC = () => {
       setError('Ошибка при загрузке данных: ' + (err as Error).message);
       setLoading(false);
     }
-  }, [getFilteredNodesForPlayers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Убираем зависимость от getFilteredNodesForPlayers
 
   // Слушаем изменения в localStorage для автоматического обновления карты
   useEffect(() => {
@@ -139,7 +140,8 @@ const PlayerMapPage: React.FC = () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('update-player-map', handleCustomStorageChange);
     };
-  }, [nodes, edges, getFilteredNodesForPlayers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nodes, edges]); // Убираем зависимость от getFilteredNodesForPlayers
 
   const handleLocationClick = (location: PointOfInterest, area: string) => {
     setSelectedLocation(location);

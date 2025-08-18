@@ -124,3 +124,15 @@ export interface RouteFilter extends VisibilityFilter {
   hasObstacles?: boolean;
   hasRequirements?: boolean;
 }
+
+// Типы для управления видимостью полей
+export interface UpdateFieldVisibilityRequest {
+  entityType: 'location' | 'route';
+  entityId: string;
+  field: string;
+  visibility: VisibilityStatus;
+}
+
+export interface BulkUpdateFieldVisibilityRequest {
+  updates: UpdateFieldVisibilityRequest[];
+}

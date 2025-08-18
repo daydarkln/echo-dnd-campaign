@@ -22,6 +22,8 @@ import {
   ArrowLeftOutlined
 } from '@ant-design/icons';
 import { PointOfInterest } from '../types';
+import { LocationFieldVisibility } from '../types/visibility';
+import LocationFieldVisibilitySettings from './LocationFieldVisibilitySettings';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -30,9 +32,37 @@ interface LocationDetailProps {
   area: string;
   onBack: () => void;
   isModal?: boolean;
+  isPlayerView?: boolean;
+  fieldVisibility?: LocationFieldVisibility;
+  getLocationFieldVisibility?: (locationId: string) => LocationFieldVisibility;
+  toggleLocationFieldVisibility?: (locationId: string, field: keyof LocationFieldVisibility) => void;
 }
 
-const LocationDetail: React.FC<LocationDetailProps> = ({ location, area, onBack, isModal = false }) => {
+const LocationDetail: React.FC<LocationDetailProps> = ({ 
+  location, 
+  area, 
+  onBack, 
+  isModal = false,
+  isPlayerView = false,
+  fieldVisibility,
+  getLocationFieldVisibility,
+  toggleLocationFieldVisibility
+}) => {
+  // Получаем настройки видимости полей
+  const visibility = fieldVisibility || getLocationFieldVisibility?.(location.id) || {
+    amplifiers: 'visible',
+    dampeners: 'visible',
+    encounters: 'visible',
+    loot: 'visible',
+    clues: 'visible'
+  };
+
+  // Определяем, показывать ли секцию
+  const shouldShowSection = (field: keyof LocationFieldVisibility): boolean => {
+    if (!isPlayerView) return true; // В master view всегда показываем все
+    return visibility[field] === 'visible';
+  };
+
   return (
     <div className="location-detail-container" style={{ padding: isModal ? 0 : 24, maxWidth: isModal ? '100%' : 1200, margin: '0 auto' }}>
       {!isModal && (
@@ -70,154 +100,191 @@ const LocationDetail: React.FC<LocationDetailProps> = ({ location, area, onBack,
           </Card>
         </Col>
 
-        <Col lg={12} span={24}>
-          <Card 
-            className="amplifier-card"
-            title={
-              <Space>
-                <ThunderboltOutlined style={{ color: '#f5222d' }} />
-                <span>Усилители эффектов</span>
-              </Space>
-            }
-            size="small"
-          >
-            <List
-              dataSource={location.amplifiers}
-              renderItem={(amplifier) => (
-                <List.Item>
-                  <List.Item.Meta
-                    title={amplifier.effect}
-                    description={
-                      <Space wrap>
-                        {amplifier.mechanics.map((mechanic, index) => (
-                          <Tag key={index} color="red">
-                            {mechanic}
-                          </Tag>
-                        ))}
-                      </Space>
-                    }
-                  />
-                </List.Item>
-              )}
+        {/* Управление видимостью полей для мастера */}
+        {!isPlayerView && getLocationFieldVisibility && toggleLocationFieldVisibility && (
+          <Col span={24}>
+            <LocationFieldVisibilitySettings
+              locationId={location.id}
+              locationName={location.name}
+              getLocationFieldVisibility={getLocationFieldVisibility}
+              toggleLocationFieldVisibility={toggleLocationFieldVisibility}
             />
-          </Card>
-        </Col>
+          </Col>
+        )}
 
-        <Col lg={12} span={24}>
-          <Card 
-            className="dampener-card"
-            title={
-              <Space>
-                <SafetyOutlined style={{ color: '#52c41a' }} />
-                <span>Ослабители эффектов</span>
-              </Space>
-            }
-            size="small"
-          >
-            <List
-              dataSource={location.dampeners}
-              renderItem={(dampener) => (
-                <List.Item>
-                  <List.Item.Meta
-                    title={dampener.effect}
-                    description={
-                      <Space wrap>
-                        {dampener.mechanics.map((mechanic, index) => (
-                          <Tag key={index} color="green">
-                            {mechanic}
-                          </Tag>
-                        ))}
-                      </Space>
-                    }
-                  />
-                </List.Item>
-              )}
-            />
-          </Card>
-        </Col>
+        {shouldShowSection('amplifiers') && (
+          <Col lg={12} span={24}>
+            <Card 
+              className="amplifier-card"
+              title={
+                <Space>
+                  <ThunderboltOutlined style={{ color: '#f5222d' }} />
+                  <span>Усилители эффектов</span>
+                  {!isPlayerView && visibility.amplifiers === 'hidden' && (
+                    <Tag color="red">Скрыто для игроков</Tag>
+                  )}
+                </Space>
+              }
+              size="small"
+            >
+              <List
+                dataSource={location.amplifiers}
+                renderItem={(amplifier) => (
+                  <List.Item>
+                    <List.Item.Meta
+                      title={amplifier.effect}
+                      description={
+                        <Space wrap>
+                          {amplifier.mechanics.map((mechanic, index) => (
+                            <Tag key={index} color="red">
+                              {mechanic}
+                            </Tag>
+                          ))}
+                        </Space>
+                      }
+                    />
+                  </List.Item>
+                )}
+              />
+            </Card>
+          </Col>
+        )}
 
-        <Col lg={8} span={24}>
-          <Card 
-            className="encounter-card"
-            title={
-              <Space>
-                <ExclamationCircleOutlined style={{ color: '#fa8c16' }} />
-                <span>Энкаунтеры</span>
-              </Space>
-            }
-            size="small"
-          >
-            <List
-              dataSource={location.encounters}
-              renderItem={(encounter) => (
-                <List.Item>
-                  <List.Item.Meta
-                    title={
-                      <Space>
-                        <Text strong>{encounter.name}</Text>
-                        <Badge count={encounter.count} style={{ backgroundColor: '#fa8c16' }} />
-                      </Space>
-                    }
-                    description={
-                      <div>
-                        <Text type="secondary">Уровень: {encounter.level}</Text>
-                        {encounter.notes && (
-                          <Paragraph style={{ margin: '4px 0 0 0', fontSize: 12 }}>
-                            {encounter.notes}
-                          </Paragraph>
-                        )}
-                      </div>
-                    }
-                  />
-                </List.Item>
-              )}
-            />
-          </Card>
-        </Col>
+        {shouldShowSection('dampeners') && (
+          <Col lg={12} span={24}>
+            <Card 
+              className="dampener-card"
+              title={
+                <Space>
+                  <SafetyOutlined style={{ color: '#52c41a' }} />
+                  <span>Ослабители эффектов</span>
+                  {!isPlayerView && visibility.dampeners === 'hidden' && (
+                    <Tag color="red">Скрыто для игроков</Tag>
+                  )}
+                </Space>
+              }
+              size="small"
+            >
+              <List
+                dataSource={location.dampeners}
+                renderItem={(dampener) => (
+                  <List.Item>
+                    <List.Item.Meta
+                      title={dampener.effect}
+                      description={
+                        <Space wrap>
+                          {dampener.mechanics.map((mechanic, index) => (
+                            <Tag key={index} color="green">
+                              {mechanic}
+                            </Tag>
+                          ))}
+                        </Space>
+                      }
+                    />
+                  </List.Item>
+                )}
+              />
+            </Card>
+          </Col>
+        )}
 
-        <Col lg={8} span={24}>
-          <Card 
-            className="loot-card"
-            title={
-              <Space>
-                <GiftOutlined style={{ color: '#722ed1' }} />
-                <span>Лут</span>
-              </Space>
-            }
-            size="small"
-          >
-            <List
-              dataSource={location.loot}
-              renderItem={(item) => (
-                <List.Item>
-                  <Text>{item}</Text>
-                </List.Item>
-              )}
-            />
-          </Card>
-        </Col>
+        {shouldShowSection('encounters') && (
+          <Col lg={8} span={24}>
+            <Card 
+              className="encounter-card"
+              title={
+                <Space>
+                  <ExclamationCircleOutlined style={{ color: '#fa8c16' }} />
+                  <span>Энкаунтеры</span>
+                  {!isPlayerView && visibility.encounters === 'hidden' && (
+                    <Tag color="red">Скрыто для игроков</Tag>
+                  )}
+                </Space>
+              }
+              size="small"
+            >
+              <List
+                dataSource={location.encounters}
+                renderItem={(encounter) => (
+                  <List.Item>
+                    <List.Item.Meta
+                      title={
+                        <Space>
+                          <Text strong>{encounter.name}</Text>
+                          <Badge count={encounter.count} style={{ backgroundColor: '#fa8c16' }} />
+                        </Space>
+                      }
+                      description={
+                        <div>
+                          <Text type="secondary">Уровень: {encounter.level}</Text>
+                          {encounter.notes && (
+                            <Paragraph style={{ margin: '4px 0 0 0', fontSize: 12 }}>
+                              {encounter.notes}
+                            </Paragraph>
+                          )}
+                        </div>
+                      }
+                    />
+                  </List.Item>
+                )}
+              />
+            </Card>
+          </Col>
+        )}
 
-        <Col lg={8} span={24}>
-          <Card 
-            className="loot-card"
-            title={
-              <Space>
-                <SearchOutlined style={{ color: '#13c2c2' }} />
-                <span>Улики</span>
-              </Space>
-            }
-            size="small"
-          >
-            <List
-              dataSource={location.clues}
-              renderItem={(clue) => (
-                <List.Item>
-                  <Text italic>{clue}</Text>
-                </List.Item>
-              )}
-            />
-          </Card>
-        </Col>
+        {shouldShowSection('loot') && (
+          <Col lg={8} span={24}>
+            <Card 
+              className="loot-card"
+              title={
+                <Space>
+                  <GiftOutlined style={{ color: '#722ed1' }} />
+                  <span>Лут</span>
+                  {!isPlayerView && visibility.loot === 'hidden' && (
+                    <Tag color="red">Скрыто для игроков</Tag>
+                  )}
+                </Space>
+              }
+              size="small"
+            >
+              <List
+                dataSource={location.loot}
+                renderItem={(item) => (
+                  <List.Item>
+                    <Text>{item}</Text>
+                  </List.Item>
+                )}
+              />
+            </Card>
+          </Col>
+        )}
+
+        {shouldShowSection('clues') && (
+          <Col lg={8} span={24}>
+            <Card 
+              className="clues-card"
+              title={
+                <Space>
+                  <SearchOutlined style={{ color: '#13c2c2' }} />
+                  <span>Улики</span>
+                  {!isPlayerView && visibility.clues === 'hidden' && (
+                    <Tag color="red">Скрыто для игроков</Tag>
+                  )}
+                </Space>
+              }
+              size="small"
+            >
+              <List
+                dataSource={location.clues}
+                renderItem={(clue) => (
+                  <List.Item>
+                    <Text italic>{clue}</Text>
+                  </List.Item>
+                )}
+              />
+            </Card>
+          </Col>
+        )}
       </Row>
     </div>
   );

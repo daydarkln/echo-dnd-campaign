@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -219,75 +219,59 @@ function buildRegionFocusedGraph(
 }
 
 const RegionFocusedMap: React.FC<RegionFocusedMapProps> = ({ areaName, pointsData, pathsData, onBack, onNodeClick, enableDragging = false, isPlayerMap = false, visibleLocationIds = [] }) => {
-  const { nodes: initialNodes, edges: initialEdges } = buildRegionFocusedGraph(areaName, pointsData, pathsData, isPlayerMap, visibleLocationIds);
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  // Инициализируем с пустыми массивами чтобы избежать пересоздания при каждом рендере
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  
+  // Убрали лишнее логирование рендеров, оставили только важные моменты
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [selectedRoute, setSelectedRoute] = useState<any>(null);
   const [showRouteModal, setShowRouteModal] = useState(false);
-  const edgesRef = useRef<GraphEdge[]>(initialEdges);
+  const edgesRef = useRef<GraphEdge[]>([]);
   const { state: trackers } = useTrackers();
+
+  // Мемоизируем результат buildRegionFocusedGraph чтобы избежать пересоздания при каждом рендере
+  const memoizedGraph = useMemo(() => {
+    console.log('RegionFocusedMap - useMemo пересчитывает граф для региона:', areaName);
+    return buildRegionFocusedGraph(areaName, pointsData, pathsData, isPlayerMap, visibleLocationIds);
+  }, [areaName, pointsData, pathsData, isPlayerMap, visibleLocationIds]);
 
   // Функция для сохранения позиций узлов
   const saveNodePositions = useCallback(() => {
     if (!enableDragging) return;
     
     const positions: Record<string, { x: number; y: number }> = {};
-    nodes.forEach(node => {
+    // Получаем актуальные nodes через rfInstance вместо зависимости от state
+    const currentNodes = rfInstance?.getNodes() || [];
+    currentNodes.forEach(node => {
       positions[node.id] = { x: node.position.x, y: node.position.y };
     });
     
     const storageKey = `region-${areaName}-positions`;
     localStorage.setItem(storageKey, JSON.stringify(positions));
     console.log(`RegionFocusedMap - Сохранены позиции для региона "${areaName}":`, positions);
-  }, [nodes, areaName, enableDragging]);
+  }, [rfInstance, areaName, enableDragging]);
 
-  // Функция для загрузки сохраненных позиций
-  const loadSavedPositions = useCallback(() => {
-    if (!enableDragging) return;
-    
-    try {
-      const storageKey = `region-${areaName}-positions`;
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        const positions = JSON.parse(saved);
-        setNodes(prevNodes => 
-          prevNodes.map(node => {
-            const savedPos = positions[node.id];
-            return savedPos ? { ...node, position: savedPos } : node;
-          })
-        );
-        console.log(`RegionFocusedMap - Загружены сохраненные позиции для региона "${areaName}":`, positions);
-      }
-    } catch (error) {
-      console.warn(`RegionFocusedMap - Ошибка загрузки позиций для региона "${areaName}":`, error);
-    }
-  }, [areaName, enableDragging, setNodes]);
+  // Функция loadSavedPositions удалена - логика интегрирована в основной useEffect
 
-  // Загружаем сохраненные позиции при инициализации
-  useEffect(() => {
-    loadSavedPositions();
-  }, [loadSavedPositions]);
+  // Загрузка позиций теперь интегрирована в основной useEffect выше
 
   // Обработчик перетаскивания узлов
   const handleNodeDragStop = useCallback((event: any, node: Node) => {
     if (!enableDragging) return;
     
     console.log(`RegionFocusedMap - Узел "${node.id}" перетащен в позицию:`, node.position);
-    // Позиции автоматически сохраняются в ReactFlow
-  }, [enableDragging]);
-
-  // Автоматическое сохранение позиций при изменении
-  useEffect(() => {
-    if (!enableDragging) return;
     
-    const timeoutId = setTimeout(() => {
+    // Сохраняем позиции после перетаскивания с задержкой
+    setTimeout(() => {
       saveNodePositions();
-    }, 500); // Сохраняем через 500мс после последнего изменения
-    
-    return () => clearTimeout(timeoutId);
-  }, [nodes, saveNodePositions, enableDragging]);
+    }, 100);
+  }, [enableDragging, saveNodePositions]);
+
+  // Удаляем автоматическое сохранение позиций при изменении nodes
+  // так как это создает бесконечный цикл с useEffect который обновляет nodes
+  // Вместо этого сохранение происходит в onNodeDragStop
 
   const cityDesc = [
     '0 — Город дышит ровно: рынки гудят, стража вальяжна, слухи не задерживаются.',
@@ -312,11 +296,49 @@ const RegionFocusedMap: React.FC<RegionFocusedMapProps> = ({ areaName, pointsDat
   ][trackers.swarm];
 
   useEffect(() => {
-    const { nodes, edges } = buildRegionFocusedGraph(areaName, pointsData, pathsData, isPlayerMap, visibleLocationIds);
-    setNodes(nodes);
-    setEdges(edges);
-    edgesRef.current = edges;
-  }, [areaName, pointsData, pathsData, isPlayerMap, visibleLocationIds, setNodes, setEdges]);
+    console.log('RegionFocusedMap - Основной useEffect сработал для региона:', areaName);
+    const { nodes: newNodes, edges: newEdges } = memoizedGraph;
+    console.log('RegionFocusedMap - Используем мемоизированный граф для региона:', areaName, { nodesCount: newNodes.length, edgesCount: newEdges.length });
+    
+    // Проверяем, изменились ли данные, чтобы избежать ненужных обновлений
+    const hasChanges = newNodes.length !== nodes.length || 
+                      newEdges.length !== edges.length ||
+                      (newNodes.length > 0 && nodes.length > 0 && newNodes[0].id !== nodes[0].id);
+    
+    if (hasChanges) {
+      console.log('RegionFocusedMap - Данные изменились, обновляем nodes и edges');
+      setNodes(newNodes);
+      setEdges(newEdges);
+      edgesRef.current = newEdges;
+    } else {
+      console.log('RegionFocusedMap - Данные не изменились, пропускаем обновление');
+      // Обновляем только ref, не state
+      edgesRef.current = newEdges;
+    }
+    
+    // Загружаем сохраненные позиции только при изменении данных
+    if (enableDragging && newNodes.length > 0 && hasChanges) {
+      console.log('RegionFocusedMap - Загружаем сохраненные позиции для новых nodes');
+      setTimeout(() => {
+        const storageKey = `region-${areaName}-positions`;
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          try {
+            const positions = JSON.parse(saved);
+            setNodes(prevNodes => 
+              prevNodes.map(node => {
+                const savedPos = positions[node.id];
+                return savedPos ? { ...node, position: savedPos } : node;
+              })
+            );
+          } catch (error) {
+            console.warn(`RegionFocusedMap - Ошибка загрузки позиций для региона "${areaName}":`, error);
+          }
+        }
+      }, 100);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [memoizedGraph, enableDragging, areaName]);
 
   // Миникарта отключена по запросу
 

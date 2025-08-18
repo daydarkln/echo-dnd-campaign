@@ -14,6 +14,7 @@ import { PointsData, PathsData, PointOfInterest, GraphNode, GraphEdge } from './
 import { parseToSubflows } from './utils/dataParser';
 import pointsData from './tochki-interesa.json';
 import pathsData from './puti-mezhdu-lokaciyami.json';
+import { useFieldVisibility } from './hooks/useFieldVisibility';
 import 'antd/dist/reset.css';
 import './App.css';
 
@@ -35,6 +36,16 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const [showLocationModal, setShowLocationModal] = useState(false);
+  
+  // Хук для управления видимостью полей
+  const {
+    getLocationFieldVisibility,
+    toggleLocationFieldVisibility,
+    getRouteFieldVisibility,
+    toggleRouteFieldVisibility,
+    initializeLocationFieldVisibility,
+    initializeRouteFieldVisibility
+  } = useFieldVisibility();
 
   useEffect(() => {
     try {
@@ -46,12 +57,19 @@ function App() {
       setNodes(parsedNodes);
       setEdges(parsedEdges);
       
+      // Инициализируем видимость полей
+      const locationIds = parsedNodes.filter(n => n.type === 'locationNode').map(n => n.id);
+      const routeIds = parsedEdges.map(e => e.id);
+      initializeLocationFieldVisibility(locationIds);
+      initializeRouteFieldVisibility(routeIds);
+      
       setLoading(false);
     } catch (err) {
       setError('Ошибка при загрузке данных: ' + (err as Error).message);
       setLoading(false);
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Удаляем зависимости чтобы избежать бесконечного цикла
 
   const handleLocationClick = (location: PointOfInterest, area: string) => {
     setSelectedLocation(location);
@@ -225,6 +243,7 @@ function App() {
                 area={currentArea}
                 onBack={handleBackToMindMap}
                 isModal={true}
+                getLocationFieldVisibility={getLocationFieldVisibility}
               />
             ) : (
               <LocationDetail
@@ -232,6 +251,8 @@ function App() {
                 area={currentArea}
                 onBack={handleBackToMindMap}
                 isModal={true}
+                getLocationFieldVisibility={getLocationFieldVisibility}
+                toggleLocationFieldVisibility={toggleLocationFieldVisibility}
               />
             )
           )}

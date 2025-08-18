@@ -25,6 +25,7 @@ import { useNodePositions } from '../hooks/useNodePositions';
 import { useLocationVisibility } from '../hooks/useLocationVisibility';
 import { useRegionVisibility } from '../hooks/useRegionVisibility';
 import { usePathVisibility } from '../hooks/usePathVisibility';
+import { useFieldVisibility } from '../hooks/useFieldVisibility';
 
 const { Title } = Typography;
 
@@ -83,6 +84,12 @@ const GroupedMindMap: React.FC<GroupedMindMapProps> = ({
     autoOpenRegionIfNeeded
   } = useRegionVisibility();
   const { shouldPathBeVisible, initializePathVisibility } = usePathVisibility();
+  
+  // Хук для управления видимостью полей
+  const {
+    initializeLocationFieldVisibility,
+    initializeRouteFieldVisibility
+  } = useFieldVisibility();
 
   // Фильтрация узлов для карты игроков
   const filteredNodes = useMemo(() => {
@@ -183,12 +190,14 @@ const GroupedMindMap: React.FC<GroupedMindMapProps> = ({
     initializeLocationVisibility(locationIds);
     initializeRegionVisibility(regionNames);
     initializePathVisibility(pathIds);
+    initializeLocationFieldVisibility(locationIds);
+    initializeRouteFieldVisibility(pathIds);
 
     // Для карты игроков показываем все узлы и рёбра без фильтрации
     if (isPlayerMap) {
       // Карта игроков показывает все узлы и рёбра без фильтрации
     }
-  }, [nodes, edges, initializeLocationVisibility, initializeRegionVisibility, initializePathVisibility, isPlayerMap]);
+  }, [nodes, edges, initializeLocationVisibility, initializeRegionVisibility, initializePathVisibility, initializeLocationFieldVisibility, initializeRouteFieldVisibility, isPlayerMap]);
 
   useEffect(() => {
     const nodesToProcess = isPlayerMap ? filteredNodes : nodes;
@@ -224,7 +233,8 @@ const GroupedMindMap: React.FC<GroupedMindMapProps> = ({
     }
     
     setNodes(nodesWithDraggable);
-  }, [nodes, filteredNodes, isPlayerMap, setNodes, nodePositions, enableDragging]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredNodes, isPlayerMap, nodePositions, enableDragging]);
 
   useEffect(() => {
     const hoverHandler = (e: any) => setHoveredNodeId(e.detail?.id ?? null);
