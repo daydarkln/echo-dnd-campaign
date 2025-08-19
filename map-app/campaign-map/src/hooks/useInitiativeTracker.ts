@@ -80,48 +80,45 @@ export const useInitiativeTracker = () => {
       updatedAt: new Date()
     };
 
-    const newState = {
-      ...state,
-      encounters: [...state.encounters, newEncounter],
-      currentEncounterId: newEncounter.id
-    };
-
-    setState(newState);
-    saveToStorage(newState);
+    setState(prev => {
+      const nextState: InitiativeTrackerState = {
+        ...prev,
+        encounters: [...prev.encounters, newEncounter],
+        currentEncounterId: newEncounter.id
+      };
+      saveToStorage(nextState);
+      return nextState;
+    });
     return newEncounter;
-  }, [state, saveToStorage]);
+  }, [saveToStorage]);
 
   // Удаление энкаунтера
   const deleteEncounter = useCallback((encounterId: string) => {
-    const newState = {
-      encounters: state.encounters.filter(e => e.id !== encounterId),
-      currentEncounterId: state.currentEncounterId === encounterId ? null : state.currentEncounterId
-    };
-
-    setState(newState);
-    saveToStorage(newState);
-  }, [state, saveToStorage]);
+    setState(prev => {
+      const nextState: InitiativeTrackerState = {
+        encounters: prev.encounters.filter(e => e.id !== encounterId),
+        currentEncounterId: prev.currentEncounterId === encounterId ? null : prev.currentEncounterId
+      };
+      saveToStorage(nextState);
+      return nextState;
+    });
+  }, [saveToStorage]);
 
   // Обновление энкаунтера
   const updateEncounter = useCallback((encounterId: string, updates: Partial<EncounterState>) => {
-    console.log('=== updateEncounter called ===');
-    console.log('encounterId:', encounterId);
-    console.log('updates:', updates);
-    
-    const newState = {
-      ...state,
-      encounters: state.encounters.map(encounter =>
-        encounter.id === encounterId
-          ? { ...encounter, ...updates, updatedAt: new Date() }
-          : encounter
-      )
-    };
-
-    console.log('New state created:', newState);
-    setState(newState);
-    saveToStorage(newState);
-    console.log('State updated and saved');
-  }, [state, saveToStorage]);
+    setState(prev => {
+      const nextState: InitiativeTrackerState = {
+        ...prev,
+        encounters: prev.encounters.map(encounter =>
+          encounter.id === encounterId
+            ? { ...encounter, ...updates, updatedAt: new Date() }
+            : encounter
+        )
+      };
+      saveToStorage(nextState);
+      return nextState;
+    });
+  }, [saveToStorage]);
 
   // Установка инициативы персонажа
   const setCharacterInitiative = useCallback((encounterId: string, characterId: string, initiative: number) => {
@@ -321,9 +318,6 @@ export const useInitiativeTracker = () => {
       return char;
     });
 
-    console.log('Updated characters:', updatedCharacters);
-    console.log('Characters with death saves:', updatedCharacters.filter(c => c.deathSaves.successes > 0 || c.deathSaves.failures > 0));
-
     // Обновляем энкаунтер
     updateEncounter(encounterId, { characters: updatedCharacters });
 
@@ -363,14 +357,15 @@ export const useInitiativeTracker = () => {
 
   // Смена текущего энкаунтера
   const setCurrentEncounter = useCallback((encounterId: string | null) => {
-    const newState = {
-      ...state,
-      currentEncounterId: encounterId
-    };
-
-    setState(newState);
-    saveToStorage(newState);
-  }, [state, saveToStorage]);
+    setState(prev => {
+      const nextState: InitiativeTrackerState = {
+        ...prev,
+        currentEncounterId: encounterId
+      };
+      saveToStorage(nextState);
+      return nextState;
+    });
+  }, [saveToStorage]);
 
   // Проверка, заблокирован ли следующий ход (если текущий персонаж кидает спасброски от смерти)
   const isNextTurnBlocked = useCallback((encounterId: string) => {
@@ -385,14 +380,6 @@ export const useInitiativeTracker = () => {
     const isBlocked = currentCharacter && 
                      currentCharacter.status === 'death-saving' && 
                      !hasMadeDeathSave;
-    
-    console.log(`isNextTurnBlocked check:`, {
-      characterName: currentCharacter?.name,
-      characterStatus: currentCharacter?.status,
-      deathSaves: currentCharacter?.deathSaves,
-      hasMadeDeathSave,
-      isBlocked
-    });
     
     return isBlocked;
   }, [state.encounters]);

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Card,
   Typography,
@@ -63,12 +63,16 @@ const InitiativeTracker: React.FC = () => {
     isNextTurnBlocked
   } = useInitiativeTracker();
 
+
+
   const { groups } = useGroups();
 
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [encounterName, setEncounterName] = useState('');
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([]);
   const [editingInitiatives, setEditingInitiatives] = useState<Record<string, number>>({});
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Группы для выбора
   const availableGroups = useMemo(() => {
@@ -76,7 +80,7 @@ const InitiativeTracker: React.FC = () => {
   }, [groups]);
 
   // Создание нового энкаунтера
-  const handleCreateEncounter = () => {
+  const handleCreateEncounter = useCallback(() => {
     if (!encounterName.trim()) {
       message.error('Введите название энкаунтера');
       return;
@@ -89,26 +93,29 @@ const InitiativeTracker: React.FC = () => {
 
     const selectedGroups = groups.filter(g => selectedGroupIds.includes(g.id));
     
-    try {
-      createEncounter(encounterName.trim(), selectedGroups);
-      setShowCreateForm(false);
-      setEncounterName('');
-      setSelectedGroupIds([]);
-      message.success('Энкаунтер создан!');
-    } catch (error) {
-      message.error((error as Error).message);
-    }
-  };
+          try {
+        const newEncounter = createEncounter(encounterName.trim(), selectedGroups);
+        setCurrentEncounter(newEncounter.id);
+        
+        setShowCreateForm(false);
+        setEncounterName('');
+        setSelectedGroupIds([]);
+        setRefreshKey(prev => prev + 1);
+        message.success('Энкаунтер создан!');
+      } catch (error) {
+        message.error((error as Error).message);
+      }
+  }, [encounterName, selectedGroupIds, groups, createEncounter, setCurrentEncounter]);
 
   // Обновление инициативы персонажа
-  const handleInitiativeChange = (characterId: string, value: number | null) => {
+  const handleInitiativeChange = useCallback((characterId: string, value: number | null) => {
     if (!currentEncounter || value === null) return;
     
     setCharacterInitiative(currentEncounter.id, characterId, value);
-  };
+  }, [currentEncounter, setCharacterInitiative]);
 
-  // Обработка спасброска от смерти с автоматическим переходом хода
-  const handleDeathSave = (characterId: string, saveType: DeathSaveType) => {
+  // Обработка спасброска от смерти
+  const handleDeathSave = useCallback((characterId: string, saveType: DeathSaveType) => {
     if (!currentEncounter) return;
     
     // Проверяем, что сейчас ход этого персонажа
@@ -121,7 +128,7 @@ const InitiativeTracker: React.FC = () => {
     
     addDeathSave(currentEncounter.id, characterId, saveType);
     
-    // Показываем уведомление о переходе хода
+    // Показываем уведомление о результате спасброка
     const character = currentEncounter.characters.find(c => c.id === characterId);
     if (character) {
       const saveTypeLabels = {
@@ -131,12 +138,12 @@ const InitiativeTracker: React.FC = () => {
         'critical-failure': 'критический провал'
       };
       
-      message.success(`${character.name}: ${saveTypeLabels[saveType]}! Кнопка "Следующий ход" разблокирована.`);
+      message.success(`${character.name}: ${saveTypeLabels[saveType]}! Кнопка "Следующий хода" разблокирована.`);
     }
-  };
+  }, [currentEncounter, addDeathSave]);
 
   // Начало боя
-  const handleStartCombat = () => {
+  const handleStartCombat = useCallback(() => {
     if (!currentEncounter) return;
 
     try {
@@ -145,23 +152,23 @@ const InitiativeTracker: React.FC = () => {
     } catch (error) {
       message.error((error as Error).message);
     }
-  };
+  }, [currentEncounter, startCombat]);
 
   // Следующий ход
-  const handleNextTurn = () => {
+  const handleNextTurn = useCallback(() => {
     if (!currentEncounter) return;
     nextTurn(currentEncounter.id);
-  };
+  }, [currentEncounter, nextTurn]);
 
   // Завершение боя
-  const handleEndCombat = () => {
+  const handleEndCombat = useCallback(() => {
     if (!currentEncounter) return;
     endCombat(currentEncounter.id);
     message.success('Бой завершен!');
-  };
+  }, [currentEncounter, endCombat]);
 
   // Действия персонажа
-  const getCharacterActions = (character: InitiativeCharacter): MenuProps['items'] => {
+  const getCharacterActions = useCallback((character: InitiativeCharacter): MenuProps['items'] => {
     const items: MenuProps['items'] = [
       {
         key: 'active',
@@ -206,82 +213,77 @@ const InitiativeTracker: React.FC = () => {
     ];
 
     return items;
-  };
+  }, [currentEncounter, setCharacterStatus]);
 
   // Рендер карточки персонажа
-  const renderCharacterCard = (character: InitiativeCharacter, index: number) => {
+  const renderCharacterCard = useCallback((character: InitiativeCharacter, index: number) => {
     const isCurrentTurn = Boolean(currentEncounter?.isActive && currentEncounter.currentTurnIndex === index);
     const statusInfo = statusConfig[character.status];
     
-    // Логирование для отладки спасбросков
-    if (character.deathSaves.successes > 0 || character.deathSaves.failures > 0) {
-      console.log(`Character ${character.name} death saves:`, character.deathSaves);
-    }
+
 
     return (
       <Card
         key={character.id}
         size="small"
         style={{
-          marginBottom: 8,
+          height: '100%',
+          minHeight: 120,
           border: isCurrentTurn ? '2px solid #1890ff' : '1px solid #d9d9d9',
           backgroundColor: isCurrentTurn ? '#f0f8ff' : 'white'
         }}
-        bodyStyle={{ padding: 12 }}
+        bodyStyle={{ padding: 8 }}
       >
-        <Row align="middle" gutter={[8, 8]}>
-          <Col flex="auto">
-            <Space direction="vertical" size={4} style={{ width: '100%' }}>
-              <Space>
-                <Badge
-                  color={character.groupColor}
-                  text={
-                    <Text strong style={{ fontSize: 14 }}>
-                      {character.name}
-                    </Text>
-                  }
-                />
-                {isCurrentTurn && <Tag color="blue">ХОД</Tag>}
-              </Space>
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                {character.groupName}
-              </Text>
-            </Space>
-          </Col>
+        <Space direction="vertical" size={4} style={{ width: '100%' }}>
+          {/* Заголовок с именем и текущим ходом */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Badge
+              color={character.groupColor}
+              text={
+                <Text strong style={{ fontSize: 13 }}>
+                  {character.name}
+                </Text>
+              }
+            />
+            {isCurrentTurn && <Tag color="blue" style={{ fontSize: 10, padding: '0 4px' }}>ХОД</Tag>}
+          </div>
 
-          <Col>
+          {/* Группа и инициатива */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text type="secondary" style={{ fontSize: 11 }}>
+              {character.groupName}
+            </Text>
             {!currentEncounter?.isActive ? (
               <InputNumber
                 size="small"
-                placeholder="Инициатива"
+                placeholder="Инц."
                 value={character.initiative}
                 onChange={(value) => handleInitiativeChange(character.id, value)}
-                style={{ width: 80 }}
+                style={{ width: 60 }}
                 min={1}
                 max={30}
               />
             ) : (
-              <Tag color="geekblue" style={{ minWidth: 60, textAlign: 'center' }}>
+              <Tag color="geekblue" style={{ fontSize: 11, minWidth: 40, textAlign: 'center' }}>
                 {character.initiative}
               </Tag>
             )}
-          </Col>
+          </div>
 
-          <Col>
-            <Space>
-              <Tag color={statusInfo.color} style={{ margin: 0 }}>
-                {statusInfo.icon} {statusInfo.label}
-              </Tag>
-              <Dropdown
-                menu={{ items: getCharacterActions(character) }}
-                trigger={['click']}
-                placement="bottomRight"
-              >
-                <Button size="small" icon={<MoreOutlined />} />
-              </Dropdown>
-            </Space>
-          </Col>
-        </Row>
+          {/* Статус и действия */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Tag color={statusInfo.color} style={{ margin: 0, fontSize: 10 }}>
+              {statusInfo.icon}
+            </Tag>
+            <Dropdown
+              menu={{ items: getCharacterActions(character) }}
+              trigger={['click']}
+              placement="bottomRight"
+            >
+              <Button size="small" icon={<MoreOutlined />} />
+            </Dropdown>
+          </div>
+        </Space>
 
         {character.status === 'death-saving' && (
           <div style={{ marginTop: 8 }}>
@@ -296,22 +298,21 @@ const InitiativeTracker: React.FC = () => {
         )}
         
         {/* Показываем прогресс спасбросков для персонажей в статусе "без сознания" */}
-        {/* Спасброски сохраняются до смерти или полного восстановления */}
         {(character.deathSaves.successes > 0 || character.deathSaves.failures > 0) && 
          character.status === 'unconscious' && (
-          <div style={{ marginTop: 8, padding: 8, backgroundColor: '#f6ffed', borderRadius: 4, border: '1px solid #b7eb8f' }}>
-            <Text style={{ fontSize: 11, color: '#52c41a', display: 'block', textAlign: 'center', marginBottom: 4 }}>
-              📊 Накопленные спасброски:
+          <div style={{ marginTop: 4, padding: 4, backgroundColor: '#f6ffed', borderRadius: 4, border: '1px solid #b7eb8f' }}>
+            <Text style={{ fontSize: 10, color: '#52c41a', display: 'block', textAlign: 'center', marginBottom: 2 }}>
+              📊 Спасброски:
             </Text>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <Text style={{ fontSize: 10, color: '#52c41a' }}>Успехи:</Text>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Text style={{ fontSize: 9, color: '#52c41a' }}>✓</Text>
                 {Array.from({ length: DEATH_SAVE_MAX }).map((_, index) => (
                   <div
                     key={index}
                     style={{
-                      width: 8,
-                      height: 8,
+                      width: 6,
+                      height: 6,
                       borderRadius: '50%',
                       backgroundColor: index < character.deathSaves.successes ? '#52c41a' : '#f0f0f0',
                       border: `1px solid #52c41a`
@@ -319,14 +320,14 @@ const InitiativeTracker: React.FC = () => {
                   />
                 ))}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <Text style={{ fontSize: 10, color: '#ff4d4f' }}>Провалы:</Text>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Text style={{ fontSize: 9, color: '#ff4d4f' }}>✗</Text>
                 {Array.from({ length: DEATH_SAVE_MAX }).map((_, index) => (
                   <div
                     key={index}
                     style={{
-                      width: 8,
-                      height: 8,
+                      width: 6,
+                      height: 6,
                       borderRadius: '50%',
                       backgroundColor: index < character.deathSaves.failures ? '#ff4d4f' : '#f0f0f0',
                       border: `1px solid #ff4d4f`
@@ -335,14 +336,11 @@ const InitiativeTracker: React.FC = () => {
                   ))}
               </div>
             </div>
-            <Text style={{ fontSize: 10, color: '#666', textAlign: 'center', display: 'block', marginTop: 4 }}>
-              Прогресс сохранится при повторном падении
-            </Text>
           </div>
         )}
       </Card>
     );
-  };
+  }, [currentEncounter]);
 
   return (
     <div style={{ padding: 24 }}>
@@ -359,7 +357,9 @@ const InitiativeTracker: React.FC = () => {
         {/* Управление энкаунтерами */}
         <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
           <Col flex="auto">
+
             <Select
+              key={`encounters-${encounters.length}-${refreshKey}`}
               placeholder="Выберите энкаунтер"
               value={currentEncounter?.id}
               onChange={setCurrentEncounter}
@@ -393,13 +393,7 @@ const InitiativeTracker: React.FC = () => {
               <Button
                 danger
                 icon={<DeleteOutlined />}
-                onClick={() => {
-                  Modal.confirm({
-                    title: 'Удалить энкаунтер?',
-                    content: 'Это действие нельзя отменить',
-                    onOk: () => deleteEncounter(currentEncounter.id)
-                  });
-                }}
+                onClick={() => setShowDeleteConfirm(true)}
               >
                 Удалить
               </Button>
@@ -408,7 +402,7 @@ const InitiativeTracker: React.FC = () => {
         </Row>
 
         {/* Контролы боя */}
-        {currentEncounter && (
+        {currentEncounter ? (
           <Card size="small" style={{ marginBottom: 24 }}>
             <Row justify="space-between" align="middle">
               <Col>
@@ -459,7 +453,7 @@ const InitiativeTracker: React.FC = () => {
               </Col>
             </Row>
           </Card>
-        )}
+        ) : null}
 
         {/* Список персонажей */}
         {currentEncounter ? (
@@ -476,9 +470,13 @@ const InitiativeTracker: React.FC = () => {
                     showIcon
                   />
                 )}
-                {currentEncounter.characters.map((character, index) =>
-                  renderCharacterCard(character, index)
-                )}
+                <Row gutter={[8, 8]}>
+                  {currentEncounter.characters.map((character, index) => (
+                    <Col key={character.id} xs={24} sm={12} md={8} lg={6} xl={4.8} xxl={4.8}>
+                      {renderCharacterCard(character, index)}
+                    </Col>
+                  ))}
+                </Row>
               </div>
             )}
           </div>
@@ -553,6 +551,32 @@ const InitiativeTracker: React.FC = () => {
             </div>
           )}
         </Space>
+      </Modal>
+
+      {/* Модальное окно подтверждения удаления */}
+      <Modal
+        title="Удалить энкаунтер?"
+        open={showDeleteConfirm}
+        onOk={() => {
+          if (currentEncounter) {
+            const deletedId = currentEncounter.id;
+            deleteEncounter(deletedId);
+            // Если удаляем текущий, сбросим выбор локально
+            if (currentEncounter?.id === deletedId) {
+              setCurrentEncounter(null);
+            }
+            setRefreshKey(prev => prev + 1);
+            message.success('Энкаунтер успешно удален');
+          }
+          setShowDeleteConfirm(false);
+        }}
+        onCancel={() => setShowDeleteConfirm(false)}
+        okText="Удалить"
+        cancelText="Отмена"
+        okButtonProps={{ danger: true }}
+      >
+        <p>Вы уверены, что хотите удалить энкаунтер "{currentEncounter?.name}"?</p>
+        <p>Это действие нельзя отменить.</p>
       </Modal>
     </div>
   );

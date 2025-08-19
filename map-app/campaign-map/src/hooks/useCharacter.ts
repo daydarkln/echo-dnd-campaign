@@ -375,10 +375,17 @@ export const useCharacter = () => {
   const importCharacter = useCallback((jsonData: string) => {
     try {
       const importedCharacter: Character = JSON.parse(jsonData);
-      const importedCharacterData: CharacterData = JSON.parse(importedCharacter.data);
-      setCharacter(importedCharacter);
-      setCharacterData(importedCharacterData);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(importedCharacter));
+      const rawData: any = JSON.parse(importedCharacter.data);
+      const migratedCharacterData = migrateCharacterData(rawData);
+
+      const normalizedCharacter: Character = {
+        ...importedCharacter,
+        data: JSON.stringify(migratedCharacterData)
+      };
+
+      setCharacter(normalizedCharacter);
+      setCharacterData(migratedCharacterData);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizedCharacter));
       return true;
     } catch (error) {
       console.error('Ошибка при импорте персонажа:', error);

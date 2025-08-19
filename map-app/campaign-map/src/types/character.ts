@@ -252,48 +252,67 @@ export const createSpell = (name: string): Spell => {
 
 // Функция для миграции старых данных персонажа
 export const migrateCharacterData = (characterData: any): CharacterData => {
-  // Создаем базовую структуру, если её нет
-  const defaultStructure = {
-    isDefault: true,
-    jsonType: 'character',
-    template: 'default',
-    name: { value: characterData?.name?.value || 'Новый персонаж' },
-    info: {
-      name: { value: characterData?.name?.value || 'Новый персонаж' },
-      charClass: { name: 'charClass', label: 'класс и уровень', value: characterData?.info?.charClass?.value || '' },
-      level: { name: 'level', label: 'уровень', value: characterData?.info?.level?.value || 1 },
-      background: { name: 'background', label: 'предыстория', value: characterData?.info?.background?.value || '' },
-      playerName: { name: 'playerName', label: 'имя игрока', value: characterData?.info?.playerName?.value || '' },
-      race: { name: 'race', label: 'раса', value: characterData?.info?.race?.value || '' },
-      alignment: { name: 'alignment', label: 'мировоззрение', value: characterData?.info?.alignment?.value || '' },
-      experience: { name: 'experience', label: 'опыт', value: characterData?.info?.experience?.value || 0 }
-    }
-  };
+  // Базовый дефолтный объект
+  const defaults: CharacterData = JSON.parse(createEmptyCharacter().data);
 
-  // Создаем пустую структуру spellsByLevel, если её нет
-  const spellsByLevel = characterData?.spellsByLevel || {
-    0: { spells: [] },
-    1: { spells: [] },
-    2: { spells: [] },
-    3: { spells: [] },
-    4: { spells: [] },
-    5: { spells: [] },
-    6: { spells: [] },
-    7: { spells: [] },
-    8: { spells: [] },
-    9: { spells: [] }
-  };
+  // Безопасные хелперы
+  const safe = <T,>(value: T | undefined, fallback: T): T => (value === undefined || value === null ? fallback : value);
 
-  // Создаем пустой массив тегов, если его нет
-  const tags = characterData?.tags || [];
-
-  // Объединяем все данные
-  return {
-    ...defaultStructure,
+  // Слияние по секциям, чтобы гарантировать наличие всех полей
+  const merged: CharacterData = {
+    ...defaults,
     ...characterData,
-    spellsByLevel,
-    tags
-  } as CharacterData;
+    name: { value: safe(characterData?.name?.value, defaults.name.value) },
+    info: {
+      ...defaults.info,
+      ...characterData?.info,
+      name: { value: safe(characterData?.info?.name?.value, defaults.info.name.value) },
+      charClass: {
+        name: 'charClass',
+        label: 'класс и уровень',
+        value: safe(characterData?.info?.charClass?.value, defaults.info.charClass.value)
+      },
+      level: { name: 'level', label: 'уровень', value: safe(characterData?.info?.level?.value, defaults.info.level.value) },
+      background: { name: 'background', label: 'предыстория', value: safe(characterData?.info?.background?.value, defaults.info.background.value) },
+      playerName: { name: 'playerName', label: 'имя игрока', value: safe(characterData?.info?.playerName?.value, defaults.info.playerName.value) },
+      race: { name: 'race', label: 'раса', value: safe(characterData?.info?.race?.value, defaults.info.race.value) },
+      alignment: { name: 'alignment', label: 'мировоззрение', value: safe(characterData?.info?.alignment?.value, defaults.info.alignment.value) },
+      experience: { name: 'experience', label: 'опыт', value: safe(characterData?.info?.experience?.value, defaults.info.experience.value) }
+    },
+    subInfo: { ...defaults.subInfo, ...characterData?.subInfo },
+    spellsInfo: { ...defaults.spellsInfo, ...characterData?.spellsInfo },
+    spells: characterData?.spells ?? defaults.spells,
+    spellsPact: characterData?.spellsPact ?? defaults.spellsPact,
+    spellsByLevel: (() => {
+      const src = characterData?.spellsByLevel || {};
+      const out: any = {};
+      for (let lvl = 0; lvl <= 9; lvl++) {
+        const from = src[lvl] || {};
+        out[lvl] = { spells: Array.isArray(from.spells) ? from.spells : [] };
+      }
+      return out as CharacterData['spellsByLevel'];
+    })(),
+    proficiency: safe(characterData?.proficiency, defaults.proficiency),
+    stats: { ...defaults.stats, ...characterData?.stats },
+    saves: { ...defaults.saves, ...characterData?.saves },
+    skills: { ...defaults.skills, ...characterData?.skills },
+    vitality: { ...defaults.vitality, ...characterData?.vitality },
+    weaponsList: characterData?.weaponsList ?? defaults.weaponsList,
+    weapons: characterData?.weapons ?? defaults.weapons,
+    text: { ...defaults.text, ...characterData?.text },
+    coins: { ...defaults.coins, ...characterData?.coins },
+    resources: characterData?.resources ?? defaults.resources,
+    bonusesSkills: characterData?.bonusesSkills ?? defaults.bonusesSkills,
+    bonusesStats: characterData?.bonusesStats ?? defaults.bonusesStats,
+    conditions: characterData?.conditions ?? defaults.conditions,
+    tags: characterData?.tags ?? defaults.tags,
+    createdAt: safe(characterData?.createdAt, defaults.createdAt),
+    inspiration: safe(characterData?.inspiration, defaults.inspiration),
+    avatar: characterData?.avatar ?? defaults.avatar,
+    casterClass: characterData?.casterClass ?? defaults.casterClass
+  };
+
+  return merged;
 };
 
 // Функция для создания пустого персонажа

@@ -57,21 +57,6 @@ const DeathSaveTracker: React.FC<DeathSaveTrackerProps> = ({
       <Divider style={{ margin: '8px 0' }} />
 
       <Space direction="vertical" size={4} style={{ width: '100%' }}>
-        {!isCurrentTurn && (
-          <div style={{ 
-            textAlign: 'center', 
-            padding: 8, 
-            backgroundColor: '#fff1f0', 
-            borderRadius: 4, 
-            marginBottom: 8,
-            border: '1px solid #ffccc7'
-          }}>
-            <Text style={{ fontSize: 11, color: '#cf1322' }}>
-              Не ваш ход! Дождитесь своей очереди.
-            </Text>
-          </div>
-        )}
-        
         <Text style={{ fontSize: 11, textAlign: 'center', display: 'block' }}>
           Обычные броски:
         </Text>
