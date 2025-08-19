@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Spin, Alert, FloatButton, Modal, Tabs } from 'antd';
-import { TeamOutlined, PartitionOutlined, DashboardOutlined, UserOutlined } from '@ant-design/icons';
+import { Layout, Spin, Alert, FloatButton, Modal, Tabs, App as AntdApp, ConfigProvider } from 'antd';
+import { TeamOutlined, PartitionOutlined, DashboardOutlined, UserOutlined, FileTextOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import TrackersPage from './pages/TrackersPage';
 import PlayerMapPage from './pages/PlayerMapPage';
+import { CharacterPage } from './pages/CharacterPage';
+import InitiativeTrackerPage from './pages/InitiativeTrackerPage';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import GroupedMindMap from './components/GroupedMindMap';
 import RegionFocusedMap from './components/RegionFocusedMap';
@@ -40,11 +42,15 @@ function App() {
   // Хук для управления видимостью полей
   const {
     getLocationFieldVisibility,
-    toggleLocationFieldVisibility,
     getRouteFieldVisibility,
-    toggleRouteFieldVisibility,
     initializeLocationFieldVisibility,
-    initializeRouteFieldVisibility
+    initializeRouteFieldVisibility,
+    toggleLocationItemVisibility,
+    toggleRouteItemVisibility,
+    toggleRouteNotesVisibility,
+    isLocationItemVisible,
+    isRouteItemVisible,
+    isRouteNotesVisible
   } = useFieldVisibility();
 
   useEffect(() => {
@@ -58,10 +64,15 @@ function App() {
       setEdges(parsedEdges);
       
       // Инициализируем видимость полей
-      const locationIds = parsedNodes.filter(n => n.type === 'locationNode').map(n => n.id);
-      const routeIds = parsedEdges.map(e => e.id);
-      initializeLocationFieldVisibility(locationIds);
-      initializeRouteFieldVisibility(routeIds);
+      const allLocations: PointOfInterest[] = [];
+      (pointsData as PointsData).areas.forEach(area => {
+        allLocations.push(...area.pointsOfInterest);
+      });
+      
+      const allRoutes = (pathsData as PathsData).routes;
+      
+      initializeLocationFieldVisibility(allLocations);
+      initializeRouteFieldVisibility(allRoutes);
       
       setLoading(false);
     } catch (err) {
@@ -143,83 +154,100 @@ function App() {
   };
 
   return (
-    <Layout style={{ minHeight: '100vh', backgroundColor: '#f0f2f5' }}>
-      <Content style={{ padding: 24 }}>
-        <Tabs
-          activeKey={location.pathname.startsWith('/groups') ? 'groups' : location.pathname.startsWith('/trackers') ? 'trackers' : location.pathname.startsWith('/player-map') ? 'player-map' : 'map'}
-          onChange={(key) => {
-            setActiveTab(key);
-            navigate(key === 'groups' ? '/groups' : key === 'trackers' ? '/trackers' : key === 'player-map' ? '/player-map' : '/');
-          }}
-          items={[
-            {
-              key: 'map',
-              label: (
-                <span>
-                  <PartitionOutlined /> Карта
-                </span>
-              ),
-            },
-            {
-              key: 'groups',
-              label: (
-                <span>
-                  <TeamOutlined /> Группы
-                </span>
-              ),
-            },
-            {
-              key: 'trackers',
-              label: (
-                <span>
-                  <DashboardOutlined /> Трекеры
-                </span>
-              ),
-            },
-            {
-              key: 'player-map',
-              label: (
-                <span>
-                  <UserOutlined /> Карта для игроков
-                </span>
-              ),
-            },
-          ]}
-        />
+    <AntdApp>
+      <ConfigProvider componentSize='small'>
 
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <>
-                {renderMapView()}
-                <FloatButton
-                  icon={<TeamOutlined />}
-                  tooltip="Управление группами"
-                  onClick={() => navigate('/groups')}
-                  style={{ right: 24, bottom: 24 }}
-                />
-              </>
-            }
+      <Layout style={{ minHeight: '100vh', backgroundColor: '#f0f2f5' }}>
+        <Content style={{ padding: 24 }}>
+          <Tabs
+            activeKey={location.pathname.startsWith('/groups') ? 'groups' : location.pathname.startsWith('/trackers') ? 'trackers' : location.pathname.startsWith('/initiative') ? 'initiative' : location.pathname.startsWith('/player-map') ? 'player-map' : location.pathname.startsWith('/character') ? 'character' : 'map'}
+            onChange={(key) => {
+              setActiveTab(key);
+              navigate(key === 'groups' ? '/groups' : key === 'trackers' ? '/trackers' : key === 'initiative' ? '/initiative' : key === 'player-map' ? '/player-map' : key === 'character' ? '/character' : '/');
+            }}
+            items={[
+              {
+                key: 'map',
+                label: (
+                  <span>
+                    <PartitionOutlined /> Карта
+                  </span>
+                ),
+              },
+              {
+                key: 'groups',
+                label: (
+                  <span>
+                    <TeamOutlined /> Группы
+                  </span>
+                ),
+              },
+              {
+                key: 'trackers',
+                label: (
+                  <span>
+                    <DashboardOutlined /> Трекеры
+                  </span>
+                ),
+              },
+              {
+                key: 'initiative',
+                label: (
+                  <span>
+                    <ThunderboltOutlined /> Инициатива
+                  </span>
+                ),
+              },
+              {
+                key: 'player-map',
+                label: (
+                  <span>
+                    <UserOutlined /> Карта для игроков
+                  </span>
+                ),
+              },
+            ]}
           />
-          <Route
-            path="/groups"
-            element={
-              <div style={{ maxWidth: 960, margin: '0 auto' }}>
-                <GroupManager visible={true} onClose={() => {}} asPanel />
-              </div>
-            }
-          />
-          <Route
-            path="/trackers"
-            element={<TrackersPage />}
-          />
-          <Route
-            path="/player-map"
-            element={<PlayerMapPage />}
-          />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <>
+                  {renderMapView()}
+                  <FloatButton
+                    icon={<TeamOutlined />}
+                    tooltip="Управление группами"
+                    onClick={() => navigate('/groups')}
+                    style={{ right: 24, bottom: 24 }}
+                  />
+                </>
+              }
+            />
+            <Route
+              path="/groups"
+              element={
+                <div style={{ maxWidth: 960, margin: '0 auto' }}>
+                  <GroupManager visible={true} onClose={() => {}} asPanel />
+                </div>
+              }
+            />
+            <Route
+              path="/trackers"
+              element={<TrackersPage />}
+            />
+            <Route
+              path="/initiative"
+              element={<InitiativeTrackerPage />}
+            />
+            <Route
+              path="/player-map"
+              element={<PlayerMapPage />}
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Content>
+      </Layout>
 
         {/* Модальное окно управления группами (для плавающей кнопки на вкладке Карта) */}
         <GroupManager 
@@ -252,13 +280,15 @@ function App() {
                 onBack={handleBackToMindMap}
                 isModal={true}
                 getLocationFieldVisibility={getLocationFieldVisibility}
-                toggleLocationFieldVisibility={toggleLocationFieldVisibility}
+                toggleLocationItemVisibility={toggleLocationItemVisibility}
+                isLocationItemVisible={isLocationItemVisible}
               />
             )
           )}
         </Modal>
-      </Content>
-    </Layout>
+    
+      </ConfigProvider>
+    </AntdApp>
   );
 }
 

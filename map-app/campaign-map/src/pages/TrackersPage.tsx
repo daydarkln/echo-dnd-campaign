@@ -10,7 +10,7 @@ const Meter: React.FC<{ label: string; value: number; description?: string | str
   const max = 4;
   const palette = colors ?? ['#d9d9d9', '#95de64', '#ffd666', '#ff9c6e', '#ff7875'];
   return (
-    <Card size="small" style={{ height: '100%' }}>
+    <Card  style={{ height: '100%' }}>
       <Space direction="vertical" style={{ width: '100%' }}>
         <Text strong>{label}</Text>
         <Space>
@@ -19,10 +19,10 @@ const Meter: React.FC<{ label: string; value: number; description?: string | str
           ))}
         </Space>
         <Space>
-          <Button onClick={onDec} size="small">-</Button>
+          <Button onClick={onDec} >-</Button>
           <Tag color="blue">{value}</Tag>
-          <Button onClick={onInc} size="small">+</Button>
-          {onReset && <Button onClick={onReset} size="small" type="text">сброс</Button>}
+          <Button onClick={onInc} >+</Button>
+          {onReset && <Button onClick={onReset}  type="text">сброс</Button>}
         </Space>
         {typeof description === 'string' && description.length > 0 && (
           <Text type="secondary" style={{ fontSize: 12, lineHeight: 1.4 }}>{description}</Text>
@@ -80,56 +80,7 @@ const TrackersPage: React.FC = () => {
       </div>
 
       {/* Персонажные трекеры: по всем группам/персонажам */}
-      <Title level={4} style={{ marginTop: 0 }}>Игроки</Title>
       <Row gutter={[16, 16]}>
-        {groups.flatMap(g => g.members.map(m => ({ groupName: g.name, id: m.id, name: m.name }))).map(({ groupName, id, name }) => {
-          const cs = getCharacterStages(id);
-          const sporesStages = [
-            'Нет симптомов/контроль',
-            'Лёгкое раздражение — -1 к Интеллекту и Исследованию; лёгкие галлюцинации',
-            'Уязвимость к яду; -2 к проверкам Мудрости',
-            'Периодические спасброски против контроля',
-            'Полная потеря личности; контроль роя в триггерных зонах',
-          ];
-          const shadowStages = [
-            'Фон отсутствует',
-            'Шёпоты; -1 к инициативе; искушения (проверка Мудрости при «сделках»)',
-            'Давление; -1 к Харизме; периодические компульсии',
-            'Захват; -2 к спасброскам против контроля; краткий «аватар» при провале Интеллекта',
-            'Контроль — персонаж становится агентом Тени до конца сцены',
-          ];
-          return (
-            <Col key={id} xs={24} md={12} lg={8}>
-              <Card size="small" title={<span>{name} <Text type="secondary" style={{ fontWeight: 'normal' }}>({groupName})</Text></span>}>
-                <Row gutter={8}>
-                  <Col span={24}>
-                    <Meter
-                      label="Споры"
-                      value={cs.sporesStage}
-                      description={sporesStages.slice(0, cs.sporesStage + 1)}
-                      onInc={() => incCharacterStage(id, 'sporesStage')}
-                      onDec={() => decCharacterStage(id, 'sporesStage')}
-                      onReset={() => resetCharacterStage(id, 'sporesStage')}
-                    />
-                  </Col>
-                  <Col span={24} style={{ marginTop: 8 }}>
-                    <Meter
-                      label="Карающая Тень"
-                      value={cs.shadowStage}
-                      description={shadowStages.slice(0, cs.shadowStage + 1)}
-                      onInc={() => incCharacterStage(id, 'shadowStage')}
-                      onDec={() => decCharacterStage(id, 'shadowStage')}
-                      onReset={() => resetCharacterStage(id, 'shadowStage')}
-                    />
-                  </Col>
-                </Row>
-              </Card>
-            </Col>
-          );
-        })}
-
-        <Col span={24}><Divider style={{ margin: '8px 0' }} /></Col>
-
         <Col span={24}>
           <Title level={4} style={{ margin: 0 }}>Общие трекеры</Title>
         </Col>

@@ -10,8 +10,8 @@ import ReactFlow, {
   Edge,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { Card, Typography, Modal, Descriptions, Tag, List, Button, Dropdown, Tooltip } from 'antd';
-import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
+import { Card, Typography, Modal, Descriptions, Tag, List, Button, Dropdown, Tooltip, message, notification, App } from 'antd';
+import { EyeOutlined, EyeInvisibleOutlined, TeamOutlined, DashboardOutlined } from '@ant-design/icons';
 import LocationNode from './LocationNode';
 import GroupNode from './GroupNode';
 import PathLegend from './PathLegend';
@@ -21,6 +21,7 @@ import { getLocationName, getAreaNameByLocationId } from '../utils/locationUtils
 import { useTrackers } from '../hooks/useTrackers';
 import { applyCircularRegionLayout } from '../utils/layout';
 import ObstacleTag from './ObstacleTag';
+import RouteDetail from './RouteDetail';
 import { useNodePositions } from '../hooks/useNodePositions';
 import { useLocationVisibility } from '../hooks/useLocationVisibility';
 import { useRegionVisibility } from '../hooks/useRegionVisibility';
@@ -60,6 +61,21 @@ const GroupedMindMap: React.FC<GroupedMindMapProps> = ({
   showGlobalTrackers = true,
   isPlayerMap = false
 }) => {
+  const { notification: appNotification } = App.useApp();
+  
+  // Логируем параметры для отладки
+  console.log('GroupedMindMap - Параметры компонента:', {
+    showSavePosition,
+    enableDragging,
+    isPlayerMap,
+    nodesCount: nodes.length,
+    edgesCount: edges.length
+  });
+
+  // Логируем рендеринг кнопки сохранения
+  useEffect(() => {
+    console.log('GroupedMindMap - Компонент отрендерен, showSavePosition:', showSavePosition);
+  }, [showSavePosition]);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [blockedNodeIds, setBlockedNodeIds] = useState<Set<string>>(new Set());
   const [selectedRoute, setSelectedRoute] = useState<any>(null);
@@ -88,7 +104,12 @@ const GroupedMindMap: React.FC<GroupedMindMapProps> = ({
   // Хук для управления видимостью полей
   const {
     initializeLocationFieldVisibility,
-    initializeRouteFieldVisibility
+    initializeRouteFieldVisibility,
+    getRouteFieldVisibility,
+    toggleRouteItemVisibility,
+    toggleRouteNotesVisibility,
+    isRouteItemVisible,
+    isRouteNotesVisible
   } = useFieldVisibility();
 
   // Фильтрация узлов для карты игроков
@@ -129,11 +150,32 @@ const GroupedMindMap: React.FC<GroupedMindMapProps> = ({
   const debouncedSaveAllPositions = useCallback(() => {
     if (saveTimeout) clearTimeout(saveTimeout);
     const timeout = setTimeout(() => {
-      saveAllPositions();
+      try {
+        console.log('GroupedMindMap - Начинаем сохранение позиций...');
+        const savedCount = nodePositions.size;
+        console.log('GroupedMindMap - Количество узлов для сохранения:', savedCount);
+        
+        saveAllPositions();
+        
+        // Показываем дополнительное уведомление для гарантии
+        appNotification.success({
+          message: 'Успешное сохранение',
+          description: `Позиции ${savedCount} узлов успешно сохранены!`,
+          duration: 2
+        });
+        console.log('GroupedMindMap - Уведомление об успешном сохранении показано');
+      } catch (error) {
+        console.error('GroupedMindMap - Ошибка при сохранении позиций:', error);
+        appNotification.error({
+          message: 'Ошибка сохранения',
+          description: 'Не удалось сохранить позиции узлов',
+          duration: 2
+        });
+      }
       setSaveTimeout(null);
     }, 300);
     setSaveTimeout(timeout);
-  }, [saveAllPositions, saveTimeout]);
+  }, [saveAllPositions, saveTimeout, nodePositions]);
 
   useEffect(() => {
     return () => {
@@ -178,20 +220,20 @@ const GroupedMindMap: React.FC<GroupedMindMapProps> = ({
     
     const pathIds = edges.map(edge => edge.id);
     
-    console.log('GroupedMindMap - Инициализируем видимость:', {
-      locationIds,
-      regionNames,
-      pathIds,
-      isPlayerMap,
-      nodesCount: nodes.length,
-      edgesCount: edges.length
-    });
-    
     initializeLocationVisibility(locationIds);
     initializeRegionVisibility(regionNames);
     initializePathVisibility(pathIds);
-    initializeLocationFieldVisibility(locationIds);
-    initializeRouteFieldVisibility(pathIds);
+    
+    // Получаем объекты локаций и путей для инициализации видимости полей
+    const allLocations: PointOfInterest[] = [];
+    pointsData.areas.forEach(area => {
+      allLocations.push(...area.pointsOfInterest);
+    });
+    
+    const allRoutes = pathsData.routes;
+    
+    initializeLocationFieldVisibility(allLocations);
+    initializeRouteFieldVisibility(allRoutes);
 
     // Для карты игроков показываем все узлы и рёбра без фильтрации
     if (isPlayerMap) {
@@ -346,17 +388,17 @@ const GroupedMindMap: React.FC<GroupedMindMapProps> = ({
       if (!filteredNodes.some(n => n.id === node.id)) return;
       
       if (enableDragging) {
-        // Разрешаем перетаскивание как регионов, так и локаций
+        // Обновляем локальное состояние позиций без автоматического сохранения
         const currentSavedPosition = nodePositions.get(node.id);
         if (!currentSavedPosition || 
             Math.abs(currentSavedPosition.x - node.position.x) > 1 || 
             Math.abs(currentSavedPosition.y - node.position.y) > 1) {
           updateNodePosition(node.id, node.position.x, node.position.y);
-          debouncedSaveAllPositions();
+          // Убираем автоматическое сохранение: debouncedSaveAllPositions();
         }
       }
     },
-    [updateNodePosition, nodePositions, debouncedSaveAllPositions, enableDragging, isPlayerMap, filteredNodes]
+    [updateNodePosition, nodePositions, enableDragging, isPlayerMap, filteredNodes]
   );
 
   const handleEdgeClick = useCallback(
@@ -391,7 +433,7 @@ const GroupedMindMap: React.FC<GroupedMindMapProps> = ({
 
   return (
     <Card style={{ height: '100%', border: 'none' }}>
-      <div style={{ marginBottom: 16, textAlign: 'center' }}>
+      <div style={{ marginBottom: 16, textAlign: 'center', position: 'relative' }}>
         <Title level={2} style={{ margin: 0, color: '#1890ff' }}>
           {customTitle || '🗺️ Карта регионов кампании'}
         </Title>
@@ -401,115 +443,165 @@ const GroupedMindMap: React.FC<GroupedMindMapProps> = ({
         {enableDragging && !isPlayerMap && (
           <div style={{ marginTop: '8px' }}>
             <Typography.Text type="secondary" style={{ fontSize: '12px' }}>
-              💡 <strong>Подсказка:</strong> Перетаскивайте узлы для изменения их расположения. Позиции автоматически сохраняются.
+              💡 <strong>Подсказка:</strong> Перетаскивайте узлы для изменения их расположения. Не забудьте сохранить позиции кнопкой "Сохранить позиции узлов".
             </Typography.Text>
           </div>
         )}
-      </div>
-      
-      <div style={{ height: 'calc(100vh - 160px)', border: '1px solid #d9d9d9', borderRadius: 8, position: 'relative' }}>
+        
+        {/* Единый дропдаун управления картой */}
         <Dropdown
           trigger={['click']}
+          placement="bottomRight"
           menu={{
-            items: groups
-              .filter(g => g.isPlayers && g.currentLocation)
-              .map(g => {
-                const locId = g.currentLocation as string;
-                return {
-                  key: `grp:${g.id}::loc:${locId}`,
-                  label: (
-                    <div style={{ lineHeight: 1.2 }}>
-                      <div style={{ fontWeight: 600 }}>
-                        {g.name} <Tag color="blue">{g.members.length}</Tag>
+            items: [
+              // Поиск игроков
+              {
+                key: 'find-players',
+                label: (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <TeamOutlined />
+                    <span>Найти игроков</span>
+                  </div>
+                ),
+                children: groups
+                  .filter(g => g.isPlayers && g.currentLocation)
+                  .map(g => {
+                    const locId = g.currentLocation as string;
+                    return {
+                      key: `grp:${g.id}::loc:${locId}`,
+                      label: (
+                        <div style={{ lineHeight: 1.2 }}>
+                          <div style={{ fontWeight: 600 }}>
+                            {g.name} <Tag color="blue">{g.members.length}</Tag>
+                          </div>
+                          <div style={{ fontSize: 12, color: '#666' }}>
+                            {getLocationName(locId)} ({getAreaNameByLocationId(locId)})
+                          </div>
+                        </div>
+                      ),
+                      onClick: () => {
+                        setJumpTarget(locId);
+                        
+                        if (!filteredNodes.some(n => n.id === locId)) return;
+                        
+                        const targetNode = rfInstance?.getNode(locId);
+                        if (targetNode) {
+                          window.dispatchEvent(new CustomEvent('prevent-node-click', { 
+                            detail: { nodeId: locId, duration: 300 } 
+                          }));
+                          
+                          setNodes(nds => nds.map(n => 
+                            n.id === locId 
+                              ? { ...n, style: { ...n.style, boxShadow: '0 0 0 3px #1890ff' } } 
+                              : n
+                          ));
+                          
+                          setTimeout(() => {
+                            try {
+                              rfInstance?.fitView({ 
+                                nodes: [targetNode], 
+                                duration: 800, 
+                                padding: 0.2, 
+                                minZoom: 0.4, 
+                                maxZoom: 1.4 
+                              });
+                            } catch (e) {
+                              console.error("FitView error:", e);
+                            }
+                          }, 100);
+                          
+                          setTimeout(() => setNodes(nds => nds.map(n => 
+                            n.id === locId 
+                              ? { ...n, style: { ...n.style, boxShadow: undefined } } 
+                              : n
+                          )), 1200);
+                        }
+                      }
+                    };
+                  })
+              },
+              // Сохранение позиций
+              ...(showSavePosition ? [{
+                key: 'save-positions',
+                label: (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    💾
+                    <span>Сохранить позиции узлов</span>
+                  </div>
+                ),
+                onClick: () => {
+                  console.log('GroupedMindMap - Кнопка "Сохранить позиции узлов" нажата');
+                  console.log('GroupedMindMap - showSavePosition:', showSavePosition);
+                  debouncedSaveAllPositions();
+                }
+              }] : []),
+              // Общие трекеры
+              ...(showGlobalTrackers ? [{
+                key: 'global-trackers',
+                label: (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <DashboardOutlined />
+                    <span>Общие трекеры</span>
+                  </div>
+                ),
+                children: [
+                  {
+                    key: 'city-panic',
+                    label: (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 200 }}>
+                        <span>Городская паника</span>
+                        <Tooltip title={cityDesc} placement="left">
+                          <Tag color="blue" style={{ margin: 0, cursor: 'help' }}>{trackers.cityPanic}</Tag>
+                        </Tooltip>
                       </div>
-                      <div style={{ fontSize: 12, color: '#666' }}>
-                        {getLocationName(locId)} ({getAreaNameByLocationId(locId)})
+                    )
+                  },
+                  {
+                    key: 'ecosystem',
+                    label: (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 200 }}>
+                        <span>Экосистема</span>
+                        <Tooltip title={ecoDesc} placement="left">
+                          <Tag color="green" style={{ margin: 0, cursor: 'help' }}>{trackers.ecosystem}</Tag>
+                        </Tooltip>
                       </div>
-                    </div>
-                  )
-                };
-              }),
-            onClick: ({ key }) => {
-              const parts = String(key).split('::loc:');
-              const locId = parts.length === 2 ? parts[1] : String(key);
-              setJumpTarget(locId);
-              
-              if (!filteredNodes.some(n => n.id === locId)) return;
-              
-              const targetNode = rfInstance?.getNode(locId);
-              if (targetNode) {
-                window.dispatchEvent(new CustomEvent('prevent-node-click', { 
-                  detail: { nodeId: locId, duration: 300 } 
-                }));
-                
-                setNodes(nds => nds.map(n => 
-                  n.id === locId 
-                    ? { ...n, style: { ...n.style, boxShadow: '0 0 0 3px #1890ff' } } 
-                    : n
-                ));
-                
-                setTimeout(() => {
-                  try {
-                    rfInstance?.fitView({ 
-                      nodes: [targetNode], 
-                      duration: 800, 
-                      padding: 0.2, 
-                      minZoom: 0.4, 
-                      maxZoom: 1.4 
-                    });
-                  } catch (e) {
-                    console.error("FitView error:", e);
+                    )
+                  },
+                  {
+                    key: 'swarm',
+                    label: (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 200 }}>
+                        <span>Рой</span>
+                        <Tooltip title={swarmDesc} placement="left">
+                          <Tag color="red" style={{ margin: 0, cursor: 'help' }}>{trackers.swarm}</Tag>
+                        </Tooltip>
+                      </div>
+                    )
                   }
-                }, 100);
-                
-                setTimeout(() => setNodes(nds => nds.map(n => 
-                  n.id === locId 
-                    ? { ...n, style: { ...n.style, boxShadow: undefined } } 
-                    : n
-                )), 1200);
-              }
-            }
+                ]
+              }] : [])
+            ]
           }}
         >
-          <Button type="primary" size="middle" style={{ position: 'absolute', zIndex: 5, top: 12, left: 12 }}>
-            Найти игроков
-          </Button>
-        </Dropdown>
-        
-        {showSavePosition && (
           <Button 
             type="default" 
             size="middle" 
-            style={{ position: 'absolute', zIndex: 5, top: 12, left: 200 }}
-            onClick={debouncedSaveAllPositions}
+            style={{ 
+              position: 'absolute', 
+              top: 8, 
+              right: 8,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8
+            }}
           >
-            💾 Сохранить позиции узлов
+            <DashboardOutlined />
+            Управление картой
           </Button>
-        )}
-        
-        {showGlobalTrackers && (
-          <Card
-            size="small"
-            style={{ position: 'absolute', zIndex: 5, top: 56, right: 12, minWidth: 220, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
-            bodyStyle={{ padding: 8 }}
-            title={<span style={{ fontSize: 12, color: '#555' }}>Общие трекеры</span>}
-          >
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 6, alignItems: 'center', fontSize: 12 }}>
-              <span>Городская паника</span>
-              <Tooltip title={cityDesc} placement="left">
-                <Tag color="blue" style={{ margin: 0, cursor: 'help' }}>{trackers.cityPanic}</Tag>
-              </Tooltip>
-              <span>Экосистема</span>
-              <Tooltip title={ecoDesc} placement="left">
-                <Tag color="green" style={{ margin: 0, cursor: 'help' }}>{trackers.ecosystem}</Tag>
-              </Tooltip>
-              <span>Рой</span>
-              <Tooltip title={swarmDesc} placement="left">
-                <Tag color="red" style={{ margin: 0, cursor: 'help' }}>{trackers.swarm}</Tag>
-              </Tooltip>
-            </div>
-          </Card>
-        )}
+        </Dropdown>
+      </div>
+      
+      <div style={{ height: 'calc(100vh - 160px)', border: '1px solid #d9d9d9', borderRadius: 8, position: 'relative' }}>
         
         <ReactFlow
           onInit={setRfInstance}
@@ -541,55 +633,21 @@ const GroupedMindMap: React.FC<GroupedMindMapProps> = ({
         open={showRouteModal}
         onCancel={() => setShowRouteModal(false)}
         footer={null}
-        width={600}
+        width={800}
+        style={{ top: 20 }}
       >
         {selectedRoute && (
-          <div>
-            <Descriptions
-              title={selectedRoute.description}
-              bordered
-              column={1}
-              size="small"
-            >
-              <Descriptions.Item label="Тип пути">
-                <Tag color="blue">{selectedRoute.pathType}</Tag>
-              </Descriptions.Item>
-              <Descriptions.Item label="Время в пути">
-                {selectedRoute.travelTime}
-              </Descriptions.Item>
-              {selectedRoute.obstacles?.length > 0 && (
-                <Descriptions.Item label="Препятствия">
-                  <List
-                    size="small"
-                    dataSource={selectedRoute.obstacles}
-                    renderItem={(obstacle: string) => (
-                      <List.Item style={{ padding: '4px 0' }}>
-                        <ObstacleTag obstacleName={obstacle} />
-                      </List.Item>
-                    )}
-                  />
-                </Descriptions.Item>
-              )}
-              {selectedRoute.requirements?.length > 0 && (
-                <Descriptions.Item label="Требования">
-                  <List
-                    size="small"
-                    dataSource={selectedRoute.requirements}
-                    renderItem={(requirement: string) => (
-                      <List.Item style={{ padding: '4px 0' }}>
-                        <Tag color="red">{requirement}</Tag>
-                      </List.Item>
-                    )}
-                  />
-                </Descriptions.Item>
-              )}
-              {selectedRoute.notes && (
-                <Descriptions.Item label="Примечания">
-                  {selectedRoute.notes}
-                </Descriptions.Item>
-              )}
-            </Descriptions>
-          </div>
+          <RouteDetail
+            route={selectedRoute}
+            onBack={() => setShowRouteModal(false)}
+            isModal={true}
+            isPlayerView={isPlayerMap}
+            getRouteFieldVisibility={getRouteFieldVisibility}
+            toggleRouteItemVisibility={!isPlayerMap ? toggleRouteItemVisibility : undefined}
+            toggleRouteNotesVisibility={!isPlayerMap ? toggleRouteNotesVisibility : undefined}
+            isRouteItemVisible={isRouteItemVisible}
+            isRouteNotesVisible={isRouteNotesVisible}
+          />
         )}
       </Modal>
     </Card>

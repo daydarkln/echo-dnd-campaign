@@ -8,7 +8,7 @@ import ReactFlow, {
   ReactFlowInstance,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { Button, Card, Typography, Modal, Descriptions, Tag, List, Tooltip } from 'antd';
+import { Button, Card, Typography, Modal, Descriptions, Tag, List, Tooltip, message } from 'antd';
 import { useTrackers } from '../hooks/useTrackers';
 import LocationNode from './LocationNode';
 import { PointsData, PathsData, GraphNode, GraphEdge, PointOfInterest } from '../types';
@@ -241,16 +241,25 @@ const RegionFocusedMap: React.FC<RegionFocusedMapProps> = ({ areaName, pointsDat
   const saveNodePositions = useCallback(() => {
     if (!enableDragging) return;
     
-    const positions: Record<string, { x: number; y: number }> = {};
-    // Получаем актуальные nodes через rfInstance вместо зависимости от state
-    const currentNodes = rfInstance?.getNodes() || [];
-    currentNodes.forEach(node => {
-      positions[node.id] = { x: node.position.x, y: node.position.y };
-    });
-    
-    const storageKey = `region-${areaName}-positions`;
-    localStorage.setItem(storageKey, JSON.stringify(positions));
-    console.log(`RegionFocusedMap - Сохранены позиции для региона "${areaName}":`, positions);
+    try {
+      const positions: Record<string, { x: number; y: number }> = {};
+      // Получаем актуальные nodes через rfInstance вместо зависимости от state
+      const currentNodes = rfInstance?.getNodes() || [];
+      currentNodes.forEach(node => {
+        positions[node.id] = { x: node.position.x, y: node.position.y };
+      });
+      
+      const storageKey = `region-${areaName}-positions`;
+      localStorage.setItem(storageKey, JSON.stringify(positions));
+      console.log(`RegionFocusedMap - Сохранены позиции для региона "${areaName}":`, positions);
+      
+      // Показываем уведомление об успешном сохранении
+      const savedCount = Object.keys(positions).length;
+      message.success(`Позиции ${savedCount} узлов региона "${areaName}" успешно сохранены!`, 2);
+    } catch (error) {
+      console.error('Ошибка при сохранении позиций:', error);
+      message.error('Не удалось сохранить позиции узлов', 2);
+    }
   }, [rfInstance, areaName, enableDragging]);
 
   // Функция loadSavedPositions удалена - логика интегрирована в основной useEffect
@@ -263,11 +272,11 @@ const RegionFocusedMap: React.FC<RegionFocusedMapProps> = ({ areaName, pointsDat
     
     console.log(`RegionFocusedMap - Узел "${node.id}" перетащен в позицию:`, node.position);
     
-    // Сохраняем позиции после перетаскивания с задержкой
-    setTimeout(() => {
-      saveNodePositions();
-    }, 100);
-  }, [enableDragging, saveNodePositions]);
+    // Обновляем локальное состояние позиций без автоматического сохранения
+    // setTimeout(() => {
+    //   saveNodePositions();
+    // }, 100);
+  }, [enableDragging]);
 
   // Удаляем автоматическое сохранение позиций при изменении nodes
   // так как это создает бесконечный цикл с useEffect который обновляет nodes
@@ -425,7 +434,7 @@ const RegionFocusedMap: React.FC<RegionFocusedMapProps> = ({ areaName, pointsDat
       <div style={{ height: 'calc(100vh - 160px)', border: '1px solid #d9d9d9', borderRadius: 8, position: 'relative' }}>
         {/* Глобальные трекеры */}
         <Card
-          size="small"
+          
           style={{ position: 'absolute', zIndex: 5, top: 12, right: 12, minWidth: 220, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
           bodyStyle={{ padding: 8 }}
           title={<span style={{ fontSize: 12, color: '#555' }}>Общие трекеры</span>}
@@ -491,7 +500,7 @@ const RegionFocusedMap: React.FC<RegionFocusedMapProps> = ({ areaName, pointsDat
               title={selectedRoute.description}
               bordered
               column={1}
-              size="small"
+              
             >
               <Descriptions.Item label="Тип пути">
                 <Tag color="blue">{selectedRoute.pathType}</Tag>
@@ -502,7 +511,7 @@ const RegionFocusedMap: React.FC<RegionFocusedMapProps> = ({ areaName, pointsDat
               {selectedRoute.obstacles && selectedRoute.obstacles.length > 0 && (
                 <Descriptions.Item label="Препятствия">
                   <List
-                    size="small"
+                    
                     dataSource={selectedRoute.obstacles}
                     renderItem={(obstacle: string) => (
                       <List.Item style={{ padding: '4px 0' }}>
@@ -515,7 +524,7 @@ const RegionFocusedMap: React.FC<RegionFocusedMapProps> = ({ areaName, pointsDat
               {selectedRoute.requirements && selectedRoute.requirements.length > 0 && (
                 <Descriptions.Item label="Требования">
                   <List
-                    size="small"
+                    
                     dataSource={selectedRoute.requirements}
                     renderItem={(requirement: string) => (
                       <List.Item style={{ padding: '4px 0' }}>

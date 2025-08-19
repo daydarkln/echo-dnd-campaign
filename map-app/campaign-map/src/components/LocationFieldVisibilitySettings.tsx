@@ -80,7 +80,7 @@ const LocationFieldVisibilitySettings: React.FC<LocationFieldVisibilitySettingsP
     return (
       <Card 
         title={`Видимость полей: ${locationName || locationId}`}
-        size="small"
+        
         style={{ marginBottom: 16 }}
       >
         <Space direction="vertical" style={{ width: '100%' }}>
@@ -137,7 +137,7 @@ const LocationFieldVisibilitySettings: React.FC<LocationFieldVisibilitySettingsP
     return (
       <Card 
         title={`Видимость полей: ${routeName || routeId}`}
-        size="small"
+        
         style={{ marginBottom: 16 }}
       >
         <Space direction="vertical" style={{ width: '100%' }}>
@@ -189,7 +189,7 @@ const LocationFieldVisibilitySettings: React.FC<LocationFieldVisibilitySettingsP
 
   // Если ни локация, ни путь не переданы
   return (
-    <Card title="Видимость полей" size="small">
+    <Card title="Видимость полей" >
       <Text type="secondary">
         Выберите локацию или путь для управления видимостью полей
       </Text>

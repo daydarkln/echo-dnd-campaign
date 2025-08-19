@@ -343,3 +343,35 @@
     top: 10px !important;
   }
 }
+
+/* Глобальные стили для уведомлений antd */
+.ant-message {
+  z-index: 10000 !important;
+}
+
+.ant-message-notice {
+  z-index: 10000 !important;
+}
+
+.ant-message-notice-content {
+  z-index: 10000 !important;
+}
+
+/* Убеждаемся, что уведомления видны */
+.ant-message .ant-message-notice-content {
+  position: relative;
+  z-index: 10000 !important;
+}
+
+/* Стили для notification antd */
+.ant-notification {
+  z-index: 10000 !important;
+}
+
+.ant-notification-notice {
+  z-index: 10000 !important;
+}
+
+.ant-notification-notice-content {
+  z-index: 10000 !important;
+}

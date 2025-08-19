@@ -198,7 +198,7 @@ const MapGraph: React.FC<MapGraphProps> = ({ nodes, edges, onNodeClick }) => {
               title={selectedRoute.description}
               bordered
               column={1}
-              size="small"
+              
             >
               <Descriptions.Item label="Тип пути">
                 <Tag color="blue">{selectedRoute.pathType}</Tag>
@@ -209,7 +209,7 @@ const MapGraph: React.FC<MapGraphProps> = ({ nodes, edges, onNodeClick }) => {
               {selectedRoute.obstacles && selectedRoute.obstacles.length > 0 && (
                 <Descriptions.Item label="Препятствия">
                   <List
-                    size="small"
+                    
                     dataSource={selectedRoute.obstacles}
                     renderItem={(obstacle: string) => (
                       <List.Item style={{ padding: '4px 0' }}>
@@ -222,7 +222,7 @@ const MapGraph: React.FC<MapGraphProps> = ({ nodes, edges, onNodeClick }) => {
               {selectedRoute.requirements && selectedRoute.requirements.length > 0 && (
                 <Descriptions.Item label="Требования">
                   <List
-                    size="small"
+                    
                     dataSource={selectedRoute.requirements}
                     renderItem={(requirement: string) => (
                       <List.Item style={{ padding: '4px 0' }}>

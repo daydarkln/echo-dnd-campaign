@@ -82,19 +82,19 @@ export function updateFieldVisibility<T extends { id: any }>(
   };
 }
 
-// Типы для видимости полей локаций
+// Типы для видимости отдельных элементов в полях локаций
 export interface LocationFieldVisibility {
-  amplifiers: VisibilityStatus;
-  dampeners: VisibilityStatus;
-  encounters: VisibilityStatus;
-  loot: VisibilityStatus;
-  clues: VisibilityStatus;
+  amplifiers: { [index: number]: VisibilityStatus };
+  dampeners: { [index: number]: VisibilityStatus };
+  encounters: { [index: number]: VisibilityStatus };
+  loot: { [index: number]: VisibilityStatus };
+  clues: { [index: number]: VisibilityStatus };
 }
 
-// Типы для видимости полей путей
+// Типы для видимости полей путей (obstacles и requirements - массивы, notes - одиночное значение)
 export interface RouteFieldVisibility {
-  obstacles: VisibilityStatus;
-  requirements: VisibilityStatus;
+  obstacles: { [index: number]: VisibilityStatus };
+  requirements: { [index: number]: VisibilityStatus };
   notes: VisibilityStatus;
 }
 
@@ -104,18 +104,53 @@ export interface FieldVisibilityState {
   routes: { [routeId: string]: RouteFieldVisibility };
 }
 
-// Дефолтные настройки видимости
+// Вспомогательные функции для создания дефолтной видимости
+export const createDefaultLocationFieldVisibility = (location: any): LocationFieldVisibility => {
+  const createArrayVisibility = (array: any[]) => {
+    const visibility: { [index: number]: VisibilityStatus } = {};
+    array.forEach((_, index) => {
+      visibility[index] = 'visible';
+    });
+    return visibility;
+  };
+
+  return {
+    amplifiers: createArrayVisibility(location.amplifiers || []),
+    dampeners: createArrayVisibility(location.dampeners || []),
+    encounters: createArrayVisibility(location.encounters || []),
+    loot: createArrayVisibility(location.loot || []),
+    clues: createArrayVisibility(location.clues || [])
+  };
+};
+
+export const createDefaultRouteFieldVisibility = (route: any): RouteFieldVisibility => {
+  const createArrayVisibility = (array: any[]) => {
+    const visibility: { [index: number]: VisibilityStatus } = {};
+    array.forEach((_, index) => {
+      visibility[index] = 'visible';
+    });
+    return visibility;
+  };
+
+  return {
+    obstacles: createArrayVisibility(route.obstacles || []),
+    requirements: createArrayVisibility(route.requirements || []),
+    notes: 'visible'
+  };
+};
+
+// Дефолтные пустые настройки видимости (для обратной совместимости)
 export const defaultLocationFieldVisibility: LocationFieldVisibility = {
-  amplifiers: 'visible',
-  dampeners: 'visible', 
-  encounters: 'visible',
-  loot: 'visible',
-  clues: 'visible'
+  amplifiers: {},
+  dampeners: {},
+  encounters: {},
+  loot: {},
+  clues: {}
 };
 
 export const defaultRouteFieldVisibility: RouteFieldVisibility = {
-  obstacles: 'visible',
-  requirements: 'visible',
+  obstacles: {},
+  requirements: {},
   notes: 'visible'
 };
 

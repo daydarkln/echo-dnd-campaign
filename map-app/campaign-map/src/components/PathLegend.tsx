@@ -43,7 +43,7 @@ const PathLegend: React.FC<PathLegendProps> = ({ pathTypes }) => {
           <span>Типы маршрутов</span>
         </Space>
       }
-      size="small"
+      
       style={{
         position: 'absolute',
         top: 12,
@@ -57,7 +57,7 @@ const PathLegend: React.FC<PathLegendProps> = ({ pathTypes }) => {
           type="text"
           icon={<CloseOutlined />}
           onClick={() => setIsVisible(false)}
-          size="small"
+          
         />
       }
     >

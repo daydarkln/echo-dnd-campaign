@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Modal, 
   Button, 
@@ -19,7 +19,8 @@ import {
   Empty,
   Checkbox,
   Switch,
-  message
+  message,
+  Tooltip
 } from 'antd';
 import { 
   PlusOutlined, 
@@ -28,11 +29,14 @@ import {
   UserAddOutlined,
   TeamOutlined,
   UserDeleteOutlined,
-  SplitCellsOutlined
+  SplitCellsOutlined,
+  FileTextOutlined
 } from '@ant-design/icons';
 import { useGroups } from '../hooks/useGroups';
+import { useCharacters } from '../hooks/useCharacters';
 import { Character } from '../types/groups';
 import { getLocationName } from '../utils/locationUtils';
+import { CharacterSheetModal } from './CharacterSheetModal';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -56,16 +60,89 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ visible, onClose, as
     defaultColors
   } = useGroups();
 
+  const {
+    createCharacterFromGroup,
+    hasCharacter,
+    syncWithGroupCharacter,
+    getGroupCharacterUpdate
+  } = useCharacters();
+
   const [showGroupForm, setShowGroupForm] = useState(false);
   const [showCharacterForm, setShowCharacterForm] = useState<string | null>(null);
   const [editingCharacter, setEditingCharacter] = useState<{ groupId: string; characterId: string } | null>(null);
   const [showSplitModal, setShowSplitModal] = useState<string | null>(null);
   const [selectedMembersForSplit, setSelectedMembersForSplit] = useState<string[]>([]);
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
+  const [showCharacterSheet, setShowCharacterSheet] = useState<{ characterId: string; characterName: string } | null>(null);
   
   const [groupForm] = Form.useForm();
   const [characterForm] = Form.useForm();
   const [groupEditForm] = Form.useForm();
+
+  // Рефы для актуальных значений
+  const groupsRef = useRef(groups);
+  const hasCharacterRef = useRef(hasCharacter);
+  const getGroupCharacterUpdateRef = useRef(getGroupCharacterUpdate);
+  const updateCharacterRef = useRef(updateCharacter);
+
+  // Обновляем рефы при изменении значений
+  useEffect(() => {
+    groupsRef.current = groups;
+  }, [groups]);
+
+  useEffect(() => {
+    hasCharacterRef.current = hasCharacter;
+  }, [hasCharacter]);
+
+  useEffect(() => {
+    getGroupCharacterUpdateRef.current = getGroupCharacterUpdate;
+  }, [getGroupCharacterUpdate]);
+
+  useEffect(() => {
+    updateCharacterRef.current = updateCharacter;
+  }, [updateCharacter]);
+
+  // Синхронизация данных из листов персонажей обратно в группы
+  useEffect(() => {
+    const syncCharacterSheetsToGroups = () => {
+      groupsRef.current.forEach(group => {
+        group.members.forEach(character => {
+          const characterId = `${group.id}-${character.id}`;
+          
+          // Проверяем, есть ли лист персонажа
+          if (hasCharacterRef.current(characterId)) {
+            // Получаем обновленные данные из листа
+            const updatedData = getGroupCharacterUpdateRef.current(characterId);
+            
+            if (updatedData) {
+              // Проверяем, есть ли изменения
+              const needsUpdate = 
+                updatedData.name !== character.name ||
+                updatedData.class !== character.class ||
+                updatedData.level !== character.level;
+              
+              if (needsUpdate) {
+                // Обновляем персонажа в группе без лишних сообщений
+                updateCharacterRef.current(group.id, character.id, {
+                  name: updatedData.name || character.name,
+                  class: updatedData.class,
+                  level: updatedData.level
+                });
+              }
+            }
+          }
+        });
+      });
+    };
+
+    // Устанавливаем интервал для периодической синхронизации
+    const interval = setInterval(syncCharacterSheetsToGroups, 2000); // каждые 2 секунды
+
+    // Очищаем интервал при размонтировании
+    return () => {
+      clearInterval(interval);
+    };
+  }, []); // Пустой массив зависимостей
 
   const handleCreateGroup = (values: { name: string; color: string; isPlayers: boolean }) => {
     createGroup(values.name, values.color, values.isPlayers);
@@ -100,6 +177,8 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ visible, onClose, as
       addCharacterToGroup(groupId, character);
       setShowCharacterForm(null);
       characterForm.resetFields();
+      
+      message.success(`Персонаж "${character.name}" добавлен в группу`);
     });
   };
 
@@ -120,14 +199,48 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ visible, onClose, as
 
   const handleUpdateCharacter = (groupId: string, characterId: string) => {
     characterForm.validateFields().then((values) => {
-      updateCharacter(groupId, characterId, {
+      const updatedCharacter = {
         name: values.name,
         class: values.class || undefined,
         level: values.level || undefined
-      });
+      };
+      
+      updateCharacter(groupId, characterId, updatedCharacter);
+      
+      // Синхронизируем с листом персонажа, если он существует
+      const sheetCharacterId = `${groupId}-${characterId}`;
+      if (hasCharacter(sheetCharacterId)) {
+        // Получаем обновленного персонажа из группы
+        const group = groups.find(g => g.id === groupId);
+        const character = group?.members.find(c => c.id === characterId);
+        if (character) {
+          syncWithGroupCharacter(sheetCharacterId, character);
+        }
+      }
+      
       setEditingCharacter(null);
       setShowCharacterForm(null);
       characterForm.resetFields();
+    });
+  };
+
+  // Обработчик создания и открытия листа персонажа
+  const handleOpenCharacterSheet = (groupId: string, character: Character) => {
+    const characterId = `${groupId}-${character.id}`;
+    
+    // Создаем лист персонажа, если его еще нет
+    if (!hasCharacter(characterId)) {
+      createCharacterFromGroup(character, groupId);
+      message.success(`Создан лист для персонажа "${character.name}"`);
+    } else {
+      // Синхронизируем данные, если лист уже существует
+      syncWithGroupCharacter(characterId, character);
+    }
+    
+    // Открываем модальное окно
+    setShowCharacterSheet({
+      characterId,
+      characterName: character.name
     });
   };
 
@@ -213,7 +326,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ visible, onClose, as
                 title={
                   <Space>
                     <Avatar
-                      size="small"
+                      
                       style={{ backgroundColor: group.color }}
                       icon={<TeamOutlined />}
                     />
@@ -223,7 +336,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ visible, onClose, as
                 extra={
                   <Space>
                     <Button
-                      size="small"
+                      
                       icon={<EditOutlined />}
                       onClick={() => handleOpenEditGroup(group.id)}
                     >
@@ -232,14 +345,14 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ visible, onClose, as
                     <Space size={6}>
                       <span style={{ fontSize: 12, color: '#999' }}>Игроки</span>
                       <Switch
-                        size="small"
+                        
                         checked={group.isPlayers}
                         onChange={(checked) => updateGroup(group.id, { isPlayers: checked })}
                       />
                     </Space>
                     {group.members.length > 1 && (
                       <Button
-                        size="small"
+                        
                         className="split-button"
                         icon={<SplitCellsOutlined />}
                         onClick={() => setShowSplitModal(group.id)}
@@ -255,7 +368,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ visible, onClose, as
                       cancelText="Нет"
                     >
                       <Button
-                        size="small"
+                        
                         danger
                         icon={<DeleteOutlined />}
                       >
@@ -276,18 +389,28 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ visible, onClose, as
                 {/* Список участников */}
                 {group.members.length > 0 && (
                   <List
-                    size="small"
+                    
                     dataSource={group.members}
                     renderItem={(character) => (
                       <List.Item
                         actions={[
-                          <Button
-                            key="edit"
-                            type="link"
-                            size="small"
-                            icon={<EditOutlined />}
-                            onClick={() => handleEditCharacter(group.id, character.id)}
-                          />,
+                          <Tooltip key="sheet" title="Создать/открыть лист персонажа">
+                            <Button
+                              type="link"
+                              icon={<FileTextOutlined />}
+                              onClick={() => handleOpenCharacterSheet(group.id, character)}
+                              style={{ 
+                                color: hasCharacter(`${group.id}-${character.id}`) ? '#52c41a' : '#1890ff'
+                              }}
+                            />
+                          </Tooltip>,
+                          <Tooltip key="edit" title="Редактировать персонажа в группе">
+                            <Button
+                              type="link"
+                              icon={<EditOutlined />}
+                              onClick={() => handleEditCharacter(group.id, character.id)}
+                            />
+                          </Tooltip>,
                           <Popconfirm
                             key="delete"
                             title="Удалить персонажа?"
@@ -297,7 +420,6 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ visible, onClose, as
                           >
                             <Button
                               type="link"
-                              size="small"
                               danger
                               icon={<UserDeleteOutlined />}
                             />
@@ -305,7 +427,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ visible, onClose, as
                         ]}
                       >
                         <List.Item.Meta
-                          avatar={<Avatar size="small">{character.name.charAt(0).toUpperCase()}</Avatar>}
+                          avatar={<Avatar >{character.name.charAt(0).toUpperCase()}</Avatar>}
                           title={character.name}
                           description={
                             <Space size={4}>
@@ -537,13 +659,13 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ visible, onClose, as
                   style={{ width: '100%' }}
                 >
                   <List
-                    size="small"
+                    
                     dataSource={group.members}
                     renderItem={(character) => (
                       <List.Item>
                         <Checkbox value={character.id} style={{ marginRight: 12 }}>
                           <List.Item.Meta
-                            avatar={<Avatar size="small">{character.name.charAt(0).toUpperCase()}</Avatar>}
+                            avatar={<Avatar >{character.name.charAt(0).toUpperCase()}</Avatar>}
                             title={character.name}
                             description={
                               <Space size={4}>
@@ -601,6 +723,14 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ visible, onClose, as
           </div>
         )}
       </Modal>
+
+      {/* Модальное окно листа персонажа */}
+      <CharacterSheetModal
+        visible={showCharacterSheet !== null}
+        onClose={() => setShowCharacterSheet(null)}
+        characterId={showCharacterSheet?.characterId || null}
+        characterName={showCharacterSheet?.characterName}
+      />
     </>
   );
 };

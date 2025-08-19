@@ -34,11 +34,16 @@ export const useNodePositions = (nodes: GraphNode[]) => {
   const savePositions = useCallback((positions: Map<string, NodePosition>) => {
     try {
       const positionsArray = Array.from(positions.values());
-      console.log('Saving positions to localStorage:', positionsArray);
+      console.log('useNodePositions - Saving positions to localStorage:', positionsArray);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(positionsArray));
-      message.success('Позиции узлов успешно сохранены!', 2);
+      
+      // Временно убираем уведомление из хука, чтобы избежать дублирования
+      // const messageText = `Позиции ${positionsArray.length} узлов успешно сохранены!`;
+      // console.log('useNodePositions - Показываем уведомление:', messageText);
+      // message.success(messageText, 2);
+      // console.log('useNodePositions - Уведомление показано');
     } catch (error) {
-      console.error('Ошибка при сохранении позиций:', error);
+      console.error('useNodePositions - Ошибка при сохранении позиций:', error);
       message.error('Не удалось сохранить позиции узлов', 2);
     }
   }, []);
@@ -73,7 +78,7 @@ export const useNodePositions = (nodes: GraphNode[]) => {
 
   // Сохраняем все текущие позиции
   const saveAllPositions = useCallback(() => {
-    console.log('Saving all positions, current count:', nodePositions.size);
+    console.log('useNodePositions - saveAllPositions вызвана, количество позиций:', nodePositions.size);
     savePositions(nodePositions);
   }, [nodePositions, savePositions]);
 

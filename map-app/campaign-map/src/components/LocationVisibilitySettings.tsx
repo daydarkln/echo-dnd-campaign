@@ -82,7 +82,7 @@ const LocationVisibilitySettings: React.FC<LocationVisibilitySettingsProps> = ({
             <Space>
               <Button 
                 icon={<EyeOutlined />} 
-                size="small"
+                
                 onClick={onShowAll}
                 disabled={visibleCount === totalCount}
               >
@@ -90,7 +90,7 @@ const LocationVisibilitySettings: React.FC<LocationVisibilitySettingsProps> = ({
               </Button>
               <Button 
                 icon={<EyeInvisibleOutlined />} 
-                size="small"
+                
                 onClick={onHideAll}
                 disabled={visibleCount === 0}
               >
@@ -117,7 +117,7 @@ const LocationVisibilitySettings: React.FC<LocationVisibilitySettingsProps> = ({
           <Card 
             key={groupName} 
             title={groupName} 
-            size="small" 
+             
             style={{ marginBottom: 8 }}
             bodyStyle={{ padding: '8px 16px' }}
           >
@@ -137,7 +137,7 @@ const LocationVisibilitySettings: React.FC<LocationVisibilitySettingsProps> = ({
                       {locationId}
                     </Text>
                     <Switch
-                      size="small"
+                      
                       checked={visibility[locationId]}
                       onChange={() => onToggleVisibility(locationId)}
                       checkedChildren={<EyeOutlined />}

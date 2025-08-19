@@ -49,7 +49,7 @@ const ObstacleTag: React.FC<ObstacleTagProps> = ({ obstacleName, showTooltip = t
         <Text style={{ color: 'white', fontSize: '12px' }}>{obstacle.description}</Text>
       </div>
       <div style={{ marginBottom: 8 }}>
-        <Space direction="vertical" size="small" style={{ width: '100%' }}>
+        <Space direction="vertical"  style={{ width: '100%' }}>
           <div>
             <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: '11px' }}>Категория: </Text>
             <Tag color={getCategoryColor(obstacle.category)} style={{ margin: 0 }}>

@@ -97,8 +97,9 @@ const PlayerMap: React.FC<PlayerMapProps> = ({
 
   // Обработчик изменения позиции узла
   const handleNodeDragStop = useCallback((event: React.MouseEvent, node: Node) => {
-    updateNodePosition(node.id, node.position.x, node.position.y);
-  }, [updateNodePosition]);
+    // Обновляем локальное состояние позиций без автоматического сохранения
+    // updateNodePosition(node.id, node.position.x, node.position.y);
+  }, []);
 
   // Обработчик инициализации ReactFlow
   const handleInit = useCallback((instance: ReactFlowInstance) => {

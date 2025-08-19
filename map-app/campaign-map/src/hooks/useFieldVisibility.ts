@@ -5,8 +5,11 @@ import {
   RouteFieldVisibility, 
   VisibilityStatus,
   defaultLocationFieldVisibility,
-  defaultRouteFieldVisibility
+  defaultRouteFieldVisibility,
+  createDefaultLocationFieldVisibility,
+  createDefaultRouteFieldVisibility
 } from '../types/visibility';
+import { PointOfInterest, Route } from '../types';
 
 const STORAGE_KEY = 'field-visibility';
 
@@ -50,16 +53,31 @@ export const useFieldVisibility = () => {
   }, []);
 
   // Инициализируем видимость для новых локаций
-  const initializeLocationFieldVisibility = useCallback((locationIds: string[]) => {
-    console.log('useFieldVisibility - Инициализируем видимость полей для локаций:', locationIds);
+  const initializeLocationFieldVisibility = useCallback((locations: PointOfInterest[]) => {
+    console.log('useFieldVisibility - Инициализируем видимость полей для локаций:', locations.map(l => l.id));
     setVisibility(prev => {
       const newVisibility = { ...prev };
       let hasChanges = false;
       
-      locationIds.forEach(id => {
-        if (!newVisibility.locations[id]) {
-          newVisibility.locations[id] = { ...defaultLocationFieldVisibility };
+      locations.forEach(location => {
+        if (!newVisibility.locations[location.id]) {
+          newVisibility.locations[location.id] = createDefaultLocationFieldVisibility(location);
           hasChanges = true;
+        } else {
+          // Обновляем существующую видимость для новых элементов
+          const currentVisibility = newVisibility.locations[location.id];
+          const defaultVisibility = createDefaultLocationFieldVisibility(location);
+          
+          // Проверяем каждое поле и добавляем новые элементы
+          (['amplifiers', 'dampeners', 'encounters', 'loot', 'clues'] as const).forEach(fieldName => {
+            const fieldArray = location[fieldName] || [];
+            fieldArray.forEach((_, index) => {
+              if (!(index in currentVisibility[fieldName])) {
+                currentVisibility[fieldName][index] = 'visible';
+                hasChanges = true;
+              }
+            });
+          });
         }
       });
       
@@ -73,16 +91,36 @@ export const useFieldVisibility = () => {
   }, [saveVisibility]);
 
   // Инициализируем видимость для новых путей
-  const initializeRouteFieldVisibility = useCallback((routeIds: string[]) => {
-    console.log('useFieldVisibility - Инициализируем видимость полей для путей:', routeIds);
+  const initializeRouteFieldVisibility = useCallback((routes: Route[]) => {
+    console.log('useFieldVisibility - Инициализируем видимость полей для путей:', routes.map(r => r.id));
     setVisibility(prev => {
       const newVisibility = { ...prev };
       let hasChanges = false;
       
-      routeIds.forEach(id => {
-        if (!newVisibility.routes[id]) {
-          newVisibility.routes[id] = { ...defaultRouteFieldVisibility };
+      routes.forEach(route => {
+        if (!newVisibility.routes[route.id]) {
+          newVisibility.routes[route.id] = createDefaultRouteFieldVisibility(route);
           hasChanges = true;
+        } else {
+          // Обновляем существующую видимость для новых элементов
+          const currentVisibility = newVisibility.routes[route.id];
+          
+          // Проверяем массивы и добавляем новые элементы
+          (['obstacles', 'requirements'] as const).forEach(fieldName => {
+            const fieldArray = route[fieldName] || [];
+            fieldArray.forEach((_, index) => {
+              if (!(index in currentVisibility[fieldName])) {
+                currentVisibility[fieldName][index] = 'visible';
+                hasChanges = true;
+              }
+            });
+          });
+          
+          // Проверяем notes (одиночное значение)
+          if (typeof currentVisibility.notes === 'undefined') {
+            currentVisibility.notes = 'visible';
+            hasChanges = true;
+          }
         }
       });
       
@@ -95,55 +133,11 @@ export const useFieldVisibility = () => {
     });
   }, [saveVisibility]);
 
-  // Переключаем видимость поля локации
-  const toggleLocationFieldVisibility = useCallback((
-    locationId: string, 
-    field: keyof LocationFieldVisibility
-  ) => {
-    setVisibility(prev => {
-      const newVisibility = { ...prev };
-      
-      // Инициализируем если не существует
-      if (!newVisibility.locations[locationId]) {
-        newVisibility.locations[locationId] = { ...defaultLocationFieldVisibility };
-      }
-      
-      // Переключаем видимость
-      const currentVisibility = newVisibility.locations[locationId][field];
-      newVisibility.locations[locationId][field] = currentVisibility === 'visible' ? 'hidden' : 'visible';
-      
-      saveVisibility(newVisibility);
-      return newVisibility;
-    });
-  }, [saveVisibility]);
-
-  // Переключаем видимость поля пути
-  const toggleRouteFieldVisibility = useCallback((
-    routeId: string, 
-    field: keyof RouteFieldVisibility
-  ) => {
-    setVisibility(prev => {
-      const newVisibility = { ...prev };
-      
-      // Инициализируем если не существует
-      if (!newVisibility.routes[routeId]) {
-        newVisibility.routes[routeId] = { ...defaultRouteFieldVisibility };
-      }
-      
-      // Переключаем видимость
-      const currentVisibility = newVisibility.routes[routeId][field];
-      newVisibility.routes[routeId][field] = currentVisibility === 'visible' ? 'hidden' : 'visible';
-      
-      saveVisibility(newVisibility);
-      return newVisibility;
-    });
-  }, [saveVisibility]);
-
-  // Устанавливаем видимость поля локации
-  const setLocationFieldVisibility = useCallback((
-    locationId: string, 
+  // Переключаем видимость отдельного элемента в поле локации
+  const toggleLocationItemVisibility = useCallback((
+    locationId: string,
     field: keyof LocationFieldVisibility,
-    isVisible: VisibilityStatus
+    itemIndex: number
   ) => {
     setVisibility(prev => {
       const newVisibility = { ...prev };
@@ -153,18 +147,68 @@ export const useFieldVisibility = () => {
         newVisibility.locations[locationId] = { ...defaultLocationFieldVisibility };
       }
       
-      newVisibility.locations[locationId][field] = isVisible;
+      // Переключаем видимость элемента
+      const currentVisibility = newVisibility.locations[locationId][field][itemIndex];
+      newVisibility.locations[locationId][field][itemIndex] = currentVisibility === 'visible' ? 'hidden' : 'visible';
       
       saveVisibility(newVisibility);
       return newVisibility;
     });
   }, [saveVisibility]);
 
-  // Устанавливаем видимость поля пути
-  const setRouteFieldVisibility = useCallback((
-    routeId: string, 
-    field: keyof RouteFieldVisibility,
-    isVisible: VisibilityStatus
+  // Показать все элементы в поле локации
+  const showAllLocationFieldItems = useCallback((
+    locationId: string,
+    field: keyof LocationFieldVisibility,
+    itemCount: number
+  ) => {
+    setVisibility(prev => {
+      const newVisibility = { ...prev };
+      
+      // Инициализируем если не существует
+      if (!newVisibility.locations[locationId]) {
+        newVisibility.locations[locationId] = { ...defaultLocationFieldVisibility };
+      }
+      
+      // Показываем все элементы
+      for (let i = 0; i < itemCount; i++) {
+        newVisibility.locations[locationId][field][i] = 'visible';
+      }
+      
+      saveVisibility(newVisibility);
+      return newVisibility;
+    });
+  }, [saveVisibility]);
+
+  // Скрыть все элементы в поле локации
+  const hideAllLocationFieldItems = useCallback((
+    locationId: string,
+    field: keyof LocationFieldVisibility,
+    itemCount: number
+  ) => {
+    setVisibility(prev => {
+      const newVisibility = { ...prev };
+      
+      // Инициализируем если не существует
+      if (!newVisibility.locations[locationId]) {
+        newVisibility.locations[locationId] = { ...defaultLocationFieldVisibility };
+      }
+      
+      // Скрываем все элементы
+      for (let i = 0; i < itemCount; i++) {
+        newVisibility.locations[locationId][field][i] = 'hidden';
+      }
+      
+      saveVisibility(newVisibility);
+      return newVisibility;
+    });
+  }, [saveVisibility]);
+
+  // Переключаем видимость отдельного элемента в поле пути
+  const toggleRouteItemVisibility = useCallback((
+    routeId: string,
+    field: 'obstacles' | 'requirements',
+    itemIndex: number
   ) => {
     setVisibility(prev => {
       const newVisibility = { ...prev };
@@ -174,35 +218,69 @@ export const useFieldVisibility = () => {
         newVisibility.routes[routeId] = { ...defaultRouteFieldVisibility };
       }
       
-      newVisibility.routes[routeId][field] = isVisible;
+      // Переключаем видимость элемента
+      const currentVisibility = newVisibility.routes[routeId][field][itemIndex];
+      newVisibility.routes[routeId][field][itemIndex] = currentVisibility === 'visible' ? 'hidden' : 'visible';
       
       saveVisibility(newVisibility);
       return newVisibility;
     });
   }, [saveVisibility]);
 
-  // Проверяем, видимо ли поле локации
-  const isLocationFieldVisible = useCallback((
-    locationId: string, 
-    field: keyof LocationFieldVisibility
+  // Переключаем видимость notes у пути (одиночное поле)
+  const toggleRouteNotesVisibility = useCallback((routeId: string) => {
+    setVisibility(prev => {
+      const newVisibility = { ...prev };
+      
+      // Инициализируем если не существует
+      if (!newVisibility.routes[routeId]) {
+        newVisibility.routes[routeId] = { ...defaultRouteFieldVisibility };
+      }
+      
+      // Переключаем видимость notes
+      const currentVisibility = newVisibility.routes[routeId].notes;
+      newVisibility.routes[routeId].notes = currentVisibility === 'visible' ? 'hidden' : 'visible';
+      
+      saveVisibility(newVisibility);
+      return newVisibility;
+    });
+  }, [saveVisibility]);
+
+  // Проверяем, видим ли отдельный элемент в поле локации
+  const isLocationItemVisible = useCallback((
+    locationId: string,
+    field: keyof LocationFieldVisibility,
+    itemIndex: number
   ): boolean => {
     const locationVisibility = visibilityRef.current.locations[locationId];
     if (!locationVisibility) {
-      return defaultLocationFieldVisibility[field] === 'visible';
+      return true; // По умолчанию видимо
     }
-    return locationVisibility[field] === 'visible';
+    const fieldVisibility = locationVisibility[field][itemIndex];
+    return fieldVisibility === 'visible' || fieldVisibility === undefined;
   }, []);
 
-  // Проверяем, видимо ли поле пути
-  const isRouteFieldVisible = useCallback((
-    routeId: string, 
-    field: keyof RouteFieldVisibility
+  // Проверяем, видим ли отдельный элемент в поле пути
+  const isRouteItemVisible = useCallback((
+    routeId: string,
+    field: 'obstacles' | 'requirements',
+    itemIndex: number
   ): boolean => {
     const routeVisibility = visibilityRef.current.routes[routeId];
     if (!routeVisibility) {
-      return defaultRouteFieldVisibility[field] === 'visible';
+      return true; // По умолчанию видимо
     }
-    return routeVisibility[field] === 'visible';
+    const fieldVisibility = routeVisibility[field][itemIndex];
+    return fieldVisibility === 'visible' || fieldVisibility === undefined;
+  }, []);
+
+  // Проверяем, видимы ли notes пути
+  const isRouteNotesVisible = useCallback((routeId: string): boolean => {
+    const routeVisibility = visibilityRef.current.routes[routeId];
+    if (!routeVisibility) {
+      return true; // По умолчанию видимо
+    }
+    return routeVisibility.notes === 'visible' || routeVisibility.notes === undefined;
   }, []);
 
   // Получаем настройки видимости для локации
@@ -217,122 +295,6 @@ export const useFieldVisibility = () => {
     return routeVisibility || { ...defaultRouteFieldVisibility };
   }, []);
 
-  // Показать все поля для всех локаций
-  const showAllLocationFields = useCallback((locationIds: string[]) => {
-    setVisibility(prev => {
-      const newVisibility = { ...prev };
-      let hasChanges = false;
-      
-      locationIds.forEach(locationId => {
-        if (!newVisibility.locations[locationId]) {
-          newVisibility.locations[locationId] = { ...defaultLocationFieldVisibility };
-        }
-        
-        Object.keys(defaultLocationFieldVisibility).forEach(field => {
-          const fieldKey = field as keyof LocationFieldVisibility;
-          if (newVisibility.locations[locationId][fieldKey] !== 'visible') {
-            newVisibility.locations[locationId][fieldKey] = 'visible';
-            hasChanges = true;
-          }
-        });
-      });
-      
-      if (hasChanges) {
-        saveVisibility(newVisibility);
-        return newVisibility;
-      }
-      
-      return prev;
-    });
-  }, [saveVisibility]);
-
-  // Скрыть все поля для всех локаций
-  const hideAllLocationFields = useCallback((locationIds: string[]) => {
-    setVisibility(prev => {
-      const newVisibility = { ...prev };
-      let hasChanges = false;
-      
-      locationIds.forEach(locationId => {
-        if (!newVisibility.locations[locationId]) {
-          newVisibility.locations[locationId] = { ...defaultLocationFieldVisibility };
-        }
-        
-        Object.keys(defaultLocationFieldVisibility).forEach(field => {
-          const fieldKey = field as keyof LocationFieldVisibility;
-          if (newVisibility.locations[locationId][fieldKey] !== 'hidden') {
-            newVisibility.locations[locationId][fieldKey] = 'hidden';
-            hasChanges = true;
-          }
-        });
-      });
-      
-      if (hasChanges) {
-        saveVisibility(newVisibility);
-        return newVisibility;
-      }
-      
-      return prev;
-    });
-  }, [saveVisibility]);
-
-  // Показать все поля для всех путей
-  const showAllRouteFields = useCallback((routeIds: string[]) => {
-    setVisibility(prev => {
-      const newVisibility = { ...prev };
-      let hasChanges = false;
-      
-      routeIds.forEach(routeId => {
-        if (!newVisibility.routes[routeId]) {
-          newVisibility.routes[routeId] = { ...defaultRouteFieldVisibility };
-        }
-        
-        Object.keys(defaultRouteFieldVisibility).forEach(field => {
-          const fieldKey = field as keyof RouteFieldVisibility;
-          if (newVisibility.routes[routeId][fieldKey] !== 'visible') {
-            newVisibility.routes[routeId][fieldKey] = 'visible';
-            hasChanges = true;
-          }
-        });
-      });
-      
-      if (hasChanges) {
-        saveVisibility(newVisibility);
-        return newVisibility;
-      }
-      
-      return prev;
-    });
-  }, [saveVisibility]);
-
-  // Скрыть все поля для всех путей
-  const hideAllRouteFields = useCallback((routeIds: string[]) => {
-    setVisibility(prev => {
-      const newVisibility = { ...prev };
-      let hasChanges = false;
-      
-      routeIds.forEach(routeId => {
-        if (!newVisibility.routes[routeId]) {
-          newVisibility.routes[routeId] = { ...defaultRouteFieldVisibility };
-        }
-        
-        Object.keys(defaultRouteFieldVisibility).forEach(field => {
-          const fieldKey = field as keyof RouteFieldVisibility;
-          if (newVisibility.routes[routeId][fieldKey] !== 'hidden') {
-            newVisibility.routes[routeId][fieldKey] = 'hidden';
-            hasChanges = true;
-          }
-        });
-      });
-      
-      if (hasChanges) {
-        saveVisibility(newVisibility);
-        return newVisibility;
-      }
-      
-      return prev;
-    });
-  }, [saveVisibility]);
-
   // Получаем текущее состояние видимости
   const getCurrentFieldVisibility = useCallback(() => {
     return visibilityRef.current;
@@ -342,18 +304,22 @@ export const useFieldVisibility = () => {
     visibility,
     initializeLocationFieldVisibility,
     initializeRouteFieldVisibility,
-    toggleLocationFieldVisibility,
-    toggleRouteFieldVisibility,
-    setLocationFieldVisibility,
-    setRouteFieldVisibility,
-    isLocationFieldVisible,
-    isRouteFieldVisible,
+    
+    // Функции для управления видимостью отдельных элементов локаций
+    toggleLocationItemVisibility,
+    showAllLocationFieldItems,
+    hideAllLocationFieldItems,
+    isLocationItemVisible,
+    
+    // Функции для управления видимостью отдельных элементов путей
+    toggleRouteItemVisibility,
+    toggleRouteNotesVisibility,
+    isRouteItemVisible,
+    isRouteNotesVisible,
+    
+    // Функции для получения настроек видимости
     getLocationFieldVisibility,
     getRouteFieldVisibility,
-    showAllLocationFields,
-    hideAllLocationFields,
-    showAllRouteFields,
-    hideAllRouteFields,
     getCurrentFieldVisibility
   };
 };

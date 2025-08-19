@@ -27,7 +27,7 @@ const LocationVisibilityManager: React.FC<LocationVisibilityManagerProps> = ({
   return (
     <Card 
       title="Управление видимостью локаций" 
-      size="small"
+      
       style={{ marginBottom: 16 }}
     >
       <Space direction="vertical" style={{ width: '100%' }}>
@@ -38,7 +38,7 @@ const LocationVisibilityManager: React.FC<LocationVisibilityManagerProps> = ({
           <Space>
             <Button 
               icon={<EyeOutlined />} 
-              size="small"
+              
               onClick={onShowAll}
               disabled={visibleCount === totalCount}
             >
@@ -46,7 +46,7 @@ const LocationVisibilityManager: React.FC<LocationVisibilityManagerProps> = ({
             </Button>
             <Button 
               icon={<EyeInvisibleOutlined />} 
-              size="small"
+              
               onClick={onHideAll}
               disabled={visibleCount === 0}
             >
@@ -82,7 +82,7 @@ const LocationVisibilityManager: React.FC<LocationVisibilityManagerProps> = ({
                 {locationId}
               </Text>
               <Switch
-                size="small"
+                
                 checked={isVisible}
                 onChange={() => onToggleVisibility(locationId)}
                 checkedChildren={<EyeOutlined />}

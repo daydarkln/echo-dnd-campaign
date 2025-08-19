@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Layout, Spin, Alert, Typography, Card, Space, Button } from 'antd';
+import { Layout, Spin, Alert, Typography, Card, Space, Button, Modal } from 'antd';
 import { EyeOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import GroupedMindMap from '../components/GroupedMindMap';
 import RegionFocusedMap from '../components/RegionFocusedMap';
+import PlayerLocationDetail from '../components/PlayerLocationDetail';
 import { PointsData, PathsData, PointOfInterest, GraphNode, GraphEdge } from '../types';
 import { parseToSubflows } from '../utils/dataParser';
 import pointsData from '../tochki-interesa.json';
@@ -24,6 +25,7 @@ const PlayerMapPage: React.FC = () => {
   const [focusedRegion, setFocusedRegion] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<PointOfInterest | null>(null);
   const [currentArea, setCurrentArea] = useState<string>('');
+  const [showLocationModal, setShowLocationModal] = useState(false);
 
   // Функция для получения отфильтрованных узлов для карты игроков
   const getFilteredNodesForPlayers = useCallback((allNodes: GraphNode[], allEdges: GraphEdge[]) => {
@@ -146,6 +148,13 @@ const PlayerMapPage: React.FC = () => {
   const handleLocationClick = (location: PointOfInterest, area: string) => {
     setSelectedLocation(location);
     setCurrentArea(area);
+    setShowLocationModal(true);
+  };
+
+  const handleBackToMindMap = () => {
+    setShowLocationModal(false);
+    setSelectedLocation(null);
+    setCurrentArea('');
   };
 
   const handleRegionClick = (areaName: string) => {
@@ -171,7 +180,7 @@ const PlayerMapPage: React.FC = () => {
     }
   };
 
-  const handleBackToMindMap = () => {
+  const handleBackToMainView = () => {
     setCurrentView('mindmap');
     setSelectedLocation(null);
     setCurrentArea('');
@@ -241,7 +250,7 @@ const PlayerMapPage: React.FC = () => {
             areaName={focusedRegion}
             pointsData={pointsData as PointsData}
             pathsData={pathsData as PathsData}
-            onBack={handleBackToMindMap}
+            onBack={handleBackToMainView}
             onNodeClick={handleLocationClick}
             enableDragging={false}
             isPlayerMap={true}
@@ -272,7 +281,7 @@ const PlayerMapPage: React.FC = () => {
             </Title>
             
             <Card style={{ marginBottom: '16px' }}>
-              <Space direction="vertical" size="small" style={{ width: '100%' }}>
+              <Space direction="vertical"  style={{ width: '100%' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <InfoCircleOutlined style={{ color: '#1890ff' }} />
                   <Text strong>Информация о карте</Text>
@@ -295,6 +304,24 @@ const PlayerMapPage: React.FC = () => {
         {/* Карта мира для игроков */}
         {renderMapView()}
 
+        {/* Модальное окно с информацией о локации */}
+        <Modal
+          title="📍 Информация о локации (для игроков)"
+          open={showLocationModal}
+          onCancel={handleBackToMindMap}
+          footer={null}
+          width={1000}
+          style={{ top: 20 }}
+        >
+          {selectedLocation && (
+            <PlayerLocationDetail
+              location={selectedLocation}
+              area={currentArea}
+              onBack={handleBackToMindMap}
+              isModal={true}
+            />
+          )}
+        </Modal>
 
       </Content>
     </Layout>

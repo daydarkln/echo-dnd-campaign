@@ -10,7 +10,8 @@ import {
   Col,
   Badge,
   Descriptions,
-  Button
+  Button,
+  Checkbox
 } from 'antd';
 import { 
   CarOutlined,
@@ -22,7 +23,6 @@ import {
 } from '@ant-design/icons';
 import { Route } from '../types';
 import { RouteFieldVisibility } from '../types/visibility';
-import LocationFieldVisibilitySettings from './LocationFieldVisibilitySettings';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -33,7 +33,10 @@ interface RouteDetailProps {
   isPlayerView?: boolean;
   fieldVisibility?: RouteFieldVisibility;
   getRouteFieldVisibility?: (routeId: string) => RouteFieldVisibility;
-  toggleRouteFieldVisibility?: (routeId: string, field: keyof RouteFieldVisibility) => void;
+  toggleRouteItemVisibility?: (routeId: string, field: 'obstacles' | 'requirements', itemIndex: number) => void;
+  toggleRouteNotesVisibility?: (routeId: string) => void;
+  isRouteItemVisible?: (routeId: string, field: 'obstacles' | 'requirements', itemIndex: number) => boolean;
+  isRouteNotesVisible?: (routeId: string) => boolean;
 }
 
 const RouteDetail: React.FC<RouteDetailProps> = ({ 
@@ -43,19 +46,51 @@ const RouteDetail: React.FC<RouteDetailProps> = ({
   isPlayerView = false,
   fieldVisibility,
   getRouteFieldVisibility,
-  toggleRouteFieldVisibility
+  toggleRouteItemVisibility,
+  toggleRouteNotesVisibility,
+  isRouteItemVisible,
+  isRouteNotesVisible
 }) => {
   // Получаем настройки видимости полей
   const visibility = fieldVisibility || getRouteFieldVisibility?.(route.id) || {
-    obstacles: 'visible',
-    requirements: 'visible',
+    obstacles: {},
+    requirements: {},
     notes: 'visible'
   };
 
-  // Определяем, показывать ли секцию
-  const shouldShowSection = (field: keyof RouteFieldVisibility): boolean => {
-    if (!isPlayerView) return true; // В master view всегда показываем все
-    return visibility[field] === 'visible';
+  // Проверяем видимость отдельного элемента
+  const shouldShowItem = (field: 'obstacles' | 'requirements', itemIndex: number): boolean => {
+    if (!isPlayerView) return true; // В режиме мастера всегда показываем все
+    
+    if (isRouteItemVisible) {
+      return isRouteItemVisible(route.id, field, itemIndex);
+    }
+    
+    // Фоллбэк для случая когда функция не передана
+    const fieldVisibility = visibility[field];
+    if (typeof fieldVisibility === 'object') {
+      return fieldVisibility[itemIndex] !== 'hidden';
+    }
+    return true;
+  };
+
+  // Проверяем видимость notes
+  const shouldShowNotes = (): boolean => {
+    if (!isPlayerView) return true; // В режиме мастера всегда показываем все
+    
+    if (isRouteNotesVisible) {
+      return isRouteNotesVisible(route.id);
+    }
+    
+    return visibility.notes !== 'hidden';
+  };
+
+  // Проверяем нужно ли показывать секцию вообще (если есть хотя бы один видимый элемент)
+  const shouldShowSection = (field: 'obstacles' | 'requirements'): boolean => {
+    if (!isPlayerView) return true; // В режиме мастера всегда показываем все
+    
+    const fieldArray = route[field] || [];
+    return fieldArray.some((_, index) => shouldShowItem(field, index));
   };
 
   return (
@@ -87,14 +122,14 @@ const RouteDetail: React.FC<RouteDetailProps> = ({
 
             <Row gutter={[16, 16]}>
               <Col xs={24} sm={8}>
-                <Descriptions column={1} size="small">
+                <Descriptions column={1} >
                   <Descriptions.Item label="Тип пути">
                     <Tag color="blue">{route.pathType}</Tag>
                   </Descriptions.Item>
                 </Descriptions>
               </Col>
               <Col xs={24} sm={8}>
-                <Descriptions column={1} size="small">
+                <Descriptions column={1} >
                   <Descriptions.Item label="Время в пути">
                     <Space>
                       <ClockCircleOutlined />
@@ -104,7 +139,7 @@ const RouteDetail: React.FC<RouteDetailProps> = ({
                 </Descriptions>
               </Col>
               <Col xs={24} sm={8}>
-                <Descriptions column={1} size="small">
+                <Descriptions column={1} >
                   <Descriptions.Item label="Описание">
                     <Text italic>{route.description}</Text>
                   </Descriptions.Item>
@@ -114,17 +149,7 @@ const RouteDetail: React.FC<RouteDetailProps> = ({
           </Card>
         </Col>
 
-        {/* Управление видимостью полей для мастера */}
-        {!isPlayerView && getRouteFieldVisibility && toggleRouteFieldVisibility && (
-          <Col span={24}>
-            <LocationFieldVisibilitySettings
-              routeId={route.id}
-              routeName={`${route.from} → ${route.to}`}
-              getRouteFieldVisibility={getRouteFieldVisibility}
-              toggleRouteFieldVisibility={toggleRouteFieldVisibility}
-            />
-          </Col>
-        )}
+        {/* Теперь управление видимостью встроено в каждый элемент */}
 
         {shouldShowSection('obstacles') && route.obstacles && route.obstacles.length > 0 && (
           <Col lg={8} span={24}>
@@ -139,15 +164,36 @@ const RouteDetail: React.FC<RouteDetailProps> = ({
                   )}
                 </Space>
               }
-              size="small"
+              
             >
               <List
-                dataSource={route.obstacles}
-                renderItem={(obstacle) => (
-                  <List.Item>
-                    <Text>{obstacle}</Text>
-                  </List.Item>
-                )}
+                dataSource={route.obstacles.map((obstacle, index) => ({ obstacle, index }))}
+                renderItem={(obstacleWithIndex) => {
+                  const { index, obstacle } = obstacleWithIndex;
+                  const isVisible = shouldShowItem('obstacles', index);
+                  
+                  if (isPlayerView && !isVisible) {
+                    return null; // В режиме игрока скрываем невидимые элементы
+                  }
+                  
+                  return (
+                    <List.Item style={{ opacity: !isPlayerView && !isVisible ? 0.5 : 1 }}>
+                      <div style={{ width: '100%' }}>
+                        {!isPlayerView && toggleRouteItemVisibility && (
+                          <div style={{ marginBottom: 8 }}>
+                            <Checkbox
+                              checked={isVisible}
+                              onChange={() => toggleRouteItemVisibility(route.id, 'obstacles', index)}
+                            >
+                              Показать игрокам
+                            </Checkbox>
+                          </div>
+                        )}
+                        <Text>{obstacle}</Text>
+                      </div>
+                    </List.Item>
+                  );
+                }}
               />
             </Card>
           </Col>
@@ -166,21 +212,42 @@ const RouteDetail: React.FC<RouteDetailProps> = ({
                   )}
                 </Space>
               }
-              size="small"
+              
             >
               <List
-                dataSource={route.requirements}
-                renderItem={(requirement) => (
-                  <List.Item>
-                    <Text>{requirement}</Text>
-                  </List.Item>
-                )}
+                dataSource={route.requirements.map((requirement, index) => ({ requirement, index }))}
+                renderItem={(requirementWithIndex) => {
+                  const { index, requirement } = requirementWithIndex;
+                  const isVisible = shouldShowItem('requirements', index);
+                  
+                  if (isPlayerView && !isVisible) {
+                    return null; // В режиме игрока скрываем невидимые элементы
+                  }
+                  
+                  return (
+                    <List.Item style={{ opacity: !isPlayerView && !isVisible ? 0.5 : 1 }}>
+                      <div style={{ width: '100%' }}>
+                        {!isPlayerView && toggleRouteItemVisibility && (
+                          <div style={{ marginBottom: 8 }}>
+                            <Checkbox
+                              checked={isVisible}
+                              onChange={() => toggleRouteItemVisibility(route.id, 'requirements', index)}
+                            >
+                              Показать игрокам
+                            </Checkbox>
+                          </div>
+                        )}
+                        <Text>{requirement}</Text>
+                      </div>
+                    </List.Item>
+                  );
+                }}
               />
             </Card>
           </Col>
         )}
 
-        {shouldShowSection('notes') && route.notes && (
+        {shouldShowNotes() && route.notes && (
           <Col lg={8} span={24}>
             <Card 
               className="notes-card"
@@ -193,8 +260,18 @@ const RouteDetail: React.FC<RouteDetailProps> = ({
                   )}
                 </Space>
               }
-              size="small"
+              
             >
+              {!isPlayerView && toggleRouteNotesVisibility && (
+                <div style={{ marginBottom: 16 }}>
+                  <Checkbox
+                    checked={shouldShowNotes()}
+                    onChange={() => toggleRouteNotesVisibility(route.id)}
+                  >
+                    Показать игрокам
+                  </Checkbox>
+                </div>
+              )}
               <Paragraph>{route.notes}</Paragraph>
             </Card>
           </Col>

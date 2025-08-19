@@ -80,7 +80,7 @@ const LocationNode: React.FC<NodeProps<LocationNodeData>> = ({ id, data, selecte
       
       <Card
         className="location-card"
-        size="small"
+        
         hoverable
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
@@ -99,7 +99,7 @@ const LocationNode: React.FC<NodeProps<LocationNodeData>> = ({ id, data, selecte
             {data.enableLocationVisibility && (
               <Button
                 type="text"
-                size="small"
+                
                 icon={isLocationVisible(id) ? <EyeOutlined /> : <EyeInvisibleOutlined />}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -119,7 +119,7 @@ const LocationNode: React.FC<NodeProps<LocationNodeData>> = ({ id, data, selecte
           {availableGroups.length > 0 && (
             <Button
               type="link"
-              size="small"
+              
               className="add-group-button"
               icon={<PlusOutlined />}
               onClick={(e) => {

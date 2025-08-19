@@ -8,7 +8,7 @@ const { Panel } = Collapse;
 const LocationCardLegend: React.FC = () => {
   return (
     <Collapse 
-      size="small" 
+       
       ghost
       items={[
         {
@@ -23,7 +23,7 @@ const LocationCardLegend: React.FC = () => {
             <div style={{ padding: '8px 0' }}>
               <div style={{ marginBottom: 16 }}>
                 <Title level={5} style={{ marginBottom: 8 }}>Индикаторы содержимого:</Title>
-                <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                <Space direction="vertical"  style={{ width: '100%' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div style={{ 
                       width: 16, height: 16, borderRadius: '50%', 
@@ -56,7 +56,7 @@ const LocationCardLegend: React.FC = () => {
 
               <div style={{ marginBottom: 16 }}>
                 <Title level={5} style={{ marginBottom: 8 }}>Цвета карточек:</Title>
-                <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                <Space direction="vertical"  style={{ width: '100%' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div style={{ width: 16, height: 12, backgroundColor: '#ff4d4f', borderRadius: 2 }}></div>
                     <Text>Опасные места (враги, ловушки)</Text>
@@ -82,7 +82,7 @@ const LocationCardLegend: React.FC = () => {
 
               <div style={{ marginBottom: 16 }}>
                 <Title level={5} style={{ marginBottom: 8 }}>Дополнительные индикаторы:</Title>
-                <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                <Space direction="vertical"  style={{ width: '100%' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div style={{ 
                       width: 12, height: 12, borderRadius: '50%', 
