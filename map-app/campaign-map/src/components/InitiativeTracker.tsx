@@ -29,10 +29,17 @@ import {
   DeleteOutlined,
   HeartOutlined,
   StopOutlined,
-  ClockCircleOutlined
+  ClockCircleOutlined,
+  FundOutlined,
+  BarsOutlined,
+  DashboardOutlined,
+  SafetyOutlined,
+  EyeOutlined
 } from '@ant-design/icons';
 import { useInitiativeTracker } from '../hooks/useInitiativeTracker';
 import { useGroups } from '../hooks/useGroups';
+import { useCharacters } from '../hooks/useCharacters';
+import { useTrackers } from '../hooks/useTrackers';
 import { CharacterStatus, InitiativeCharacter, DeathSaveType, DEATH_SAVE_MAX } from '../types/initiative';
 import DeathSaveTracker from './DeathSaveTracker';
 
@@ -66,6 +73,8 @@ const InitiativeTracker: React.FC = () => {
 
 
   const { groups } = useGroups();
+  const { hasCharacter, getCharacterData } = useCharacters();
+  const { getCharacterStages } = useTrackers();
 
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -215,6 +224,268 @@ const InitiativeTracker: React.FC = () => {
     return items;
   }, [currentEncounter, setCharacterStatus]);
 
+  // Функции для создания элементов дропдаунов метрик
+  const getTrackerItems = useCallback((character: InitiativeCharacter) => {
+    const st = getCharacterStages(character.id);
+    return [
+      { key: 'header', label: <div style={{ fontWeight: 'bold', textAlign: 'center', borderBottom: '1px solid #d9d9d9', padding: '4px 0', marginBottom: '4px' }}>Трекеры заражения</div>, type: 'group' as const },
+      {
+        key: character.id,
+        label: (
+          <div style={{ minWidth: '200px' }}>
+            <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{character.name.split(' ')[0]}</div>
+            <Space size={16}>
+              <span style={{ fontWeight: 'bold', color: st.sporesStage > 2 ? '#ff4d4f' : '#1890ff' }}>
+                Споры: {st.sporesStage}/4
+              </span>
+              <span style={{ fontWeight: 'bold', color: st.shadowStage > 2 ? '#ff4d4f' : '#722ed1' }}>
+                Тень: {st.shadowStage}/4
+              </span>
+            </Space>
+          </div>
+        )
+      }
+    ];
+  }, [getCharacterStages]);
+
+  const getSkillsItems = useCallback((character: InitiativeCharacter) => {
+    const cd = getCharacterData(character.id);
+    const prof = cd ? Object.values(cd.skills || {}).filter((s: any) => (s.isProf || 0) > 0).map((s: any) => s.label).join(', ') : '—';
+    return [
+      { key: 'header', label: <div style={{ fontWeight: 'bold', textAlign: 'center', borderBottom: '1px solid #d9d9d9', padding: '4px 0', marginBottom: '4px' }}>Владение навыками</div>, type: 'group' as const },
+      {
+        key: character.id,
+        label: (
+          <div style={{ minWidth: '250px' }}>
+            <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{character.name.split(' ')[0]}</div>
+            <div style={{ fontWeight: 'bold', textAlign: 'left', maxWidth: '200px' }}>
+              {prof || '—'}
+            </div>
+          </div>
+        )
+      }
+    ];
+  }, [getCharacterData]);
+
+  const getSavesItems = useCallback((character: InitiativeCharacter) => {
+    const cd = getCharacterData(character.id);
+    const list = cd ? Object.entries(cd.saves || {})
+      .filter(([, s]: any) => s.isProf)
+      .map(([k]: any) => {
+        const statKey = k as keyof typeof cd.stats;
+        return cd.stats?.[statKey]?.label || String(k).toUpperCase();
+      })
+      .join(', ') : '—';
+    return [
+      { key: 'header', label: <div style={{ fontWeight: 'bold', textAlign: 'center', borderBottom: '1px solid #d9d9d9', padding: '4px 0', marginBottom: '4px' }}>Владение спасбросками</div>, type: 'group' as const },
+      {
+        key: character.id,
+        label: (
+          <div style={{ minWidth: '200px' }}>
+            <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{character.name.split(' ')[0]}</div>
+            <div style={{ fontWeight: 'bold', textAlign: 'left' }}>
+              {list || '—'}
+            </div>
+          </div>
+        )
+      }
+    ];
+  }, [getCharacterData]);
+
+  const getAcItems = useCallback((character: InitiativeCharacter) => {
+    const cd = getCharacterData(character.id);
+    const ac = cd?.vitality?.ac?.value ?? '—';
+    return [
+      { key: 'header', label: <div style={{ fontWeight: 'bold', textAlign: 'center', borderBottom: '1px solid #d9d9d9', padding: '4px 0', marginBottom: '4px' }}>Класс Доспеха (КД)</div>, type: 'group' as const },
+      {
+        key: character.id,
+        label: (
+          <div style={{ minWidth: '120px' }}>
+            <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{character.name.split(' ')[0]}</div>
+            <div style={{ fontWeight: 'bold', fontSize: '16px', color: '#1890ff' }}>
+              {ac}
+            </div>
+          </div>
+        )
+      }
+    ];
+  }, [getCharacterData]);
+
+  const getPpItems = useCallback((character: InitiativeCharacter) => {
+    const cd = getCharacterData(character.id);
+    if (!cd) return [
+      { key: 'header', label: <div style={{ fontWeight: 'bold', textAlign: 'center', borderBottom: '1px solid #d9d9d9', padding: '4px 0', marginBottom: '4px' }}>Пассивная Внимательность</div>, type: 'group' as const },
+      {
+        key: character.id,
+        label: (
+          <div style={{ minWidth: '120px' }}>
+            <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{character.name.split(' ')[0]}</div>
+            <div style={{ fontWeight: 'bold' }}>—</div>
+          </div>
+        )
+      }
+    ];
+    
+    const wisMod = (cd.stats?.wis as any)?.modifier ?? 0;
+    const level = Number((cd.info?.level as any)?.value ?? 1);
+    const proficiency = Math.floor((level - 1) / 4) + 2;
+    const percProf = (cd.skills?.perception as any)?.isProf || 0;
+    const profBonus = percProf ? proficiency * (percProf === 2 ? 2 : 1) : 0;
+    const pp = 10 + wisMod + profBonus;
+    
+    return [
+      { key: 'header', label: <div style={{ fontWeight: 'bold', textAlign: 'center', borderBottom: '1px solid #d9d9d9', padding: '4px 0', marginBottom: '4px' }}>Пассивная Внимательность</div>, type: 'group' as const },
+      {
+        key: character.id,
+        label: (
+          <div style={{ minWidth: '120px' }}>
+            <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{character.name.split(' ')[0]}</div>
+            <div style={{ fontWeight: 'bold', fontSize: '16px', color: '#52c41a' }}>
+              {pp}
+            </div>
+          </div>
+        )
+      }
+    ];
+  }, [getCharacterData]);
+
+  // Функции для создания элементов дропдаунов метрик энкаунтера
+  const getEncounterTrackerItems = useCallback(() => {
+    const charactersWithSheets = currentEncounter?.characters.filter(c => hasCharacter(c.id)) || [];
+    return [
+      { key: 'header', label: <div style={{ fontWeight: 'bold', textAlign: 'center', borderBottom: '1px solid #d9d9d9', padding: '4px 0', marginBottom: '4px' }}>Трекеры заражения</div>, type: 'group' as const },
+      ...charactersWithSheets.map(c => {
+        const st = getCharacterStages(c.id);
+        return {
+          key: c.id,
+          label: (
+            <div style={{ minWidth: '200px' }}>
+              <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{c.name.split(' ')[0]}</div>
+              <Space size={16}>
+                <span style={{ fontWeight: 'bold', color: st.sporesStage > 2 ? '#ff4d4f' : '#1890ff' }}>
+                  Споры: {st.sporesStage}/4
+                </span>
+                <span style={{ fontWeight: 'bold', color: st.shadowStage > 2 ? '#ff4d4f' : '#722ed1' }}>
+                  Тень: {st.shadowStage}/4
+                </span>
+              </Space>
+            </div>
+          )
+        };
+      })
+    ];
+  }, [currentEncounter, hasCharacter, getCharacterStages]);
+
+  const getEncounterSkillsItems = useCallback(() => {
+    const charactersWithSheets = currentEncounter?.characters.filter(c => hasCharacter(c.id)) || [];
+    return [
+      { key: 'header', label: <div style={{ fontWeight: 'bold', textAlign: 'center', borderBottom: '1px solid #d9d9d9', padding: '4px 0', marginBottom: '4px' }}>Владение навыками</div>, type: 'group' as const },
+      ...charactersWithSheets.map(c => {
+        const cd = getCharacterData(c.id);
+        const prof = cd ? Object.values(cd.skills || {}).filter((s: any) => (s.isProf || 0) > 0).map((s: any) => s.label).join(', ') : '—';
+        return {
+          key: c.id,
+          label: (
+            <div style={{ minWidth: '250px' }}>
+              <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{c.name.split(' ')[0]}</div>
+              <div style={{ fontWeight: 'bold', textAlign: 'left', maxWidth: '200px' }}>
+                {prof || '—'}
+              </div>
+            </div>
+          )
+        };
+      })
+    ];
+  }, [currentEncounter, hasCharacter, getCharacterData]);
+
+  const getEncounterSavesItems = useCallback(() => {
+    const charactersWithSheets = currentEncounter?.characters.filter(c => hasCharacter(c.id)) || [];
+    return [
+      { key: 'header', label: <div style={{ fontWeight: 'bold', textAlign: 'center', borderBottom: '1px solid #d9d9d9', padding: '4px 0', marginBottom: '4px' }}>Владение спасбросками</div>, type: 'group' as const },
+      ...charactersWithSheets.map(c => {
+        const cd = getCharacterData(c.id);
+        const list = cd ? Object.entries(cd.saves || {})
+          .filter(([, s]: any) => s.isProf)
+          .map(([k]: any) => {
+            const statKey = k as keyof typeof cd.stats;
+            return cd.stats?.[statKey]?.label || String(k).toUpperCase();
+          })
+          .join(', ') : '—';
+        return {
+          key: c.id,
+          label: (
+            <div style={{ minWidth: '200px' }}>
+              <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{c.name.split(' ')[0]}</div>
+              <div style={{ fontWeight: 'bold', textAlign: 'left' }}>
+                {list || '—'}
+              </div>
+            </div>
+          )
+        };
+      })
+    ];
+  }, [currentEncounter, hasCharacter, getCharacterData]);
+
+  const getEncounterAcItems = useCallback(() => {
+    const charactersWithSheets = currentEncounter?.characters.filter(c => hasCharacter(c.id)) || [];
+    return [
+      { key: 'header', label: <div style={{ fontWeight: 'bold', textAlign: 'center', borderBottom: '1px solid #d9d9d9', padding: '4px 0', marginBottom: '4px' }}>Класс Доспеха (КД)</div>, type: 'group' as const },
+      ...charactersWithSheets.map(c => {
+        const cd = getCharacterData(c.id);
+        const ac = cd?.vitality?.ac?.value ?? '—';
+        return {
+          key: c.id,
+          label: (
+            <div style={{ minWidth: '120px' }}>
+              <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{c.name.split(' ')[0]}</div>
+              <div style={{ fontWeight: 'bold', fontSize: '16px', color: '#1890ff' }}>
+                {ac}
+              </div>
+            </div>
+          )
+        };
+      })
+    ];
+  }, [currentEncounter, hasCharacter, getCharacterData]);
+
+  const getEncounterPpItems = useCallback(() => {
+    const charactersWithSheets = currentEncounter?.characters.filter(c => hasCharacter(c.id)) || [];
+    return [
+      { key: 'header', label: <div style={{ fontWeight: 'bold', textAlign: 'center', borderBottom: '1px solid #d9d9d9', padding: '4px 0', marginBottom: '4px' }}>Пассивная Внимательность</div>, type: 'group' as const },
+      ...charactersWithSheets.map(c => {
+        const cd = getCharacterData(c.id);
+        if (!cd) return {
+          key: c.id,
+          label: (
+            <div style={{ minWidth: '120px' }}>
+              <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{c.name.split(' ')[0]}</div>
+              <div style={{ fontWeight: 'bold' }}>—</div>
+            </div>
+          )
+        };
+        
+        const wisMod = (cd.stats?.wis as any)?.modifier ?? 0;
+        const level = Number((cd.info?.level as any)?.value ?? 1);
+        const proficiency = Math.floor((level - 1) / 4) + 2;
+        const percProf = (cd.skills?.perception as any)?.isProf || 0;
+        const profBonus = percProf ? proficiency * (percProf === 2 ? 2 : 1) : 0;
+        const pp = 10 + wisMod + profBonus;
+        
+        return {
+          key: c.id,
+          label: (
+            <div style={{ minWidth: '120px' }}>
+              <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{c.name.split(' ')[0]}</div>
+              <div style={{ fontWeight: 'bold', fontSize: '16px', color: '#52c41a' }}>
+                {pp}
+              </div>
+            </div>
+          )
+        };
+      })
+    ];
+  }, [currentEncounter, hasCharacter, getCharacterData]);
+
   // Рендер карточки персонажа
   const renderCharacterCard = useCallback((character: InitiativeCharacter, index: number) => {
     const isCurrentTurn = Boolean(currentEncounter?.isActive && currentEncounter.currentTurnIndex === index);
@@ -283,6 +554,42 @@ const InitiativeTracker: React.FC = () => {
               <Button size="small" icon={<MoreOutlined />} />
             </Dropdown>
           </div>
+
+          {/* Информация о персонаже (если есть лист) */}
+          {hasCharacter(character.id) && (
+            <div style={{ marginTop: 4 }}>
+              <Text type="secondary" style={{ fontSize: 9, display: 'block', marginBottom: 2 }}>
+                КД: {getCharacterData(character.id)?.vitality?.ac?.value || '—'} | 
+                ХП: {(getCharacterData(character.id)?.vitality as any)?.['hp-current']?.value || '—'}/{(getCharacterData(character.id)?.vitality as any)?.['hp-max']?.value || '—'}
+              </Text>
+              <Text type="secondary" style={{ fontSize: 9, display: 'block' }}>
+                {[
+                  { key: 'str', label: 'СИЛ' },
+                  { key: 'dex', label: 'ЛОВ' },
+                  { key: 'con', label: 'ТЕЛ' },
+                  { key: 'int', label: 'ИНТ' },
+                  { key: 'wis', label: 'МДР' },
+                  { key: 'cha', label: 'ХАР' }
+                ].map(({ key, label }) => {
+                  const cd = getCharacterData(character.id);
+                  if (!cd?.stats) return null;
+                  
+                  // Безопасный доступ к характеристикам
+                  const statData = (cd.stats as any)[key];
+                  if (!statData) return null;
+                  
+                  const modifier = statData.modifier || 0;
+                  const hasSave = (cd.saves as any)?.[key]?.isProf;
+                  
+                  return (
+                    <span key={key} style={{ marginRight: 8 }}>
+                      {label}: {modifier >= 0 ? '+' : ''}{modifier}{hasSave ? '*' : ''}
+                    </span>
+                  );
+                }).filter(Boolean)}
+              </Text>
+            </div>
+          )}
         </Space>
 
         {character.status === 'death-saving' && (
@@ -412,6 +719,26 @@ const InitiativeTracker: React.FC = () => {
                     <Tag color="green">
                       Раунд {currentEncounter.round}
                     </Tag>
+                  )}
+                  {/* Иконки метрик для персонажей с листами */}
+                  {currentEncounter.characters.some(c => hasCharacter(c.id)) && (
+                    <Space size={4}>
+                      <Dropdown trigger={["hover"]} menu={{ items: getEncounterTrackerItems() }} placement="bottomRight">
+                        <Button size="small" type="text" icon={<FundOutlined />} />
+                      </Dropdown>
+                      <Dropdown trigger={["hover"]} menu={{ items: getEncounterSkillsItems() }} placement="bottomRight">
+                        <Button size="small" type="text" icon={<BarsOutlined />} />
+                      </Dropdown>
+                      <Dropdown trigger={["hover"]} menu={{ items: getEncounterSavesItems() }} placement="bottomRight">
+                        <Button size="small" type="text" icon={<DashboardOutlined />} />
+                      </Dropdown>
+                      <Dropdown trigger={["hover"]} menu={{ items: getEncounterAcItems() }} placement="bottomRight">
+                        <Button size="small" type="text" icon={<SafetyOutlined />} />
+                      </Dropdown>
+                      <Dropdown trigger={["hover"]} menu={{ items: getEncounterPpItems() }} placement="bottomRight">
+                        <Button size="small" type="text" icon={<EyeOutlined />} />
+                      </Dropdown>
+                    </Space>
                   )}
                 </Space>
               </Col>

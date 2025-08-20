@@ -20,7 +20,8 @@ import {
   Checkbox,
   Switch,
   message,
-  Tooltip
+  Tooltip,
+  Dropdown
 } from 'antd';
 import { 
   PlusOutlined, 
@@ -30,13 +31,20 @@ import {
   TeamOutlined,
   UserDeleteOutlined,
   SplitCellsOutlined,
-  FileTextOutlined
+  FileTextOutlined,
+  MoreOutlined,
+  FundOutlined,
+  BarsOutlined,
+  DashboardOutlined,
+  SafetyOutlined,
+  EyeOutlined
 } from '@ant-design/icons';
 import { useGroups } from '../hooks/useGroups';
 import { useCharacters } from '../hooks/useCharacters';
 import { Character } from '../types/groups';
 import { getLocationName } from '../utils/locationUtils';
 import { CharacterSheetModal } from './CharacterSheetModal';
+import { useTrackers } from '../hooks/useTrackers';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -66,6 +74,8 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ visible, onClose, as
     syncWithGroupCharacter,
     getGroupCharacterUpdate
   } = useCharacters();
+  const { getCharacterData } = useCharacters();
+  const { getCharacterStages } = useTrackers();
 
   const [showGroupForm, setShowGroupForm] = useState(false);
   const [showCharacterForm, setShowCharacterForm] = useState<string | null>(null);
@@ -334,48 +344,184 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ visible, onClose, as
                   </Space>
                 }
                 extra={
-                  <Space>
-                    <Button
-                      
-                      icon={<EditOutlined />}
-                      onClick={() => handleOpenEditGroup(group.id)}
-                    >
-                      Редактировать
-                    </Button>
-                    <Space size={6}>
-                      <span style={{ fontSize: 12, color: '#999' }}>Игроки</span>
-                      <Switch
-                        
-                        checked={group.isPlayers}
-                        onChange={(checked) => updateGroup(group.id, { isPlayers: checked })}
-                      />
-                    </Space>
-                    {group.members.length > 1 && (
-                      <Button
-                        
-                        className="split-button"
-                        icon={<SplitCellsOutlined />}
-                        onClick={() => setShowSplitModal(group.id)}
-                      >
-                        Разделить
-                      </Button>
-                    )}
-                    <Popconfirm
-                      title="Удалить группу?"
-                      description="Это действие нельзя отменить"
-                      onConfirm={() => deleteGroup(group.id)}
-                      okText="Да"
-                      cancelText="Нет"
-                    >
-                      <Button
-                        
-                        danger
-                        icon={<DeleteOutlined />}
-                      >
-                        Удалить
-                      </Button>
-                    </Popconfirm>
-                  </Space>
+                  (() => {
+                    const hasAnySheets = group.members.some(m => hasCharacter(`${group.id}-${m.id}`));
+
+                    const actionItems = [
+                      {
+                        key: 'edit',
+                        label: <span onClick={() => handleOpenEditGroup(group.id)}><EditOutlined /> Редактировать</span>
+                      },
+                      {
+                        key: 'players',
+                        label: <span onClick={() => updateGroup(group.id, { isPlayers: !group.isPlayers })}><TeamOutlined /> {group.isPlayers ? 'Сделать NPC' : 'Отметить как игроков'}</span>
+                      },
+                      ...(group.members.length > 1 ? [{
+                        key: 'split',
+                        label: <span onClick={() => setShowSplitModal(group.id)}><SplitCellsOutlined /> Разделить группу</span>
+                      }] : []),
+                      {
+                        key: 'delete',
+                        danger: true,
+                        label: (
+                          <Popconfirm title="Удалить группу?" description="Это действие нельзя отменить" onConfirm={() => deleteGroup(group.id)} okText="Да" cancelText="Нет">
+                            <span style={{ color: '#ff4d4f' }}><DeleteOutlined /> Удалить</span>
+                          </Popconfirm>
+                        )
+                      }
+                    ];
+
+                    const trackerItems = [
+                      { key: 'header', label: <div style={{ fontWeight: 'bold', textAlign: 'center', borderBottom: '1px solid #d9d9d9', padding: '4px 0', marginBottom: '4px' }}>Трекеры заражения</div>, type: 'group' as const },
+                      ...group.members.map(m => {
+                        const id = `${group.id}-${m.id}`;
+                        const st = getCharacterStages(id);
+                        return { 
+                          key: id, 
+                          label: (
+                            <div style={{ minWidth: '200px' }}>
+                              <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{m.name.split(' ')[0]}</div>
+                              <Space size={16}>
+                                <span style={{ fontWeight: 'bold', color: st.sporesStage > 2 ? '#ff4d4f' : '#1890ff' }}>
+                                  Споры: {st.sporesStage}/4
+                                </span>
+                                <span style={{ fontWeight: 'bold', color: st.shadowStage > 2 ? '#ff4d4f' : '#722ed1' }}>
+                                  Тень: {st.shadowStage}/4
+                                </span>
+                              </Space>
+                            </div>
+                          )
+                        };
+                      })
+                    ];
+
+                    const skillsItems = [
+                      { key: 'header', label: <div style={{ fontWeight: 'bold', textAlign: 'center', borderBottom: '1px solid #d9d9d9', padding: '4px 0', marginBottom: '4px' }}>Владение навыками</div>, type: 'group' as const },
+                      ...group.members.map(m => {
+                        const id = `${group.id}-${m.id}`;
+                        const cd = getCharacterData(id);
+                        const prof = cd ? Object.values(cd.skills || {}).filter((s: any) => (s.isProf || 0) > 0).map((s: any) => s.label).join(', ') : '—';
+                        return { 
+                          key: id, 
+                          label: (
+                            <div style={{ minWidth: '250px' }}>
+                              <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{m.name.split(' ')[0]}</div>
+                              <div style={{ fontWeight: 'bold', textAlign: 'left', maxWidth: '200px' }}>
+                                {prof || '—'}
+                              </div>
+                            </div>
+                          )
+                        };
+                      })
+                    ];
+
+                    const savesItems = [
+                      { key: 'header', label: <div style={{ fontWeight: 'bold', textAlign: 'center', borderBottom: '1px solid #d9d9d9', padding: '4px 0', marginBottom: '4px' }}>Владение спасбросками</div>, type: 'group' as const },
+                      ...group.members.map(m => {
+                        const id = `${group.id}-${m.id}`;
+                        const cd = getCharacterData(id);
+                        const list = cd ? Object.entries(cd.saves || {})
+                          .filter(([, s]: any) => s.isProf)
+                          .map(([k]: any) => {
+                            const statKey = k as keyof typeof cd.stats;
+                            return cd.stats?.[statKey]?.label || String(k).toUpperCase();
+                          })
+                          .join(', ') : '—';
+                        return { 
+                          key: id, 
+                          label: (
+                            <div style={{ minWidth: '200px' }}>
+                              <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{m.name.split(' ')[0]}</div>
+                              <div style={{ fontWeight: 'bold', textAlign: 'left' }}>
+                                {list || '—'}
+                              </div>
+                            </div>
+                          )
+                        };
+                      })
+                    ];
+
+                    const acItems = [
+                      { key: 'header', label: <div style={{ fontWeight: 'bold', textAlign: 'center', borderBottom: '1px solid #d9d9d9', padding: '4px 0', marginBottom: '4px' }}>Класс Доспеха (КД)</div>, type: 'group' as const },
+                      ...group.members.map(m => {
+                        const id = `${group.id}-${m.id}`;
+                        const cd = getCharacterData(id);
+                        const ac = cd?.vitality?.ac?.value ?? '—';
+                        return { 
+                          key: id, 
+                          label: (
+                            <div style={{ minWidth: '120px' }}>
+                              <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{m.name.split(' ')[0]}</div>
+                              <div style={{ fontWeight: 'bold', fontSize: '16px', color: '#1890ff' }}>
+                                {ac}
+                              </div>
+                            </div>
+                          )
+                        };
+                      })
+                    ];
+
+                    const ppItems = [
+                      { key: 'header', label: <div style={{ fontWeight: 'bold', textAlign: 'center', borderBottom: '1px solid #d9d9d9', padding: '4px 0', marginBottom: '4px' }}>Пассивная Внимательность</div>, type: 'group' as const },
+                      ...group.members.map(m => {
+                        const id = `${group.id}-${m.id}`;
+                        const cd = getCharacterData(id);
+                        if (!cd) return { 
+                          key: id, 
+                          label: (
+                            <div style={{ minWidth: '120px' }}>
+                              <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{m.name.split(' ')[0]}</div>
+                              <div style={{ fontWeight: 'bold' }}>—</div>
+                            </div>
+                          )
+                        };
+                        const wisMod = (cd.stats?.wis as any)?.modifier ?? 0;
+                        const level = Number((cd.info?.level as any)?.value ?? 1);
+                        const proficiency = Math.floor((level - 1) / 4) + 2;
+                        const percProf = (cd.skills?.perception as any)?.isProf || 0;
+                        const profBonus = percProf ? proficiency * (percProf === 2 ? 2 : 1) : 0;
+                        const pp = 10 + wisMod + profBonus;
+                        return { 
+                          key: id, 
+                          label: (
+                            <div style={{ minWidth: '120px' }}>
+                              <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{m.name.split(' ')[0]}</div>
+                              <div style={{ fontWeight: 'bold', fontSize: '16px', color: '#52c41a' }}>
+                                {pp}
+                              </div>
+                            </div>
+                          )
+                        };
+                      })
+                    ];
+
+                    return (
+                      <Space size={8}>
+                        {hasAnySheets && (
+                          <>
+                            <Dropdown trigger={["hover"]} menu={{ items: trackerItems }} placement="bottomRight">
+                              <Button type="text" icon={<FundOutlined />} />
+                            </Dropdown>
+                            <Dropdown trigger={["hover"]} menu={{ items: skillsItems }} placement="bottomRight">
+                              <Button type="text" icon={<BarsOutlined />} />
+                            </Dropdown>
+                            <Dropdown trigger={["hover"]} menu={{ items: savesItems }} placement="bottomRight">
+                              <Button type="text" icon={<DashboardOutlined />} />
+                            </Dropdown>
+                            <Dropdown trigger={["hover"]} menu={{ items: acItems }} placement="bottomRight">
+                              <Button type="text" icon={<SafetyOutlined />} />
+                            </Dropdown>
+                            <Dropdown trigger={["hover"]} menu={{ items: ppItems }} placement="bottomRight">
+                              <Button type="text" icon={<EyeOutlined />} />
+                            </Dropdown>
+                          </>
+                        )}
+                        <Dropdown placement="bottomRight" menu={{ items: actionItems }} trigger={["click"]}>
+                          <Button icon={<MoreOutlined />} />
+                        </Dropdown>
+                      </Space>
+                    );
+                  })()
                 }
               >
                   <div style={{ marginBottom: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
