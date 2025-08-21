@@ -36,6 +36,7 @@ interface LocationDetailProps {
   fieldVisibility?: LocationFieldVisibility;
   getLocationFieldVisibility?: (locationId: string) => LocationFieldVisibility;
   toggleLocationItemVisibility?: (locationId: string, field: keyof LocationFieldVisibility, itemIndex: number) => void;
+  setLocationItemVisibility?: (locationId: string, field: keyof LocationFieldVisibility, itemIndex: number, isVisible: boolean) => void;
   isLocationItemVisible?: (locationId: string, field: keyof LocationFieldVisibility, itemIndex: number) => boolean;
 }
 
@@ -48,6 +49,7 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
   fieldVisibility,
   getLocationFieldVisibility,
   toggleLocationItemVisibility,
+  setLocationItemVisibility,
   isLocationItemVisible
 }) => {
   // Получаем настройки видимости полей
@@ -62,6 +64,8 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
   // Проверяем видимость отдельного элемента
   const shouldShowItem = (field: keyof LocationFieldVisibility, itemIndex: number): boolean => {
     if (!isPlayerView) return true; // В режиме мастера всегда показываем все
+    // Усилители и ослабители всегда скрыты для игроков
+    if (field === 'amplifiers' || field === 'dampeners') return false;
     
     if (isLocationItemVisible) {
       return isLocationItemVisible(location.id, field, itemIndex);
@@ -78,6 +82,8 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
   // Проверяем нужно ли показывать секцию вообще (если есть хотя бы один видимый элемент)
   const shouldShowSection = (field: keyof LocationFieldVisibility): boolean => {
     if (!isPlayerView) return true; // В режиме мастера всегда показываем все
+    // Усилители и ослабители всегда скрыты для игроков
+    if (field === 'amplifiers' || field === 'dampeners') return false;
     
     const fieldArray = location[field] || [];
     return fieldArray.some((_, index) => shouldShowItem(field, index));
@@ -130,9 +136,7 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
                 <Space>
                   <ThunderboltOutlined style={{ color: '#f5222d' }} />
                   <span>Усилители эффектов</span>
-                  {!isPlayerView && visibility.amplifiers === 'hidden' && (
-                    <Tag color="red">Скрыто для игроков</Tag>
-                  )}
+                  {/* Усилители всегда скрыты для игроков */}
                 </Space>
               }
               
@@ -148,18 +152,8 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
                   }
                   
                   return (
-                    <List.Item style={{ opacity: !isPlayerView && !isVisible ? 0.5 : 1 }}>
+                    <List.Item>
                       <div style={{ width: '100%' }}>
-                        {!isPlayerView && toggleLocationItemVisibility && (
-                          <div style={{ marginBottom: 8 }}>
-                            <Checkbox
-                              checked={isVisible}
-                              onChange={() => toggleLocationItemVisibility(location.id, 'amplifiers', index)}
-                            >
-                              Показать игрокам
-                            </Checkbox>
-                          </div>
-                        )}
                         <List.Item.Meta
                           title={amplifier.effect}
                           description={
@@ -189,9 +183,7 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
                 <Space>
                   <SafetyOutlined style={{ color: '#52c41a' }} />
                   <span>Ослабители эффектов</span>
-                  {!isPlayerView && visibility.dampeners === 'hidden' && (
-                    <Tag color="red">Скрыто для игроков</Tag>
-                  )}
+                  {/* Ослабители всегда скрыты для игроков */}
                 </Space>
               }
               
@@ -227,37 +219,63 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
                 <Space>
                   <ExclamationCircleOutlined style={{ color: '#fa8c16' }} />
                   <span>Энкаунтеры</span>
-                  {!isPlayerView && visibility.encounters === 'hidden' && (
-                    <Tag color="red">Скрыто для игроков</Tag>
-                  )}
+                  {/* Для энкаунтеров видимость управляется пометками на элементах */}
                 </Space>
               }
               
             >
               <List
-                dataSource={location.encounters}
-                renderItem={(encounter) => (
-                  <List.Item>
-                    <List.Item.Meta
-                      title={
-                        <Space>
-                          <Text strong>{encounter.name}</Text>
-                          <Badge count={encounter.count} style={{ backgroundColor: '#fa8c16' }} />
-                        </Space>
-                      }
-                      description={
-                        <div>
-                          <Text type="secondary">Уровень: {encounter.level}</Text>
-                          {encounter.notes && (
-                            <Paragraph style={{ margin: '4px 0 0 0', fontSize: 12 }}>
-                              {encounter.notes}
-                            </Paragraph>
-                          )}
-                        </div>
-                      }
-                    />
-                  </List.Item>
-                )}
+                dataSource={location.encounters.map((encounter, index) => ({ encounter, index }))}
+                renderItem={(encWithIndex) => {
+                  const { encounter, index } = encWithIndex;
+                  const isVisibleForPlayers = shouldShowItem('encounters', index);
+                  // Сырое состояние видимости (игнорируя режим просмотра)
+                  const isVisibleRaw = isLocationItemVisible
+                    ? isLocationItemVisible(location.id, 'encounters', index)
+                    : (visibility.encounters[index] !== 'hidden');
+
+                  if (isPlayerView && !isVisibleForPlayers) {
+                    return null;
+                  }
+
+                  return (
+                    <List.Item style={{ opacity: !isPlayerView && !isVisibleRaw ? 0.5 : 1 }}>
+                      <div style={{ width: '100%' }}>
+                        {!isPlayerView && toggleLocationItemVisibility && (
+                          <div style={{ marginBottom: 8 }}>
+                            <Checkbox
+                              checked={isVisibleRaw}
+                              onChange={(e) => (setLocationItemVisibility
+                                ? setLocationItemVisibility(location.id, 'encounters', index, e.target.checked)
+                                : toggleLocationItemVisibility && toggleLocationItemVisibility(location.id, 'encounters', index)
+                              )}
+                            >
+                              Показать игрокам
+                            </Checkbox>
+                          </div>
+                        )}
+                        <List.Item.Meta
+                          title={
+                            <Space>
+                              <Text strong>{encounter.name}</Text>
+                              <Badge count={encounter.count} style={{ backgroundColor: '#fa8c16' }} />
+                            </Space>
+                          }
+                          description={
+                            <div>
+                              <Text type="secondary">Уровень: {encounter.level}</Text>
+                              {encounter.notes && (
+                                <Paragraph style={{ margin: '4px 0 0 0', fontSize: 12 }}>
+                                  {encounter.notes}
+                                </Paragraph>
+                              )}
+                            </div>
+                          }
+                        />
+                      </div>
+                    </List.Item>
+                  );
+                }}
               />
             </Card>
           </Col>
@@ -271,9 +289,7 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
                 <Space>
                   <GiftOutlined style={{ color: '#722ed1' }} />
                   <span>Лут</span>
-                  {!isPlayerView && visibility.loot === 'hidden' && (
-                    <Tag color="red">Скрыто для игроков</Tag>
-                  )}
+                  {/* Для лута видимость управляется пометками на элементах */}
                 </Space>
               }
               
@@ -282,20 +298,26 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
                 dataSource={location.loot.map((item, index) => ({ item, index }))}
                 renderItem={(itemWithIndex) => {
                   const { index, item } = itemWithIndex;
-                  const isVisible = shouldShowItem('loot', index);
-                  
-                  if (isPlayerView && !isVisible) {
+                  const isVisibleForPlayers = shouldShowItem('loot', index);
+                  const isVisibleRaw = isLocationItemVisible
+                    ? isLocationItemVisible(location.id, 'loot', index)
+                    : (visibility.loot[index] !== 'hidden');
+
+                  if (isPlayerView && !isVisibleForPlayers) {
                     return null; // В режиме игрока скрываем невидимые элементы
                   }
-                  
+
                   return (
-                    <List.Item style={{ opacity: !isPlayerView && !isVisible ? 0.5 : 1 }}>
+                    <List.Item style={{ opacity: !isPlayerView && !isVisibleRaw ? 0.5 : 1 }}>
                       <div style={{ width: '100%' }}>
                         {!isPlayerView && toggleLocationItemVisibility && (
                           <div style={{ marginBottom: 8 }}>
                             <Checkbox
-                              checked={isVisible}
-                              onChange={() => toggleLocationItemVisibility(location.id, 'loot', index)}
+                              checked={isVisibleRaw}
+                              onChange={(e) => (setLocationItemVisibility
+                                ? setLocationItemVisibility(location.id, 'loot', index, e.target.checked)
+                                : toggleLocationItemVisibility && toggleLocationItemVisibility(location.id, 'loot', index)
+                              )}
                             >
                               Показать игрокам
                             </Checkbox>
@@ -319,20 +341,45 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
                 <Space>
                   <SearchOutlined style={{ color: '#13c2c2' }} />
                   <span>Улики</span>
-                  {!isPlayerView && visibility.clues === 'hidden' && (
-                    <Tag color="red">Скрыто для игроков</Tag>
-                  )}
+                  {/* Для улик видимость управляется пометками на элементах */}
                 </Space>
               }
               
             >
               <List
-                dataSource={location.clues}
-                renderItem={(clue) => (
-                  <List.Item>
-                    <Text italic>{clue}</Text>
-                  </List.Item>
-                )}
+                dataSource={location.clues.map((clue, index) => ({ clue, index }))}
+                renderItem={(clueWithIndex) => {
+                  const { clue, index } = clueWithIndex;
+                  const isVisibleForPlayers = shouldShowItem('clues', index);
+                  const isVisibleRaw = isLocationItemVisible
+                    ? isLocationItemVisible(location.id, 'clues', index)
+                    : (visibility.clues[index] !== 'hidden');
+
+                  if (isPlayerView && !isVisibleForPlayers) {
+                    return null;
+                  }
+
+                  return (
+                    <List.Item style={{ opacity: !isPlayerView && !isVisibleRaw ? 0.5 : 1 }}>
+                      <div style={{ width: '100%' }}>
+                        {!isPlayerView && toggleLocationItemVisibility && (
+                          <div style={{ marginBottom: 8 }}>
+                            <Checkbox
+                              checked={isVisibleRaw}
+                              onChange={(e) => (setLocationItemVisibility
+                                ? setLocationItemVisibility(location.id, 'clues', index, e.target.checked)
+                                : toggleLocationItemVisibility && toggleLocationItemVisibility(location.id, 'clues', index)
+                              )}
+                            >
+                              Показать игрокам
+                            </Checkbox>
+                          </div>
+                        )}
+                        <Text italic>{clue}</Text>
+                      </div>
+                    </List.Item>
+                  );
+                }}
               />
             </Card>
           </Col>

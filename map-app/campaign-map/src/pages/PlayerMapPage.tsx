@@ -8,6 +8,7 @@ import { PointsData, PathsData, PointOfInterest, GraphNode, GraphEdge } from '..
 import { parseToSubflows } from '../utils/dataParser';
 import pointsData from '../tochki-interesa.json';
 import pathsData from '../puti-mezhdu-lokaciyami.json';
+import { useFieldVisibility } from '../hooks/useFieldVisibility';
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
@@ -26,6 +27,7 @@ const PlayerMapPage: React.FC = () => {
   const [selectedLocation, setSelectedLocation] = useState<PointOfInterest | null>(null);
   const [currentArea, setCurrentArea] = useState<string>('');
   const [showLocationModal, setShowLocationModal] = useState(false);
+  const { getLocationFieldVisibility } = useFieldVisibility();
 
   // Функция для получения отфильтрованных узлов для карты игроков
   const getFilteredNodesForPlayers = useCallback((allNodes: GraphNode[], allEdges: GraphEdge[]) => {
@@ -319,6 +321,7 @@ const PlayerMapPage: React.FC = () => {
               area={currentArea}
               onBack={handleBackToMindMap}
               isModal={true}
+              getLocationFieldVisibility={getLocationFieldVisibility}
             />
           )}
         </Modal>

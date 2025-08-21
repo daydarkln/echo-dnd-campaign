@@ -5605,8 +5605,6 @@
           "ruined-camp-to-temple-entrance",
           "temple-to-fungal-cave",
           "central-square-to-harbor",
-          "central-square-to-canyon",
-          "central-square-to-forest-border",
           "central-square-to-mountain-fortress",
           "central-square-to-military-quarter",
           "central-square-to-library",
@@ -5994,84 +5992,7 @@
         "visibility": "visible"
       }
     },
-    {
-      "id": "central-square-to-canyon",
-      "from": {
-        "value": "gorod-tsentralnaya-ploshchad",
-        "visibility": "visible"
-      },
-      "to": {
-        "value": "kanyon-sklon-loz",
-        "visibility": "visible"
-      },
-      "pathType": {
-        "value": "city_gates",
-        "visibility": "visible"
-      },
-      "description": {
-        "value": "Горные ворота к каньону и плато",
-        "visibility": "visible"
-      },
-      "travelTime": {
-        "value": "1.5 часа",
-        "visibility": "visible"
-      },
-      "obstacles": {
-        "value": [
-          "проверка документов"
-        ],
-        "visibility": "visible"
-      },
-      "requirements": {
-        "value": [
-          "пропуск или проверка Убеждения DC 12"
-        ],
-        "visibility": "visible"
-      },
-      "notes": {
-        "value": "Путь в горные районы через центральную площадь",
-        "visibility": "visible"
-      }
-    },
-    {
-      "id": "central-square-to-forest-border",
-      "from": {
-        "value": "gorod-tsentralnaya-ploshchad",
-        "visibility": "visible"
-      },
-      "to": {
-        "value": "les-granica",
-        "visibility": "visible"
-      },
-      "pathType": {
-        "value": "city_gates",
-        "visibility": "visible"
-      },
-      "description": {
-        "value": "Лесные ворота к границе леса",
-        "visibility": "visible"
-      },
-      "travelTime": {
-        "value": "1 час",
-        "visibility": "visible"
-      },
-      "obstacles": {
-        "value": [
-          "проверка багажа"
-        ],
-        "visibility": "visible"
-      },
-      "requirements": {
-        "value": [
-          "проверка у стражи"
-        ],
-        "visibility": "visible"
-      },
-      "notes": {
-        "value": "Путь к лесным окраинам через центральную площадь",
-        "visibility": "visible"
-      }
-    },
+
     {
       "id": "central-square-to-mountain-fortress",
       "from": {

@@ -46,6 +46,7 @@ function App() {
     initializeLocationFieldVisibility,
     initializeRouteFieldVisibility,
     toggleLocationItemVisibility,
+    setLocationItemVisibility,
     toggleRouteItemVisibility,
     toggleRouteNotesVisibility,
     isLocationItemVisible,
@@ -279,8 +280,10 @@ function App() {
                 area={currentArea}
                 onBack={handleBackToMindMap}
                 isModal={true}
+                fieldVisibility={getLocationFieldVisibility(selectedLocation.id)}
                 getLocationFieldVisibility={getLocationFieldVisibility}
                 toggleLocationItemVisibility={toggleLocationItemVisibility}
+                setLocationItemVisibility={setLocationItemVisibility}
                 isLocationItemVisible={isLocationItemVisible}
               />
             )

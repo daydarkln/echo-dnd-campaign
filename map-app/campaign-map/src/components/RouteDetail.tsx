@@ -35,6 +35,8 @@ interface RouteDetailProps {
   getRouteFieldVisibility?: (routeId: string) => RouteFieldVisibility;
   toggleRouteItemVisibility?: (routeId: string, field: 'obstacles' | 'requirements', itemIndex: number) => void;
   toggleRouteNotesVisibility?: (routeId: string) => void;
+  setRouteItemVisibility?: (routeId: string, field: 'obstacles' | 'requirements', itemIndex: number, isVisible: boolean) => void;
+  setRouteNotesVisibility?: (routeId: string, isVisible: boolean) => void;
   isRouteItemVisible?: (routeId: string, field: 'obstacles' | 'requirements', itemIndex: number) => boolean;
   isRouteNotesVisible?: (routeId: string) => boolean;
 }
@@ -48,6 +50,8 @@ const RouteDetail: React.FC<RouteDetailProps> = ({
   getRouteFieldVisibility,
   toggleRouteItemVisibility,
   toggleRouteNotesVisibility,
+  setRouteItemVisibility,
+  setRouteNotesVisibility,
   isRouteItemVisible,
   isRouteNotesVisible
 }) => {
@@ -170,20 +174,26 @@ const RouteDetail: React.FC<RouteDetailProps> = ({
                 dataSource={route.obstacles.map((obstacle, index) => ({ obstacle, index }))}
                 renderItem={(obstacleWithIndex) => {
                   const { index, obstacle } = obstacleWithIndex;
-                  const isVisible = shouldShowItem('obstacles', index);
+                  const isVisibleForPlayers = shouldShowItem('obstacles', index);
+                  const isVisibleRaw = isRouteItemVisible
+                    ? isRouteItemVisible(route.id, 'obstacles', index)
+                    : (visibility.obstacles[index] !== 'hidden');
                   
-                  if (isPlayerView && !isVisible) {
+                  if (isPlayerView && !isVisibleForPlayers) {
                     return null; // В режиме игрока скрываем невидимые элементы
                   }
                   
                   return (
-                    <List.Item style={{ opacity: !isPlayerView && !isVisible ? 0.5 : 1 }}>
+                    <List.Item style={{ opacity: !isPlayerView && !isVisibleRaw ? 0.5 : 1 }}>
                       <div style={{ width: '100%' }}>
                         {!isPlayerView && toggleRouteItemVisibility && (
                           <div style={{ marginBottom: 8 }}>
                             <Checkbox
-                              checked={isVisible}
-                              onChange={() => toggleRouteItemVisibility(route.id, 'obstacles', index)}
+                              checked={isVisibleRaw}
+                              onChange={(e) => (setRouteItemVisibility
+                                ? setRouteItemVisibility(route.id, 'obstacles', index, e.target.checked)
+                                : toggleRouteItemVisibility && toggleRouteItemVisibility(route.id, 'obstacles', index)
+                              )}
                             >
                               Показать игрокам
                             </Checkbox>
@@ -218,20 +228,26 @@ const RouteDetail: React.FC<RouteDetailProps> = ({
                 dataSource={route.requirements.map((requirement, index) => ({ requirement, index }))}
                 renderItem={(requirementWithIndex) => {
                   const { index, requirement } = requirementWithIndex;
-                  const isVisible = shouldShowItem('requirements', index);
+                  const isVisibleForPlayers = shouldShowItem('requirements', index);
+                  const isVisibleRaw = isRouteItemVisible
+                    ? isRouteItemVisible(route.id, 'requirements', index)
+                    : (visibility.requirements[index] !== 'hidden');
                   
-                  if (isPlayerView && !isVisible) {
+                  if (isPlayerView && !isVisibleForPlayers) {
                     return null; // В режиме игрока скрываем невидимые элементы
                   }
                   
                   return (
-                    <List.Item style={{ opacity: !isPlayerView && !isVisible ? 0.5 : 1 }}>
+                    <List.Item style={{ opacity: !isPlayerView && !isVisibleRaw ? 0.5 : 1 }}>
                       <div style={{ width: '100%' }}>
                         {!isPlayerView && toggleRouteItemVisibility && (
                           <div style={{ marginBottom: 8 }}>
                             <Checkbox
-                              checked={isVisible}
-                              onChange={() => toggleRouteItemVisibility(route.id, 'requirements', index)}
+                              checked={isVisibleRaw}
+                              onChange={(e) => (setRouteItemVisibility
+                                ? setRouteItemVisibility(route.id, 'requirements', index, e.target.checked)
+                                : toggleRouteItemVisibility && toggleRouteItemVisibility(route.id, 'requirements', index)
+                              )}
                             >
                               Показать игрокам
                             </Checkbox>
@@ -262,11 +278,14 @@ const RouteDetail: React.FC<RouteDetailProps> = ({
               }
               
             >
-              {!isPlayerView && toggleRouteNotesVisibility && (
+              {!isPlayerView && (
                 <div style={{ marginBottom: 16 }}>
                   <Checkbox
                     checked={shouldShowNotes()}
-                    onChange={() => toggleRouteNotesVisibility(route.id)}
+                    onChange={(e) => (setRouteNotesVisibility
+                      ? setRouteNotesVisibility(route.id, e.target.checked)
+                      : toggleRouteNotesVisibility && toggleRouteNotesVisibility(route.id)
+                    )}
                   >
                     Показать игрокам
                   </Checkbox>
