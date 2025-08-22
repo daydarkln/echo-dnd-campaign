@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Spin, Alert, FloatButton, Modal, Tabs, App as AntdApp, ConfigProvider } from 'antd';
-import { TeamOutlined, PartitionOutlined, DashboardOutlined, UserOutlined, FileTextOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import { TeamOutlined, PartitionOutlined, DashboardOutlined, UserOutlined, FileTextOutlined, ThunderboltOutlined, ReadOutlined } from '@ant-design/icons';
 import TrackersPage from './pages/TrackersPage';
 import PlayerMapPage from './pages/PlayerMapPage';
 import { CharacterPage } from './pages/CharacterPage';
 import InitiativeTrackerPage from './pages/InitiativeTrackerPage';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import QuestsPage from './pages/QuestsPage';
 import GroupedMindMap from './components/GroupedMindMap';
 import RegionFocusedMap from './components/RegionFocusedMap';
 import LocationDetail from './components/LocationDetail';
@@ -161,10 +162,26 @@ function App() {
       <Layout style={{ minHeight: '100vh', backgroundColor: '#f0f2f5' }}>
         <Content style={{ padding: 24 }}>
           <Tabs
-            activeKey={location.pathname.startsWith('/groups') ? 'groups' : location.pathname.startsWith('/trackers') ? 'trackers' : location.pathname.startsWith('/initiative') ? 'initiative' : location.pathname.startsWith('/player-map') ? 'player-map' : location.pathname.startsWith('/character') ? 'character' : 'map'}
+            activeKey={
+              location.pathname.startsWith('/groups') ? 'groups'
+              : location.pathname.startsWith('/trackers') ? 'trackers'
+              : location.pathname.startsWith('/initiative') ? 'initiative'
+              : location.pathname.startsWith('/player-map') ? 'player-map'
+              : location.pathname.startsWith('/character') ? 'character'
+              : location.pathname.startsWith('/quests') ? 'quests'
+              : 'map'
+            }
             onChange={(key) => {
               setActiveTab(key);
-              navigate(key === 'groups' ? '/groups' : key === 'trackers' ? '/trackers' : key === 'initiative' ? '/initiative' : key === 'player-map' ? '/player-map' : key === 'character' ? '/character' : '/');
+              navigate(
+                key === 'groups' ? '/groups'
+                : key === 'trackers' ? '/trackers'
+                : key === 'initiative' ? '/initiative'
+                : key === 'player-map' ? '/player-map'
+                : key === 'character' ? '/character'
+                : key === 'quests' ? '/quests'
+                : '/'
+              );
             }}
             items={[
               {
@@ -207,6 +224,14 @@ function App() {
                   </span>
                 ),
               },
+              {
+                key: 'quests',
+                label: (
+                  <span>
+                    <ReadOutlined /> Квесты
+                  </span>
+                ),
+              },
             ]}
           />
 
@@ -244,6 +269,10 @@ function App() {
             <Route
               path="/player-map"
               element={<PlayerMapPage />}
+            />
+            <Route
+              path="/quests"
+              element={<QuestsPage />}
             />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

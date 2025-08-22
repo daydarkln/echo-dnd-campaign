@@ -15,6 +15,7 @@ import {
   RouteFilter,
   VisibilityFilter
 } from '../types/api';
+import { Quest } from '../types/quests';
 
 // Конфигурация API
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
@@ -308,18 +309,43 @@ class FieldVisibilityApi extends BaseApiClient {
   }
 }
 
+// API для квестов
+class QuestsApi extends BaseApiClient {
+  async getQuests(): Promise<Quest[]> {
+    return this.get('/quests');
+  }
+
+  async getQuest(id: string): Promise<Quest> {
+    return this.get(`/quests/${id}`);
+  }
+
+  async createQuest(quest: Omit<Quest, 'id'>): Promise<Quest> {
+    return this.post('/quests', quest);
+  }
+
+  async updateQuest(id: string, quest: Partial<Quest>): Promise<Quest> {
+    return this.put(`/quests/${id}`, quest);
+  }
+
+  async deleteQuest(id: string): Promise<void> {
+    return this.delete(`/quests/${id}`);
+  }
+}
+
 // Главный API клиент
 export class CampaignMapApi {
   public locations: LocationsApi;
   public routes: RoutesApi;
   public visibility: VisibilityApi;
   public fieldVisibility: FieldVisibilityApi;
+  public quests: QuestsApi;
 
   constructor(baseUrl?: string) {
     this.locations = new LocationsApi(baseUrl);
     this.routes = new RoutesApi(baseUrl);
     this.visibility = new VisibilityApi(baseUrl);
     this.fieldVisibility = new FieldVisibilityApi(baseUrl);
+    this.quests = new QuestsApi(baseUrl);
   }
 }
 

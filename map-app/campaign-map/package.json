@@ -19,15 +19,17 @@
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.8.0",
     "react-scripts": "5.0.1",
-    "reactflow": "^11.11.4",
+    "react-markdown": "^9.0.1",
+    "remark-gfm": "^4.0.0",
     "typescript": "^5.9.2",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "GENERATE_SOURCEMAP=false react-scripts start",
+    "build": "GENERATE_SOURCEMAP=false react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "seed:quests": "node ./scripts/seed-quests.js"
   },
   "eslintConfig": {
     "extends": [
