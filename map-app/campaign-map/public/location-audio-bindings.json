@@ -4,8 +4,8 @@
       "name": "Горная крепость",
       "type": "city",
       "ambient": {
-        "primary": "city-market",
-        "layers": [],
+        "day": "city-market",
+        "night": "city-night",
         "volume": 0.7,
         "crossfadeTime": 2500
       },
@@ -40,8 +40,8 @@
       "name": "Ремесленный квартал",
       "type": "city",
       "ambient": {
-        "primary": "city-market",
-        "layers": [],
+        "day": "city-market",
+        "night": "city-night",
         "volume": 0.8,
         "crossfadeTime": 2000
       },
@@ -76,8 +76,7 @@
       "name": "Городское кладбище",
       "type": "dungeon",
       "ambient": {
-        "primary": "library-ambient",
-        "layers": ["pages", "candles", "echo"],
+        "day": "library-ambient",
         "volume": 0.4,
         "crossfadeTime": 4000
       },
@@ -103,7 +102,7 @@
       },
       "environment": {
         "indoorOutdoor": "outdoors",
-        "timeOfDay": "auto",
+        "timeOfDay": "none",
         "weather": "auto"
       }
     },
@@ -111,8 +110,8 @@
       "name": "Светлая поляна (район)",
       "type": "city",
       "ambient": {
-        "primary": "city-market",
-        "layers": [],
+        "day": "city-market",
+        "night": "city-night",
         "volume": 0.6,
         "crossfadeTime": 3000
       },
@@ -142,8 +141,8 @@
       "name": "Грибной рынок",
       "type": "city",
       "ambient": {
-        "primary": "city-market",
-        "layers": [],
+        "day": "city-market",
+        "night": "city-night",
         "volume": 0.8,
         "crossfadeTime": 2000
       },
@@ -178,8 +177,8 @@
       "name": "Академия резонанса",
       "type": "city",
       "ambient": {
-        "primary": "city-market",
-        "layers": [],
+        "day": "city-market",
+        "night": "city-night",
         "volume": 0.5,
         "crossfadeTime": 3500
       },
@@ -217,8 +216,8 @@
       "name": "Санитарная служба",
       "type": "city",
       "ambient": {
-        "primary": "city-market",
-        "layers": [],
+        "day": "city-market",
+        "night": "city-night",
         "volume": 0.6,
         "crossfadeTime": 3000
       },
@@ -249,8 +248,8 @@
       "name": "Оранжерея мицеллиума",
       "type": "city",
       "ambient": {
-        "primary": "city-market",
-        "layers": [],
+        "day": "city-market",
+        "night": "city-night",
         "volume": 0.5,
         "crossfadeTime": 3500
       },
@@ -280,8 +279,8 @@
       "name": "Колокольня маятников",
       "type": "city",
       "ambient": {
-        "primary": "city-market",
-        "layers": [],
+        "day": "city-market",
+        "night": "city-night",
         "volume": 0.7,
         "crossfadeTime": 2500
       },
@@ -311,8 +310,7 @@
       "name": "Старые катакомбы",
       "type": "dungeon",
       "ambient": {
-        "primary": "library-ambient",
-        "layers": ["pages", "candles", "echo"],
+        "day": "library-ambient",
         "volume": 0.6,
         "crossfadeTime": 4000
       },
@@ -342,8 +340,8 @@
       "name": "Центральная площадь",
       "type": "city",
       "ambient": {
-        "primary": "city-market",
-        "layers": [],
+        "day": "city-market",
+        "night": "city-night",
         "volume": 0.9,
         "crossfadeTime": 2000
       },
@@ -378,8 +376,8 @@
       "name": "Военный квартал",
       "type": "city",
       "ambient": {
-        "primary": "city-market",
-        "layers": [],
+        "day": "city-market",
+        "night": "city-night",
         "volume": 0.7,
         "crossfadeTime": 2500
       },
@@ -410,8 +408,7 @@
       "name": "Библиотека древних знаний",
       "type": "dungeon",
       "ambient": {
-        "primary": "library-ambient",
-        "layers": ["pages", "candles", "echo"],
+        "day": "library-ambient",
         "volume": 0.5,
         "crossfadeTime": 4000
       },
@@ -441,7 +438,7 @@
       },
       "environment": {
         "indoorOutdoor": "indoors",
-        "timeOfDay": "auto",
+        "timeOfDay": "none",
         "weather": "auto"
       }
     },
@@ -449,8 +446,8 @@
       "name": "Аптека травника",
       "type": "city",
       "ambient": {
-        "primary": "city-market",
-        "layers": [],
+        "day": "city-market",
+        "night": "city-night",
         "volume": 0.6,
         "crossfadeTime": 3000
       },
@@ -480,8 +477,8 @@
       "name": "Тайная улица",
       "type": "city",
       "ambient": {
-        "primary": "city-market",
-        "layers": [],
+        "day": "city-market",
+        "night": "city-night",
         "volume": 0.4,
         "crossfadeTime": 4000
       },
@@ -503,7 +500,7 @@
       },
       "environment": {
         "indoorOutdoor": "outdoors",
-        "timeOfDay": "night",
+        "timeOfDay": "auto",
         "weather": "auto"
       }
     }

@@ -1,9 +1,64 @@
 import { Howl } from 'howler';
 
+export interface LocationAudioConfig {
+  name: string;
+  type: 'city' | 'dungeon' | 'forest' | 'road';
+  ambient: {
+    day: string; // Дневной вариант эмбиента
+    night?: string; // Ночной вариант эмбиента (опционально для локаций без времени суток)
+    volume: number;
+    crossfadeTime: number;
+  };
+  music: {
+    theme: string;
+    volume: number;
+    loop: boolean;
+  };
+  effects: Record<string, {
+    sound: string;
+    volume: number;
+    fadeOutAmbient?: boolean;
+    ambientFadeTime?: number;
+    fadeOutMusic?: boolean;
+  }>;
+  environment: {
+    indoorOutdoor: 'indoors' | 'outdoors';
+    timeOfDay: 'auto' | 'none';
+    weather: 'auto' | 'none';
+  };
+}
+
+export interface RouteAudioConfig {
+  name: string;
+  type: 'road' | 'path' | 'tunnel';
+  ambient: {
+    day: string;
+    night?: string;
+    volume: number;
+    crossfadeTime: number;
+  };
+  music?: {
+    theme: string;
+    volume: number;
+    loop: boolean;
+  };
+  effects: Record<string, {
+    sound: string;
+    volume: number;
+    fadeOutAmbient?: boolean;
+    ambientFadeTime?: number;
+  }>;
+  environment: {
+    indoorOutdoor: 'indoors' | 'outdoors';
+    timeOfDay: 'auto' | 'none';
+    weather: 'auto' | 'none';
+  };
+}
+
 export interface LocationAudioBindings {
   locations: Record<string, LocationAudioConfig>;
-  routes: Record<string, RouteAudioConfig>;
-  globalEffects: GlobalEffects;
+  routes?: Record<string, RouteAudioConfig>;
+  globalEffects?: GlobalEffects;
 }
 
 export interface AudioConfig {
@@ -37,22 +92,6 @@ export interface CategoryVolumes {
   ambient: number;
   sfx: number;
   voice: number;
-}
-
-export interface LocationAudioConfig {
-  name: string;
-  type: string;
-  ambient: AmbientConfig;
-  music?: MusicConfig;
-  effects: Record<string, EffectConfig>;
-  environment: EnvironmentConfig;
-}
-
-export interface RouteAudioConfig {
-  name: string;
-  type: string;
-  ambient: AmbientConfig;
-  effects: Record<string, EffectConfig>;
 }
 
 export interface AmbientConfig {

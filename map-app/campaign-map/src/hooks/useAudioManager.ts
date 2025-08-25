@@ -372,8 +372,13 @@ export const useAudioManager = () => {
       
       if (newLocationConfig) {
         if (sound.category === 'ambient') {
-          // Проверяем primary ambient
-          if (newLocationConfig.ambient?.primary === sound.id) {
+          // Проверяем дневной и ночной ambient
+          const currentTime = currentTimeOfDay;
+          const ambientId = currentTime === 'night' && newLocationConfig.ambient.night 
+            ? newLocationConfig.ambient.night 
+            : newLocationConfig.ambient.day;
+          
+          if (ambientId === sound.id) {
             shouldStop = false;
             console.log(`Keeping ambient sound: ${sound.id} - it will continue in new location`);
           }
@@ -416,7 +421,7 @@ export const useAudioManager = () => {
     });
     
     console.log('Fade out completed');
-  }, [audioConfig]);
+  }, [audioConfig, currentTimeOfDay]);
 
   // Смена локации с плавным переходом
   const changeLocation = useCallback(async (locationId: string) => {
@@ -445,18 +450,24 @@ export const useAudioManager = () => {
   const fadeInNewLocation = useCallback(async (locationConfig: LocationAudioConfig): Promise<void> => {
     if (!audioConfig) return;
 
+    // Определяем какой ambient звук воспроизводить в зависимости от времени суток
+    const currentTime = currentTimeOfDay;
+    const ambientId = currentTime === 'night' && locationConfig.ambient.night 
+      ? locationConfig.ambient.night 
+      : locationConfig.ambient.day;
+
     // Запуск основного ambient звука
-    if (locationConfig.ambient?.primary) {
+    if (ambientId) {
       // Проверяем, не играет ли уже этот звук
-      const existingSound = activeSounds.current.get(locationConfig.ambient.primary);
+      const existingSound = activeSounds.current.get(ambientId);
       if (!existingSound || existingSound.category !== 'ambient') {
-        playSound(locationConfig.ambient.primary, 'ambient', {
+        playSound(ambientId, 'ambient', {
           volume: locationConfig.ambient.volume || 0.6,
           loop: true, // Явно зацикливаем ambient
           fadeIn: true
         });
       } else {
-        console.log(`Primary ambient ${locationConfig.ambient.primary} is already playing, skipping...`);
+        console.log(`Primary ambient ${ambientId} is already playing, skipping...`);
       }
     }
 
@@ -497,7 +508,7 @@ export const useAudioManager = () => {
     }
 
     // Применяем аудио фильтры
-    if (locationConfig.environment.indoorOutdoor && locationConfig.environment.indoorOutdoor !== 'none') {
+    if (locationConfig.environment.indoorOutdoor !== 'none') {
       applyAudioFilter(locationConfig.environment.indoorOutdoor);
     }
 
@@ -703,6 +714,48 @@ export const useAudioManager = () => {
       }
     });
 
+    // Проверяем, нужно ли сменить ambient звук
+    const currentAmbientId = time === 'night' && locationConfig.ambient.night 
+      ? locationConfig.ambient.night 
+      : locationConfig.ambient.day;
+
+    // Останавливаем текущий ambient, если он отличается от нужного
+    activeSounds.current.forEach((sound, id) => {
+      if (sound.category === 'ambient' && !sound.id.startsWith('weather-') && !sound.id.startsWith('time-')) {
+        // Проверяем, является ли это основным ambient звуком
+        if (sound.id === locationConfig.ambient.day || sound.id === locationConfig.ambient.night) {
+          // Если ambient звук не соответствует текущему времени, останавливаем его
+          if (sound.id !== currentAmbientId) {
+            console.log(`Stopping ambient sound: ${sound.id} - switching to ${currentAmbientId} for ${time}`);
+            sound.howl.fade(sound.volume, 0, audioConfig.globalSettings.fadeOutDuration);
+            setTimeout(() => {
+              sound.howl.stop();
+              activeSounds.current.delete(id);
+            }, audioConfig.globalSettings.fadeOutDuration);
+          }
+        }
+      }
+    });
+
+    // Запускаем новый ambient звук, если он отличается от текущего
+    setTimeout(() => {
+      const existingAmbient = Array.from(activeSounds.current.values()).find(s => 
+        s.category === 'ambient' && 
+        !s.id.startsWith('weather-') && 
+        !s.id.startsWith('time-') &&
+        (s.id === locationConfig.ambient.day || s.id === locationConfig.ambient.night)
+      );
+
+      if (!existingAmbient || existingAmbient.id !== currentAmbientId) {
+        console.log(`Starting new ambient sound: ${currentAmbientId} for ${time}`);
+        playSound(currentAmbientId, 'ambient', {
+          volume: locationConfig.ambient.volume || 0.6,
+          loop: true,
+          fadeIn: true
+        });
+      }
+    }, audioConfig.globalSettings.fadeOutDuration);
+
     // Применяем модификаторы к активным ambient звукам локации
     activeSounds.current.forEach((sound) => {
       if (sound.category === 'ambient' && !sound.id.startsWith('weather-')) {
@@ -719,8 +772,7 @@ export const useAudioManager = () => {
       }
     });
 
-
-  }, [audioConfig, bindings, currentLocation, playSound]);
+  }, [audioConfig, bindings, currentLocation, playSound, currentTimeOfDay]);
 
   // Управление погодой
   const setWeather = useCallback((weather: string) => {
@@ -833,7 +885,7 @@ export const useAudioManager = () => {
       const ambientId = trackId.replace('ambient-', '');
       // Находим локацию с этим ambient и обновляем её громкость
       Object.values(bindings.locations).forEach(location => {
-        if (location.ambient?.primary === ambientId) {
+        if (location.ambient.day === ambientId || location.ambient.night === ambientId) {
           location.ambient.volume = volume;
           console.log(`Updated ambient ${ambientId} volume to ${volume} in location ${location.name}`);
         }
@@ -926,12 +978,18 @@ export const useAudioManager = () => {
     // Останавливаем все текущие звуки, кроме тех, которые будут играть в новой локации
     const soundsToStop: string[] = [];
     
+    // Определяем какой ambient звук нужен для текущего времени суток
+    const currentTime = currentTimeOfDay;
+    const ambientId = currentTime === 'night' && locationConfig.ambient.night 
+      ? locationConfig.ambient.night 
+      : locationConfig.ambient.day;
+    
     activeSounds.current.forEach((sound, id) => {
       let shouldStop = true;
       
       if (sound.category === 'ambient') {
         // Проверяем primary ambient
-        if (locationConfig.ambient?.primary === sound.id) {
+        if (sound.id === ambientId) {
           shouldStop = false;
           console.log(`Keeping ambient sound: ${sound.id} - it will continue`);
         }
@@ -964,17 +1022,17 @@ export const useAudioManager = () => {
     });
 
     // Воспроизводим основной эмбиент
-    if (locationConfig.ambient?.primary) {
+    if (ambientId) {
       // Проверяем, не играет ли уже этот звук
-      const existingSound = activeSounds.current.get(locationConfig.ambient.primary);
+      const existingSound = activeSounds.current.get(ambientId);
       if (!existingSound || existingSound.category !== 'ambient') {
-        playSound(locationConfig.ambient.primary, 'ambient', {
+        playSound(ambientId, 'ambient', {
           volume: locationConfig.ambient.volume || 0.6,
           loop: true, // Явно зацикливаем ambient
           fadeIn: true
         });
       } else {
-        console.log(`Primary ambient ${locationConfig.ambient.primary} is already playing, skipping...`);
+        console.log(`Primary ambient ${ambientId} is already playing, skipping...`);
       }
 
       // Через crossfadeTime добавляем музыкальную тему
