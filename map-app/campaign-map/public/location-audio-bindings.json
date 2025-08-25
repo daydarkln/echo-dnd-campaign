@@ -4,19 +4,19 @@
       "name": "Горная крепость",
       "type": "city",
       "ambient": {
-        "day": "city-market",
+        "day": "city-day",
         "night": "city-night",
         "volume": 0.7,
         "crossfadeTime": 2500
       },
       "music": {
-        "theme": "main-theme",
+        "theme": "city_theme",
         "volume": 0.4,
         "loop": true
       },
       "effects": {
         "doorHeavy": {
-          "sound": "door_metal_heavy",
+          "sound": "door_ancient_heavy",
           "volume": 0.9,
           "fadeOutAmbient": true,
           "ambientFadeTime": 1500
@@ -40,19 +40,19 @@
       "name": "Ремесленный квартал",
       "type": "city",
       "ambient": {
-        "day": "city-market",
+        "day": "city-day",
         "night": "city-night",
         "volume": 0.8,
         "crossfadeTime": 2000
       },
       "music": {
-        "theme": "main-theme",
+        "theme": "city_theme",
         "volume": 0.3,
         "loop": true
       },
       "effects": {
         "doorHeavy": {
-          "sound": "door_metal_heavy",
+          "sound": "door_ancient_heavy",
           "volume": 0.8,
           "fadeOutAmbient": true,
           "ambientFadeTime": 1500
@@ -81,7 +81,7 @@
         "crossfadeTime": 4000
       },
       "music": {
-        "theme": "mystery_theme",
+        "theme": "library_theme",
         "volume": 0.6,
         "loop": true
       },
@@ -110,13 +110,13 @@
       "name": "Светлая поляна (район)",
       "type": "city",
       "ambient": {
-        "day": "city-market",
-        "night": "city-night",
+        "day": "forest-day",
+        "night": "forest-night",
         "volume": 0.6,
         "crossfadeTime": 3000
       },
       "music": {
-        "theme": "main-theme",
+        "theme": "exploration",
         "volume": 0.4,
         "loop": true
       },
@@ -127,12 +127,16 @@
           "fadeOutAmbient": false
         },
         "footsteps": {
-          "surface": "stone",
+          "surface": "grass",
           "volume": 0.5
+        },
+        "birds": {
+          "sound": "birds",
+          "volume": 0.4
         }
       },
       "environment": {
-        "indoorOutdoor": "indoors",
+        "indoorOutdoor": "outdoors",
         "timeOfDay": "auto",
         "weather": "auto"
       }
@@ -147,13 +151,13 @@
         "crossfadeTime": 2000
       },
       "music": {
-        "theme": "main-theme",
+        "theme": "festival_theme",
         "volume": 0.3,
         "loop": true
       },
       "effects": {
         "doorHeavy": {
-          "sound": "door_metal_heavy",
+          "sound": "door_ancient_heavy",
           "volume": 0.8,
           "fadeOutAmbient": true,
           "ambientFadeTime": 1500
@@ -177,13 +181,13 @@
       "name": "Академия резонанса",
       "type": "city",
       "ambient": {
-        "day": "city-market",
+        "day": "city-day",
         "night": "city-night",
         "volume": 0.5,
         "crossfadeTime": 3500
       },
       "music": {
-        "theme": "mystery_theme",
+        "theme": "library_theme",
         "volume": 0.5,
         "loop": true
       },
@@ -216,19 +220,19 @@
       "name": "Санитарная служба",
       "type": "city",
       "ambient": {
-        "day": "city-market",
+        "day": "city-day",
         "night": "city-night",
         "volume": 0.6,
         "crossfadeTime": 3000
       },
       "music": {
-        "theme": "main-theme",
+        "theme": "city_theme",
         "volume": 0.4,
         "loop": true
       },
       "effects": {
         "doorHeavy": {
-          "sound": "door_metal_heavy",
+          "sound": "door_ancient_heavy",
           "volume": 0.8,
           "fadeOutAmbient": true,
           "ambientFadeTime": 1500
@@ -248,8 +252,8 @@
       "name": "Оранжерея мицеллиума",
       "type": "city",
       "ambient": {
-        "day": "city-market",
-        "night": "city-night",
+        "day": "forest-day",
+        "night": "forest-night",
         "volume": 0.5,
         "crossfadeTime": 3500
       },
@@ -267,6 +271,10 @@
         "footsteps": {
           "surface": "grass",
           "volume": 0.4
+        },
+        "waterStream": {
+          "sound": "water-stream",
+          "volume": 0.3
         }
       },
       "environment": {
@@ -279,13 +287,13 @@
       "name": "Колокольня маятников",
       "type": "city",
       "ambient": {
-        "day": "city-market",
+        "day": "city-day",
         "night": "city-night",
         "volume": 0.7,
         "crossfadeTime": 2500
       },
       "music": {
-        "theme": "main-theme",
+        "theme": "city_theme",
         "volume": 0.4,
         "loop": true
       },
@@ -315,7 +323,7 @@
         "crossfadeTime": 4000
       },
       "music": {
-        "theme": "mystery_theme",
+        "theme": "dark_mystery",
         "volume": 0.6,
         "loop": true
       },
@@ -346,13 +354,13 @@
         "crossfadeTime": 2000
       },
       "music": {
-        "theme": "main-theme",
+        "theme": "festival_theme",
         "volume": 0.6,
         "loop": true
       },
       "effects": {
         "doorHeavy": {
-          "sound": "door_metal_heavy",
+          "sound": "door_ancient_heavy",
           "volume": 0.8,
           "fadeOutAmbient": true,
           "ambientFadeTime": 1500
@@ -376,19 +384,19 @@
       "name": "Военный квартал",
       "type": "city",
       "ambient": {
-        "day": "city-market",
+        "day": "city-street",
         "night": "city-night",
         "volume": 0.7,
         "crossfadeTime": 2500
       },
       "music": {
-        "theme": "main-theme",
+        "theme": "city_theme",
         "volume": 0.4,
         "loop": true
       },
       "effects": {
         "doorHeavy": {
-          "sound": "door_metal_heavy",
+          "sound": "door_ancient_heavy",
           "volume": 0.9,
           "fadeOutAmbient": true,
           "ambientFadeTime": 1500
@@ -413,7 +421,7 @@
         "crossfadeTime": 4000
       },
       "music": {
-        "theme": "mystery_theme",
+        "theme": "library_theme",
         "volume": 0.5,
         "loop": true
       },
@@ -446,13 +454,13 @@
       "name": "Аптека травника",
       "type": "city",
       "ambient": {
-        "day": "city-market",
+        "day": "city-day",
         "night": "city-night",
         "volume": 0.6,
         "crossfadeTime": 3000
       },
       "music": {
-        "theme": "main-theme",
+        "theme": "city_theme",
         "volume": 0.4,
         "loop": true
       },
@@ -477,13 +485,13 @@
       "name": "Тайная улица",
       "type": "city",
       "ambient": {
-        "day": "city-market",
+        "day": "city-day",
         "night": "city-night",
         "volume": 0.4,
         "crossfadeTime": 4000
       },
       "music": {
-        "theme": "mystery_theme",
+        "theme": "shady_alley",
         "volume": 0.6,
         "loop": true
       },

@@ -382,11 +382,6 @@ export const useAudioManager = () => {
             shouldStop = false;
             console.log(`Keeping ambient sound: ${sound.id} - it will continue in new location`);
           }
-          // Проверяем layers ambient
-          if (newLocationConfig.ambient?.layers?.includes(sound.id)) {
-            shouldStop = false;
-            console.log(`Keeping ambient layer: ${sound.id} - it will continue in new location`);
-          }
         } else if (sound.category === 'music') {
           // Проверяем музыкальную тему
           if (newLocationConfig.music?.theme === sound.id) {
@@ -471,25 +466,6 @@ export const useAudioManager = () => {
       }
     }
 
-    // Запуск дополнительных ambient слоев
-    if (locationConfig.ambient?.layers && locationConfig.ambient.layers.length > 0) {
-      locationConfig.ambient.layers.forEach((soundId, index) => {
-        // Проверяем, не играет ли уже этот звук
-        const existingSound = activeSounds.current.get(soundId);
-        if (!existingSound || existingSound.category !== 'ambient') {
-          setTimeout(() => {
-            playSound(soundId, 'ambient', {
-              volume: (locationConfig.ambient.volume || 0.6) * 0.7, // Немного тише основного
-              loop: true, // Явно зацикливаем ambient
-              fadeIn: true
-            });
-          }, index * 500);
-        } else {
-          console.log(`Ambient layer ${soundId} is already playing, skipping...`);
-        }
-      });
-    }
-
     // Запуск музыки
     if (locationConfig.music) {
       // Проверяем, не играет ли уже эта музыка
@@ -508,7 +484,7 @@ export const useAudioManager = () => {
     }
 
     // Применяем аудио фильтры
-    if (locationConfig.environment.indoorOutdoor !== 'none') {
+    if (locationConfig.environment.indoorOutdoor === 'indoors' || locationConfig.environment.indoorOutdoor === 'outdoors') {
       applyAudioFilter(locationConfig.environment.indoorOutdoor);
     }
 
@@ -654,7 +630,7 @@ export const useAudioManager = () => {
 
   // Воспроизведение эффекта пути
   const playRouteEffect = useCallback((routeId: string, effectKey: string) => {
-    if (!bindings || !audioConfig) return;
+    if (!bindings || !audioConfig || !bindings.routes) return;
 
     const routeConfig = bindings.routes[routeId];
     if (!routeConfig || !routeConfig.effects[effectKey]) return;
@@ -992,11 +968,6 @@ export const useAudioManager = () => {
         if (sound.id === ambientId) {
           shouldStop = false;
           console.log(`Keeping ambient sound: ${sound.id} - it will continue`);
-        }
-        // Проверяем layers ambient
-        if (locationConfig.ambient?.layers?.includes(sound.id)) {
-          shouldStop = false;
-          console.log(`Keeping ambient layer: ${sound.id} - it will continue`);
         }
       } else if (sound.category === 'music') {
         // Проверяем музыкальную тему
