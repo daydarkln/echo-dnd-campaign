@@ -55,7 +55,7 @@ convert_to_wav() {
     fi
 }
 
-# Функция для обрезки до 10 минут
+# Функция для обрезки до 8 минут
 trim_to_10min() {
     local input_file="$1"
     local temp_file="${input_file%.wav}_temp.wav"
@@ -71,11 +71,11 @@ trim_to_10min() {
         return 1
     fi
     
-    if (( $(echo "$duration > 600" | bc -l 2>/dev/null) )); then
-        echo -e "${BLUE}Обрезаем до 10 минут: $input_file (было: ${duration}s)${NC}"
+    if (( $(echo "$duration > 480" | bc -l 2>/dev/null) )); then
+        echo -e "${BLUE}Обрезаем до 8 минут: $input_file (было: ${duration}s)${NC}"
         
         # Обрезаем файл
-        ffmpeg -i "$input_file" -t 600 -acodec pcm_s16le -ar 44100 -y "$temp_file" 2>/dev/null
+        ffmpeg -i "$input_file" -t 480 -acodec pcm_s16le -ar 44100 -y "$temp_file" 2>/dev/null
         
         if [ $? -eq 0 ]; then
             # Заменяем оригинальный файл обрезанным
@@ -86,7 +86,7 @@ trim_to_10min() {
             [ -f "$temp_file" ] && rm "$temp_file"
         fi
     else
-        echo -e "${GREEN}✓ Пропущен (короче 10 мин): $input_file (${duration}s)${NC}"
+        echo -e "${GREEN}✓ Пропущен (короче 8 мин): $input_file (${duration}s)${NC}"
     fi
 }
 
@@ -111,8 +111,8 @@ main() {
         done
     done
     
-    # Этап 2: Обрезка WAV файлов до 10 минут
-    echo -e "${YELLOW}--- Этап 2: Обрезка WAV файлов до 10 минут ---${NC}"
+    # Этап 2: Обрезка WAV файлов до 8 минут
+    echo -e "${YELLOW}--- Этап 2: Обрезка WAV файлов до 8 минут ---${NC}"
     
     echo "Поиск WAV файлов..."
     find . -name "*.wav" -type f | while read -r file; do
