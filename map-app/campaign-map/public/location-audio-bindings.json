@@ -511,6 +511,1791 @@
         "timeOfDay": "auto",
         "weather": "auto"
       }
+    },
+
+    "derevenskye-ritualy": {
+      "name": "Место ритуалов Воздаяния",
+      "type": "ritual",
+      "ambient": {
+        "day": "forest-day",
+        "night": "forest-night",
+        "volume": 0.5,
+        "crossfadeTime": 3500
+      },
+      "music": {
+        "theme": "mystery_theme",
+        "volume": 0.4,
+        "loop": true
+      },
+      "effects": {
+        "ritualChanting": {
+          "sound": "ritual_voices",
+          "volume": 0.6,
+          "fadeOutAmbient": true,
+          "ambientFadeTime": 2000
+        },
+        "footsteps": {
+          "surface": "grass",
+          "volume": 0.4
+        },
+        "ancientWhispers": {
+          "sound": "ancient_whispers",
+          "volume": 0.3
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "okrainy-tropa-ohotnika": {
+      "name": "Тропа охотника",
+      "type": "forest",
+      "ambient": {
+        "day": "forest-path",
+        "night": "forest-night",
+        "volume": 0.6,
+        "crossfadeTime": 3000
+      },
+      "music": {
+        "theme": "exploration",
+        "volume": 0.3,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "dirt",
+          "volume": 0.5
+        },
+        "animalSounds": {
+          "sound": "forest_animals",
+          "volume": 0.4
+        },
+        "trapTrigger": {
+          "sound": "trap_snap",
+          "volume": 0.8
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "okrainy-zabytaya-polyana": {
+      "name": "Забытая поляна (окраины)",
+      "type": "forest",
+      "ambient": {
+        "day": "forest-day",
+        "night": "forest-night",
+        "volume": 0.5,
+        "crossfadeTime": 3500
+      },
+      "music": {
+        "theme": "mystery_theme",
+        "volume": 0.4,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "grass",
+          "volume": 0.4
+        },
+        "whispers": {
+          "sound": "forest_whispers",
+          "volume": 0.3
+        },
+        "sporeRelease": {
+          "sound": "spore_burst",
+          "volume": 0.6
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "les-granica": {
+      "name": "Граница леса",
+      "type": "forest",
+      "ambient": {
+        "day": "forest-day",
+        "night": "forest-night",
+        "volume": 0.6,
+        "crossfadeTime": 3000
+      },
+      "music": {
+        "theme": "exploration",
+        "volume": 0.3,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "grass",
+          "volume": 0.5
+        },
+        "bells": {
+          "sound": "warning_bells",
+          "volume": 0.7
+        },
+        "patrolSounds": {
+          "sound": "guard_patrol",
+          "volume": 0.5
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "copper-reach": {
+      "name": "Copper Reach",
+      "type": "village",
+      "ambient": {
+        "day": "city-day",
+        "night": "city-night",
+        "volume": 0.7,
+        "crossfadeTime": 2500
+      },
+      "music": {
+        "theme": "city_theme",
+        "volume": 0.4,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "dirt",
+          "volume": 0.6
+        },
+        "villageLife": {
+          "sound": "village_ambient",
+          "volume": 0.5
+        },
+        "ritualDrums": {
+          "sound": "ritual_drums",
+          "volume": 0.6
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "derevnya-tropper": {
+      "name": "Деревня Троппер",
+      "type": "village",
+      "ambient": {
+        "day": "forest-day",
+        "night": "forest-night",
+        "volume": 0.6,
+        "crossfadeTime": 3000
+      },
+      "music": {
+        "theme": "exploration",
+        "volume": 0.3,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "grass",
+          "volume": 0.5
+        },
+        "beekeeping": {
+          "sound": "bee_hive",
+          "volume": 0.4
+        },
+        "crafting": {
+          "sound": "woodworking",
+          "volume": 0.5
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "kordonnaya-zastava": {
+      "name": "Кордонная застава",
+      "type": "outpost",
+      "ambient": {
+        "day": "city-street",
+        "night": "city-night",
+        "volume": 0.7,
+        "crossfadeTime": 2500
+      },
+      "music": {
+        "theme": "city_theme",
+        "volume": 0.4,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.6
+        },
+        "guardDuty": {
+          "sound": "guard_activity",
+          "volume": 0.5
+        },
+        "gateOpen": {
+          "sound": "gate_creak",
+          "volume": 0.7
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "svyashchennaya-gribnaya-roscha": {
+      "name": "Священная грибная роща",
+      "type": "sacred",
+      "ambient": {
+        "day": "forest-day",
+        "night": "forest-night",
+        "volume": 0.4,
+        "crossfadeTime": 4000
+      },
+      "music": {
+        "theme": "mystery_theme",
+        "volume": 0.5,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "grass",
+          "volume": 0.3
+        },
+        "sacredChanting": {
+          "sound": "sacred_chanting",
+          "volume": 0.6
+        },
+        "sporeBlessing": {
+          "sound": "spore_blessing",
+          "volume": 0.4
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "staryy-kolodets": {
+      "name": "Старый колодец",
+      "type": "dungeon",
+      "ambient": {
+        "day": "library-ambient",
+        "volume": 0.6,
+        "crossfadeTime": 4000
+      },
+      "music": {
+        "theme": "dark_mystery",
+        "volume": 0.5,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.7
+        },
+        "wellEcho": {
+          "sound": "well_echo",
+          "volume": 0.6
+        },
+        "waterDrop": {
+          "sound": "water_drop",
+          "volume": 0.4
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "none",
+        "weather": "none"
+      }
+    },
+
+    "zabroshennyi-pogreb": {
+      "name": "Заброшенный погреб",
+      "type": "dungeon",
+      "ambient": {
+        "day": "library-ambient",
+        "volume": 0.7,
+        "crossfadeTime": 3500
+      },
+      "music": {
+        "theme": "dark_mystery",
+        "volume": 0.6,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.8
+        },
+        "ratScuttle": {
+          "sound": "rat_scuttle",
+          "volume": 0.5
+        },
+        "doorCreak": {
+          "sound": "door_wooden",
+          "volume": 0.7
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "none",
+        "weather": "none"
+      }
+    },
+
+    "pole-yarko-zheltyh-cvetov": {
+      "name": "Поле ярко-жёлтых цветов",
+      "type": "anomaly",
+      "ambient": {
+        "day": "forest-day",
+        "night": "forest-night",
+        "volume": 0.4,
+        "crossfadeTime": 4000
+      },
+      "music": {
+        "theme": "mystery_theme",
+        "volume": 0.5,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "grass",
+          "volume": 0.3
+        },
+        "flowerResonance": {
+          "sound": "flower_resonance",
+          "volume": 0.6
+        },
+        "windGust": {
+          "sound": "wind_gust",
+          "volume": 0.7
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "derevnya-zolotistaya": {
+      "name": "Деревня Золотистая",
+      "type": "village",
+      "ambient": {
+        "day": "city-day",
+        "night": "city-night",
+        "volume": 0.7,
+        "crossfadeTime": 2500
+      },
+      "music": {
+        "theme": "city_theme",
+        "volume": 0.4,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "dirt",
+          "volume": 0.6
+        },
+        "magicalExperiments": {
+          "sound": "magical_experiments",
+          "volume": 0.5
+        },
+        "guardActivity": {
+          "sound": "guard_activity",
+          "volume": 0.4
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "derevnya-vesenniy-kluch": {
+      "name": "Деревня Весенний Ключ",
+      "type": "village",
+      "ambient": {
+        "day": "forest-day",
+        "night": "forest-night",
+        "volume": 0.6,
+        "crossfadeTime": 3000
+      },
+      "music": {
+        "theme": "exploration",
+        "volume": 0.3,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "grass",
+          "volume": 0.5
+        },
+        "springWaters": {
+          "sound": "spring_water",
+          "volume": 0.4
+        },
+        "stabilizationRitual": {
+          "sound": "stabilization_ritual",
+          "volume": 0.6
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "vihrevaya-dolina": {
+      "name": "Вихревая долина",
+      "type": "anomaly",
+      "ambient": {
+        "day": "wind_ambient",
+        "night": "wind_ambient",
+        "volume": 0.8,
+        "crossfadeTime": 2000
+      },
+      "music": {
+        "theme": "anomaly_theme",
+        "volume": 0.6,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "sand",
+          "volume": 0.7
+        },
+        "windVortex": {
+          "sound": "wind_vortex",
+          "volume": 0.9
+        },
+        "magicalSurge": {
+          "sound": "magical_surge",
+          "volume": 0.8
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "ozero-otrazheniy": {
+      "name": "Озеро отражений",
+      "type": "anomaly",
+      "ambient": {
+        "day": "water-stream",
+        "night": "water-stream",
+        "volume": 0.5,
+        "crossfadeTime": 3500
+      },
+      "music": {
+        "theme": "mystery_theme",
+        "volume": 0.4,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "water",
+          "volume": 0.6
+        },
+        "waterReflection": {
+          "sound": "water_reflection",
+          "volume": 0.5
+        },
+        "mirrorSurface": {
+          "sound": "mirror_surface",
+          "volume": 0.4
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "kamennyy-krug-strazhey": {
+      "name": "Каменный круг стражей",
+      "type": "sacred",
+      "ambient": {
+        "day": "library-ambient",
+        "night": "library-ambient",
+        "volume": 0.4,
+        "crossfadeTime": 4000
+      },
+      "music": {
+        "theme": "mystery_theme",
+        "volume": 0.5,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.6
+        },
+        "guardianPresence": {
+          "sound": "guardian_presence",
+          "volume": 0.5
+        },
+        "circleResonance": {
+          "sound": "circle_resonance",
+          "volume": 0.6
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "pole-pulsiruyushchih-kamney": {
+      "name": "Поле пульсирующих камней",
+      "type": "anomaly",
+      "ambient": {
+        "day": "forest-day",
+        "night": "forest-night",
+        "volume": 0.6,
+        "crossfadeTime": 3000
+      },
+      "music": {
+        "theme": "anomaly_theme",
+        "volume": 0.7,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.8
+        },
+        "stonePulsation": {
+          "sound": "stone_pulsation",
+          "volume": 0.9
+        },
+        "earthquake": {
+          "sound": "earthquake",
+          "volume": 0.8
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "zerkalnyy-ritualnyy-zal": {
+      "name": "Зеркальный ритуальный зал",
+      "type": "ritual",
+      "ambient": {
+        "day": "library-ambient",
+        "night": "library-ambient",
+        "volume": 0.4,
+        "crossfadeTime": 4000
+      },
+      "music": {
+        "theme": "mystery_theme",
+        "volume": 0.6,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.7
+        },
+        "mirrorResonance": {
+          "sound": "mirror_resonance",
+          "volume": 0.8
+        },
+        "ritualEcho": {
+          "sound": "ritual_echo",
+          "volume": 0.6
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "none",
+        "weather": "none"
+      }
+    },
+
+    "plateau-ritualnaya-terrasa": {
+      "name": "Ритуальная терраса плато",
+      "type": "ritual",
+      "ambient": {
+        "day": "wind_ambient",
+        "night": "wind_ambient",
+        "volume": 0.8,
+        "crossfadeTime": 2000
+      },
+      "music": {
+        "theme": "anomaly_theme",
+        "volume": 0.7,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.8
+        },
+        "resonantArches": {
+          "sound": "resonant_arches",
+          "volume": 0.9
+        },
+        "wildMagicSurge": {
+          "sound": "wild_magic_surge",
+          "volume": 0.8
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "kanyon-sklon-loz": {
+      "name": "Склон с лозами",
+      "type": "mountain",
+      "ambient": {
+        "day": "forest-day",
+        "night": "forest-night",
+        "volume": 0.6,
+        "crossfadeTime": 3000
+      },
+      "music": {
+        "theme": "exploration",
+        "volume": 0.4,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "dirt",
+          "volume": 0.7
+        },
+        "vineRustle": {
+          "sound": "vine_rustle",
+          "volume": 0.5
+        },
+        "waterDrip": {
+          "sound": "water_drip",
+          "volume": 0.4
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "shahta-vhod": {
+      "name": "Вход в шахту",
+      "type": "mine",
+      "ambient": {
+        "day": "library-ambient",
+        "night": "library-ambient",
+        "volume": 0.7,
+        "crossfadeTime": 3000
+      },
+      "music": {
+        "theme": "dark_mystery",
+        "volume": 0.6,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.8
+        },
+        "mineEntrance": {
+          "sound": "mine_entrance",
+          "volume": 0.7
+        },
+        "caveIn": {
+          "sound": "cave_in",
+          "volume": 0.9
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "none",
+        "weather": "none"
+      }
+    },
+
+    "zabytaya-polyana": {
+      "name": "Забытая поляна (горная)",
+      "type": "mountain",
+      "ambient": {
+        "day": "forest-day",
+        "night": "forest-night",
+        "volume": 0.5,
+        "crossfadeTime": 3500
+      },
+      "music": {
+        "theme": "exploration",
+        "volume": 0.3,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "grass",
+          "volume": 0.5
+        },
+        "grassRustle": {
+          "sound": "grass_rustle",
+          "volume": 0.4
+        },
+        "mountainEcho": {
+          "sound": "mountain_echo",
+          "volume": 0.6
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "razrushennyy-lager": {
+      "name": "Разрушенный лагерь",
+      "type": "ruins",
+      "ambient": {
+        "day": "forest-day",
+        "night": "forest-night",
+        "volume": 0.6,
+        "crossfadeTime": 3000
+      },
+      "music": {
+        "theme": "dark_mystery",
+        "volume": 0.5,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "debris",
+          "volume": 0.7
+        },
+        "battleRemnants": {
+          "sound": "battle_remnants",
+          "volume": 0.6
+        },
+        "windThroughRuins": {
+          "sound": "wind_ruins",
+          "volume": 0.5
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "les-zarazhennaya-tropa": {
+      "name": "Заражённая тропа",
+      "type": "forest",
+      "ambient": {
+        "day": "forest-path",
+        "night": "forest-night",
+        "volume": 0.7,
+        "crossfadeTime": 2500
+      },
+      "music": {
+        "theme": "dark_mystery",
+        "volume": 0.5,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "dirt",
+          "volume": 0.6
+        },
+        "sporeClouds": {
+          "sound": "spore_clouds",
+          "volume": 0.8
+        },
+        "infectedAnimals": {
+          "sound": "infected_animals",
+          "volume": 0.7
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "les-anomalnoe-ozero": {
+      "name": "Аномальное озеро",
+      "type": "anomaly",
+      "ambient": {
+        "day": "water-stream",
+        "night": "water-stream",
+        "volume": 0.5,
+        "crossfadeTime": 3500
+      },
+      "music": {
+        "theme": "mystery_theme",
+        "volume": 0.6,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "water",
+          "volume": 0.6
+        },
+        "mirrorSurface": {
+          "sound": "mirror_surface",
+          "volume": 0.7
+        },
+        "propheticWhispers": {
+          "sound": "prophetic_whispers",
+          "volume": 0.5
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "tikhaya-opushka": {
+      "name": "Тихая опушка",
+      "type": "anomaly",
+      "ambient": {
+        "day": "forest-day",
+        "night": "forest-night",
+        "volume": 0.2,
+        "crossfadeTime": 5000
+      },
+      "music": {
+        "theme": "dark_mystery",
+        "volume": 0.8,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "grass",
+          "volume": 0.3
+        },
+        "shadowMimicry": {
+          "sound": "shadow_mimicry",
+          "volume": 0.6
+        },
+        "silentSpies": {
+          "sound": "silent_spies",
+          "volume": 0.4
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "gribnaya-peshchera-surface": {
+      "name": "Грибная пещера",
+      "type": "cave",
+      "ambient": {
+        "day": "library-ambient",
+        "night": "library-ambient",
+        "volume": 0.6,
+        "crossfadeTime": 3500
+      },
+      "music": {
+        "theme": "dark_mystery",
+        "volume": 0.5,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.7
+        },
+        "waterDrip": {
+          "sound": "water_drip",
+          "volume": 0.4
+        },
+        "sporeRelease": {
+          "sound": "spore_release",
+          "volume": 0.6
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "none",
+        "weather": "none"
+      }
+    },
+
+    "zabroshennaya-derevnya-lesnikov": {
+      "name": "Заброшенная деревня лесников",
+      "type": "ruins",
+      "ambient": {
+        "day": "forest-day",
+        "night": "forest-night",
+        "volume": 0.6,
+        "crossfadeTime": 3000
+      },
+      "music": {
+        "theme": "dark_mystery",
+        "volume": 0.6,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "wood",
+          "volume": 0.7
+        },
+        "ghostlyWhispers": {
+          "sound": "ghostly_whispers",
+          "volume": 0.5
+        },
+        "spiderWebs": {
+          "sound": "spider_webs",
+          "volume": 0.4
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "drevniy-altar-vozdaniya": {
+      "name": "Древний алтарь Воздаяния",
+      "type": "sacred",
+      "ambient": {
+        "day": "forest-day",
+        "night": "forest-night",
+        "volume": 0.4,
+        "crossfadeTime": 4000
+      },
+      "music": {
+        "theme": "mystery_theme",
+        "volume": 0.5,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.6
+        },
+        "ancientRitual": {
+          "sound": "ancient_ritual",
+          "volume": 0.7
+        },
+        "circleResonance": {
+          "sound": "circle_resonance",
+          "volume": 0.6
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "pole-pulsiruyushchih-gribov": {
+      "name": "Поле пульсирующих грибов",
+      "type": "anomaly",
+      "ambient": {
+        "day": "forest-day",
+        "night": "forest-night",
+        "volume": 0.7,
+        "crossfadeTime": 2500
+      },
+      "music": {
+        "theme": "anomaly_theme",
+        "volume": 0.8,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "mushroom",
+          "volume": 0.8
+        },
+        "mushroomPulsation": {
+          "sound": "mushroom_pulsation",
+          "volume": 0.9
+        },
+        "sporeWave": {
+          "sound": "spore_wave",
+          "volume": 0.7
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "les-kolonii-miceliuma": {
+      "name": "Лес колоний мицелиума",
+      "type": "forest",
+      "ambient": {
+        "day": "forest-day",
+        "night": "forest-night",
+        "volume": 0.8,
+        "crossfadeTime": 2000
+      },
+      "music": {
+        "theme": "anomaly_theme",
+        "volume": 0.7,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "mycelium",
+          "volume": 0.7
+        },
+        "colonyHum": {
+          "sound": "colony_hum",
+          "volume": 0.8
+        },
+        "sporeSwarm": {
+          "sound": "spore_swarm",
+          "volume": 0.6
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "temnye-koridory-lesa": {
+      "name": "Тёмные коридоры леса",
+      "type": "maze",
+      "ambient": {
+        "day": "forest-night",
+        "night": "forest-night",
+        "volume": 0.6,
+        "crossfadeTime": 3000
+      },
+      "music": {
+        "theme": "dark_mystery",
+        "volume": 0.6,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "dirt",
+          "volume": 0.7
+        },
+        "wallWhispers": {
+          "sound": "wall_whispers",
+          "volume": 0.5
+        },
+        "mazeShift": {
+          "sound": "maze_shift",
+          "volume": 0.6
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "none",
+        "weather": "none"
+      }
+    },
+
+    "ozero-magicheskih-mostov": {
+      "name": "Озеро магических мостов",
+      "type": "anomaly",
+      "ambient": {
+        "day": "water-stream",
+        "night": "water-stream",
+        "volume": 0.5,
+        "crossfadeTime": 3500
+      },
+      "music": {
+        "theme": "mystery_theme",
+        "volume": 0.5,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "bridge",
+          "volume": 0.6
+        },
+        "magicalBridges": {
+          "sound": "magical_bridges",
+          "volume": 0.7
+        },
+        "waterElementals": {
+          "sound": "water_elementals",
+          "volume": 0.5
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "peshchera-artefaktov": {
+      "name": "Пещера артефактов",
+      "type": "cave",
+      "ambient": {
+        "day": "library-ambient",
+        "night": "library-ambient",
+        "volume": 0.6,
+        "crossfadeTime": 3500
+      },
+      "music": {
+        "theme": "mystery_theme",
+        "volume": 0.6,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.7
+        },
+        "artifactAura": {
+          "sound": "artifact_aura",
+          "volume": 0.8
+        },
+        "guardianGargoyle": {
+          "sound": "guardian_gargoyle",
+          "volume": 0.7
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "none",
+        "weather": "none"
+      }
+    },
+
+    "shahta-drevnih-znaniy": {
+      "name": "Шахта древних знаний",
+      "type": "mine",
+      "ambient": {
+        "day": "library-ambient",
+        "night": "library-ambient",
+        "volume": 0.7,
+        "crossfadeTime": 3000
+      },
+      "music": {
+        "theme": "dark_mystery",
+        "volume": 0.6,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.8
+        },
+        "ancientKnowledge": {
+          "sound": "ancient_knowledge",
+          "volume": 0.6
+        },
+        "stoneSerpent": {
+          "sound": "stone_serpent",
+          "volume": 0.7
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "none",
+        "weather": "none"
+      }
+    },
+
+    "svyashchennaya-chasha": {
+      "name": "Священная чаша",
+      "type": "sacred",
+      "ambient": {
+        "day": "forest-day",
+        "night": "forest-night",
+        "volume": 0.4,
+        "crossfadeTime": 4000
+      },
+      "music": {
+        "theme": "mystery_theme",
+        "volume": 0.5,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.6
+        },
+        "holyWater": {
+          "sound": "holy_water",
+          "volume": 0.7
+        },
+        "temptingWhispers": {
+          "sound": "tempting_whispers",
+          "volume": 0.5
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "zona-oslableniya-teni": {
+      "name": "Зона ослабления Тени",
+      "type": "protection",
+      "ambient": {
+        "day": "forest-day",
+        "night": "forest-night",
+        "volume": 0.5,
+        "crossfadeTime": 3500
+      },
+      "music": {
+        "theme": "mystery_theme",
+        "volume": 0.4,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "grass",
+          "volume": 0.5
+        },
+        "protectiveBarriers": {
+          "sound": "protective_barriers",
+          "volume": 0.6
+        },
+        "holyGuardians": {
+          "sound": "holy_guardians",
+          "volume": 0.5
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "khram-izgnaniya": {
+      "name": "Храм изгнания",
+      "type": "temple",
+      "ambient": {
+        "day": "library-ambient",
+        "night": "library-ambient",
+        "volume": 0.5,
+        "crossfadeTime": 4000
+      },
+      "music": {
+        "theme": "mystery_theme",
+        "volume": 0.6,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.7
+        },
+        "exorcismRitual": {
+          "sound": "exorcism_ritual",
+          "volume": 0.8
+        },
+        "protectiveSpirits": {
+          "sound": "protective_spirits",
+          "volume": 0.6
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "gornye-sklepy": {
+      "name": "Горные склепы",
+      "type": "tomb",
+      "ambient": {
+        "day": "library-ambient",
+        "night": "library-ambient",
+        "volume": 0.4,
+        "crossfadeTime": 4000
+      },
+      "music": {
+        "theme": "mystery_theme",
+        "volume": 0.6,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.7
+        },
+        "dwarvenEngineering": {
+          "sound": "dwarven_engineering",
+          "volume": 0.6
+        },
+        "eliteSpirits": {
+          "sound": "elite_spirits",
+          "volume": 0.5
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "none",
+        "weather": "none"
+      }
+    },
+
+    "gavan-svonleyk": {
+      "name": "Гавань Свонлейк",
+      "type": "harbor",
+      "ambient": {
+        "day": "water-stream",
+        "night": "water-stream",
+        "volume": 0.7,
+        "crossfadeTime": 2500
+      },
+      "music": {
+        "theme": "seaside_theme",
+        "volume": 0.4,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "wood",
+          "volume": 0.6
+        },
+        "fishingActivity": {
+          "sound": "fishing_activity",
+          "volume": 0.5
+        },
+        "waterElementals": {
+          "sound": "water_elementals",
+          "volume": 0.4
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "svonleyk-pristan": {
+      "name": "Длинная пристань",
+      "type": "pier",
+      "ambient": {
+        "day": "water-stream",
+        "night": "water-stream",
+        "volume": 0.6,
+        "crossfadeTime": 3000
+      },
+      "music": {
+        "theme": "seaside_theme",
+        "volume": 0.3,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "wood",
+          "volume": 0.7
+        },
+        "singingWaves": {
+          "sound": "singing_waves",
+          "volume": 0.8
+        },
+        "harborBell": {
+          "sound": "harbor_bell",
+          "volume": 0.6
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "svonleyk-vodovorot": {
+      "name": "Водоворот ветров",
+      "type": "anomaly",
+      "ambient": {
+        "day": "wind_ambient",
+        "night": "wind_ambient",
+        "volume": 0.9,
+        "crossfadeTime": 1500
+      },
+      "music": {
+        "theme": "anomaly_theme",
+        "volume": 0.8,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.8
+        },
+        "windVortex": {
+          "sound": "wind_vortex",
+          "volume": 0.9
+        },
+        "magicalSurge": {
+          "sound": "magical_surge",
+          "volume": 0.8
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+
+    "svonleyk-glubiny": {
+      "name": "Глубины озера Свонлейк",
+      "type": "underwater",
+      "ambient": {
+        "day": "water-stream",
+        "night": "water-stream",
+        "volume": 0.8,
+        "crossfadeTime": 2000
+      },
+      "music": {
+        "theme": "mystery_theme",
+        "volume": 0.6,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "underwater",
+          "volume": 0.9
+        },
+        "underwaterCurrents": {
+          "sound": "underwater_currents",
+          "volume": 0.8
+        },
+        "ancientRuins": {
+          "sound": "ancient_ruins",
+          "volume": 0.7
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "none",
+        "weather": "none"
+      }
+    },
+
+    "svonleyk-kripta-prilivov": {
+      "name": "Крипта приливов",
+      "type": "underwater",
+      "ambient": {
+        "day": "water-stream",
+        "night": "water-stream",
+        "volume": 0.7,
+        "crossfadeTime": 2500
+      },
+      "music": {
+        "theme": "dark_mystery",
+        "volume": 0.7,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "underwater",
+          "volume": 0.8
+        },
+        "tidalPressure": {
+          "sound": "tidal_pressure",
+          "volume": 0.9
+        },
+        "cursedSailors": {
+          "sound": "cursed_sailors",
+          "volume": 0.7
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "none",
+        "weather": "none"
+      }
+    },
+
+    "dungeon-toksichnye-reki": {
+      "name": "Токсичные реки",
+      "type": "dungeon",
+      "ambient": {
+        "day": "library-ambient",
+        "night": "library-ambient",
+        "volume": 0.8,
+        "crossfadeTime": 2000
+      },
+      "music": {
+        "theme": "dark_mystery",
+        "volume": 0.7,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.9
+        },
+        "acidicRivers": {
+          "sound": "acidic_rivers",
+          "volume": 0.9
+        },
+        "damBreak": {
+          "sound": "dam_break",
+          "volume": 1.0
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "none",
+        "weather": "none"
+      }
+    },
+
+    "dungeon-gribnye-artefakty": {
+      "name": "Грибные артефакты",
+      "type": "dungeon",
+      "ambient": {
+        "day": "library-ambient",
+        "night": "library-ambient",
+        "volume": 0.6,
+        "crossfadeTime": 3500
+      },
+      "music": {
+        "theme": "mystery_theme",
+        "volume": 0.6,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.7
+        },
+        "artifactAura": {
+          "sound": "artifact_aura",
+          "volume": 0.8
+        },
+        "cursedPedestal": {
+          "sound": "cursed_pedestal",
+          "volume": 0.7
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "none",
+        "weather": "none"
+      }
+    },
+
+    "dungeon-gribnaya-shahta": {
+      "name": "Грибная шахта",
+      "type": "mine",
+      "ambient": {
+        "day": "library-ambient",
+        "night": "library-ambient",
+        "volume": 0.7,
+        "crossfadeTime": 3000
+      },
+      "music": {
+        "theme": "dark_mystery",
+        "volume": 0.6,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.8
+        },
+        "mineShaftEcho": {
+          "sound": "mine_shaft_echo",
+          "volume": 0.8
+        },
+        "ropeBreak": {
+          "sound": "rope_break",
+          "volume": 0.9
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "none",
+        "weather": "none"
+      }
+    },
+
+    "dungeon-altar-energii": {
+      "name": "Алтарь с тёмной энергией",
+      "type": "dungeon",
+      "ambient": {
+        "day": "library-ambient",
+        "night": "library-ambient",
+        "volume": 0.5,
+        "crossfadeTime": 4000
+      },
+      "music": {
+        "theme": "dark_mystery",
+        "volume": 0.8,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.7
+        },
+        "darkEnergy": {
+          "sound": "dark_energy",
+          "volume": 0.9
+        },
+        "pulsingDischarge": {
+          "sound": "pulsing_discharge",
+          "volume": 0.8
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "none",
+        "weather": "none"
+      }
+    },
+
+    "dungeon-pogibshie-zony": {
+      "name": "Погибшие зоны",
+      "type": "dungeon",
+      "ambient": {
+        "day": "library-ambient",
+        "night": "library-ambient",
+        "volume": 0.3,
+        "crossfadeTime": 5000
+      },
+      "music": {
+        "theme": "dark_mystery",
+        "volume": 0.9,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.8
+        },
+        "deadMagic": {
+          "sound": "dead_magic",
+          "volume": 0.7
+        },
+        "antimagicConstructs": {
+          "sound": "antimagic_constructs",
+          "volume": 0.8
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "none",
+        "weather": "none"
+      }
+    },
+
+    "dungeon-zarazhennyy-khram": {
+      "name": "Заражённый храм",
+      "type": "dungeon",
+      "ambient": {
+        "day": "library-ambient",
+        "night": "library-ambient",
+        "volume": 0.7,
+        "crossfadeTime": 3000
+      },
+      "music": {
+        "theme": "dark_mystery",
+        "volume": 0.7,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.8
+        },
+        "corruptedPrayers": {
+          "sound": "corrupted_prayers",
+          "volume": 0.8
+        },
+        "darkTempleSpirit": {
+          "sound": "dark_temple_spirit",
+          "volume": 0.7
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "none",
+        "weather": "none"
+      }
+    },
+
+    "dungeon-gnezdo-teni": {
+      "name": "Гнездо Тени",
+      "type": "dungeon",
+      "ambient": {
+        "day": "library-ambient",
+        "night": "library-ambient",
+        "volume": 0.2,
+        "crossfadeTime": 6000
+      },
+      "music": {
+        "theme": "dark_mystery",
+        "volume": 1.0,
+        "loop": true
+      },
+      "effects": {
+        "footsteps": {
+          "surface": "shadow",
+          "volume": 0.9
+        },
+        "shadowWhispers": {
+          "sound": "shadow_whispers",
+          "volume": 1.0
+        },
+        "realityDistortion": {
+          "sound": "reality_distortion",
+          "volume": 0.9
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "none",
+        "weather": "none"
+      }
     }
   },
 
