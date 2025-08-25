@@ -71,7 +71,8 @@ trim_to_30min() {
         return 1
     fi
     
-    if (( $(echo "$duration > 1800" | bc -l 2>/dev/null) )); then
+    # Обрезаем только если файл длиннее 30 минут + 1 секунда (1801 секунда)
+    if (( $(echo "$duration > 1801" | bc -l 2>/dev/null) )); then
         echo -e "${BLUE}Обрезаем до 30 минут: $input_file (было: ${duration}s)${NC}"
         
         # Обрезаем файл
@@ -86,7 +87,7 @@ trim_to_30min() {
             [ -f "$temp_file" ] && rm "$temp_file"
         fi
     else
-        echo -e "${GREEN}✓ Пропущен (короче 30 мин): $input_file (${duration}s)${NC}"
+        echo -e "${GREEN}✓ Пропущен (короче 30 мин + 1 сек): $input_file (${duration}s)${NC}"
     fi
 }
 
