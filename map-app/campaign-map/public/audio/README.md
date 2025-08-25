@@ -59,9 +59,9 @@
 - Каждая локация имеет только основной ambient звук (дневной/ночной)
 - Дополнительные звуковые слои добавляются через эффекты локации
 
-## 🎵 **Доступные аудио файлы**
+## 🎵 **Полный список аудио файлов из конфигурации**
 
-### **Ambient - Фоновая атмосфера:**
+### **Ambient - Фоновая атмосфера (✅ Существует):**
 - **city-day.mp3** ✅ - Дневной город
 - **city-night.mp3** ✅ - Ночной город  
 - **city-market.mp3** ✅ - Городской рынок
@@ -70,13 +70,12 @@
 - **forest-night.mp3** ✅ - Ночной лес
 - **forest-path.mp3** ✅ - Лесная тропа
 - **library-ambient.mp3** ✅ - Древняя библиотека
-- **birds.mp3** ✅ - Пение птиц
 - **water-stream.mp3** ✅ - Ручей в лесу
 - **rain_ambient.mp3** ✅ - Звук дождя
 - **wind_ambient.mp3** ✅ - Звук ветра
 - **storm_ambient.mp3** ✅ - Буря
 
-### **Music - Музыкальные темы:**
+### **Music - Музыкальные темы (✅ Существует):**
 - **main-theme.mp3** ✅ - Главная тема кампании
 - **city_theme.mp3** ✅ - Городская тема
 - **shady_alley.mp3** ✅ - Темные улочки
@@ -85,10 +84,130 @@
 - **exploration.mp3** ✅ - Исследование
 - **mystery_theme.mp3** ✅ - Тайна
 - **dark_mystery.mp3** ✅ - Темная тайна
+- **anomaly_theme.mp3** ✅ - Тема аномалий
+- **seaside_theme.mp3** ✅ - Морская тема
 
-### **SFX - Звуковые эффекты:**
+### **SFX - Звуковые эффекты (✅ Существует):**
 - **door_wooden.mp3** ✅ - Деревянная дверь
 - **door_ancient_heavy.mp3** ✅ - Древняя тяжелая дверь
+
+### **SFX - Звуковые эффекты (❌ Нужно добавить):**
+
+#### **Городские звуки:**
+- **haggle_voices.mp3** - Голоса торговли
+- **village_ambient.mp3** - Деревенская атмосфера
+- **guard_activity.mp3** - Активность стражей
+- **gate_creak.mp3** - Скрип ворот
+
+#### **Природные звуки:**
+- **birds.mp3** - Пение птиц
+- **forest_animals.mp3** - Звуки лесных животных
+- **bee_hive.mp3** - Улей пчел
+- **water_drop.mp3** - Капли воды
+- **water_drip.mp3** - Капание воды
+- **spring_water.mp3** - Родниковая вода
+- **vine_rustle.mp3** - Шорох лоз
+- **grass_rustle.mp3** - Шорох травы
+- **wind_gust.mp3** - Порывы ветра
+- **wind_vortex.mp3** - Вихрь ветра
+- **wind_ruins.mp3** - Ветер в руинах
+
+#### **Ритуальные и магические звуки:**
+- **ritual_voices.mp3** - Ритуальные голоса
+- **ancient_whispers.mp3** - Древние шёпоты
+- **sacred_chanting.mp3** - Священные песнопения
+- **ritual_drums.mp3** - Ритуальные барабаны
+- **stabilization_ritual.mp3** - Ритуал стабилизации
+- **ancient_ritual.mp3** - Древний ритуал
+- **exorcism_ritual.mp3** - Ритуал изгнания
+
+#### **Лесные и грибные звуки:**
+- **forest_whispers.mp3** - Шёпоты леса
+- **spore_burst.mp3** - Взрыв спор
+- **spore_clouds.mp3** - Облака спор
+- **spore_blessing.mp3** - Благословение спор
+- **spore_release.mp3** - Выброс спор
+- **spore_wave.mp3** - Волна спор
+- **spore_swarm.mp3** - Рой спор
+- **mushroom_pulsation.mp3** - Пульсация грибов
+- **colony_hum.mp3** - Гул колонии
+
+#### **Заражённые и аномальные звуки:**
+- **infected_animals.mp3** - Заражённые животные
+- **shadow_mimicry.mp3** - Мимикрия теней
+- **silent_spies.mp3** - Тихие шпионы
+- **prophetic_whispers.mp3** - Прорицательные шёпоты
+- **tempting_whispers.mp3** - Соблазняющие шёпоты
+
+#### **Подземные и пещерные звуки:**
+- **well_echo.mp3** - Эхо колодца
+- **rat_scuttle.mp3** - Шуршание крыс
+- **mine_entrance.mp3** - Вход в шахту
+- **cave_in.mp3** - Обвал пещеры
+- **mountain_echo.mp3** - Горное эхо
+- **wall_whispers.mp3** - Шёпоты стен
+- **maze_shift.mp3** - Сдвиг лабиринта
+
+#### **Боевые и разрушительные звуки:**
+- **trap_snap.mp3** - Срабатывание ловушки
+- **battle_remnants.mp3** - Остатки битвы
+- **earthquake.mp3** - Землетрясение
+- **dam_break.mp3** - Разрыв дамбы
+
+#### **Магические и артефактные звуки:**
+- **magical_experiments.mp3** - Магические эксперименты
+- **magical_surge.mp3** - Всплеск магии
+- **wild_magic_surge.mp3** - Всплеск дикой магии
+- **magical_bridges.mp3** - Магические мосты
+- **artifact_aura.mp3** - Аура артефакта
+- **ancient_knowledge.mp3** - Древние знания
+
+#### **Зеркальные и отражённые звуки:**
+- **mirror_surface.mp3** - Зеркальная поверхность
+- **mirror_resonance.mp3** - Резонанс зеркал
+- **water_reflection.mp3** - Водное отражение
+- **ritual_echo.mp3** - Эхо ритуала
+
+#### **Священные и защитные звуки:**
+- **warning_bells.mp3** - Предупреждающие колокола
+- **guardian_presence.mp3** - Присутствие стражей
+- **circle_resonance.mp3** - Резонанс круга
+- **protective_barriers.mp3** - Защитные барьеры
+- **holy_guardians.mp3** - Святые стражи
+- **holy_water.mp3** - Святая вода
+
+#### **Каменные и минеральные звуки:**
+- **stone_pulsation.mp3** - Пульсация камней
+- **stone_serpent.mp3** - Каменный змей
+- **resonant_arches.mp3** - Резонирующие арки
+
+#### **Водные и подводные звуки:**
+- **water_elementals.mp3** - Водные элементали
+- **underwater_currents.mp3** - Подводные течения
+- **tidal_pressure.mp3** - Приливное давление
+- **singing_waves.mp3** - Поющие волны
+- **harbor_bell.mp3** - Гаваньский колокол
+
+#### **Древние и проклятые звуки:**
+- **ancient_ruins.mp3** - Древние руины
+- **cursed_pedestal.mp3** - Проклятый пьедестал
+- **cursed_sailors.mp3** - Проклятые моряки
+- **dark_temple_spirit.mp3** - Дух тёмного храма
+- **corrupted_prayers.mp3** - Искажённые молитвы
+
+#### **Гномские и инженерные звуки:**
+- **dwarven_engineering.mp3** - Гномская инженерия
+- **woodworking.mp3** - Работа с деревом
+- **fishing_activity.mp3** - Рыболовная деятельность
+
+#### **Другие уникальные звуки:**
+- **flower_resonance.mp3** - Резонанс цветов
+- **guardian_gargoyle.mp3** - Страж-гаргулья
+- **elite_spirits.mp3** - Элитные духи
+- **dead_magic.mp3** - Мёртвая магия
+- **antimagic_constructs.mp3** - Антимагические конструкции
+- **reality_distortion.mp3** - Искажение реальности
+- **shadow_whispers.mp3** - Шёпоты теней
 
 ## 🎯 **Новые возможности конфигурации**
 
