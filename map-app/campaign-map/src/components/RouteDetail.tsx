@@ -19,10 +19,13 @@ import {
   CheckSquareOutlined,
   FileTextOutlined,
   ArrowLeftOutlined,
-  ClockCircleOutlined
+  ClockCircleOutlined,
+  AudioOutlined
 } from '@ant-design/icons';
 import { Route } from '../types';
 import { RouteFieldVisibility } from '../types/visibility';
+import { RouteEffectButtons } from './RouteEffectButtons';
+import { useAudio } from '../App';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -55,6 +58,8 @@ const RouteDetail: React.FC<RouteDetailProps> = ({
   isRouteItemVisible,
   isRouteNotesVisible
 }) => {
+  const { bindings } = useAudio();
+
   // Получаем настройки видимости полей
   const visibility = fieldVisibility || getRouteFieldVisibility?.(route.id) || {
     obstacles: {},
@@ -72,8 +77,8 @@ const RouteDetail: React.FC<RouteDetailProps> = ({
     
     // Фоллбэк для случая когда функция не передана
     const fieldVisibility = visibility[field];
-    if (typeof fieldVisibility === 'object') {
-      return fieldVisibility[itemIndex] !== 'hidden';
+    if (typeof fieldVisibility === 'object' && fieldVisibility !== null) {
+      return (fieldVisibility as Record<number, string>)[itemIndex] !== 'hidden';
     }
     return true;
   };
@@ -98,203 +103,131 @@ const RouteDetail: React.FC<RouteDetailProps> = ({
   };
 
   return (
-    <div className="route-detail-container" style={{ padding: isModal ? 0 : 24, maxWidth: isModal ? '100%' : 1200, margin: '0 auto' }}>
-      {!isModal && (
-        <Space style={{ marginBottom: 24 }}>
+    <div>
+      {/* Заголовок */}
+      <div style={{ marginBottom: 16 }}>
+        <Space>
           <Button 
             icon={<ArrowLeftOutlined />} 
             onClick={onBack}
-            type="primary"
+            size="small"
           >
-            Назад к карте
+            Назад
           </Button>
+          <Title level={3} style={{ margin: 0 }}>
+            Путь: {route.from} → {route.to}
+          </Title>
         </Space>
-      )}
+      </div>
 
-      <Row gutter={[24, 24]}>
-        <Col span={24}>
-          <Card>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
-              <CarOutlined style={{ fontSize: 24, color: '#1890ff', marginRight: 12 }} />
-              <div>
-                <Title level={2} style={{ margin: 0 }}>
-                  {route.from} → {route.to}
-                </Title>
-                <Text type="secondary">Путь {route.id}</Text>
-              </div>
-            </div>
-
-            <Row gutter={[16, 16]}>
-              <Col xs={24} sm={8}>
-                <Descriptions column={1} >
-                  <Descriptions.Item label="Тип пути">
-                    <Tag color="blue">{route.pathType}</Tag>
-                  </Descriptions.Item>
-                </Descriptions>
-              </Col>
-              <Col xs={24} sm={8}>
-                <Descriptions column={1} >
-                  <Descriptions.Item label="Время в пути">
-                    <Space>
-                      <ClockCircleOutlined />
-                      <Text>{route.travelTime}</Text>
-                    </Space>
-                  </Descriptions.Item>
-                </Descriptions>
-              </Col>
-              <Col xs={24} sm={8}>
-                <Descriptions column={1} >
-                  <Descriptions.Item label="Описание">
-                    <Text italic>{route.description}</Text>
-                  </Descriptions.Item>
-                </Descriptions>
-              </Col>
-            </Row>
+      {/* Основная информация */}
+      <Row gutter={[16, 16]}>
+        <Col xs={24} lg={16}>
+          {/* Описание пути */}
+          <Card size="small" style={{ marginBottom: 16 }}>
+            <Descriptions size="small" column={1}>
+              <Descriptions.Item label="Тип пути">
+                <Tag color="blue">{route.pathType}</Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label="Время в пути">
+                <Tag color="green">{route.travelTime}</Tag>
+              </Descriptions.Item>
+            </Descriptions>
+            {route.description && (
+              <Paragraph style={{ marginTop: 16 }}>
+                {route.description}
+              </Paragraph>
+            )}
           </Card>
-        </Col>
 
-        {/* Теперь управление видимостью встроено в каждый элемент */}
-
-        {shouldShowSection('obstacles') && route.obstacles && route.obstacles.length > 0 && (
-          <Col lg={8} span={24}>
-            <Card 
-              className="obstacles-card"
-              title={
-                <Space>
-                  <ExclamationCircleOutlined style={{ color: '#fa8c16' }} />
-                  <span>Препятствия</span>
-                  {!isPlayerView && visibility.obstacles === 'hidden' && (
-                    <Tag color="red">Скрыто для игроков</Tag>
-                  )}
-                </Space>
-              }
-              
-            >
+          {/* Препятствия */}
+          {shouldShowSection('obstacles') && (
+            <Card size="small" title="Препятствия" style={{ marginBottom: 16 }}>
               <List
-                dataSource={route.obstacles.map((obstacle, index) => ({ obstacle, index }))}
-                renderItem={(obstacleWithIndex) => {
-                  const { index, obstacle } = obstacleWithIndex;
-                  const isVisibleForPlayers = shouldShowItem('obstacles', index);
-                  const isVisibleRaw = isRouteItemVisible
-                    ? isRouteItemVisible(route.id, 'obstacles', index)
-                    : (visibility.obstacles[index] !== 'hidden');
-                  
-                  if (isPlayerView && !isVisibleForPlayers) {
-                    return null; // В режиме игрока скрываем невидимые элементы
-                  }
+                size="small"
+                dataSource={route.obstacles}
+                renderItem={(obstacle, index) => {
+                  if (!shouldShowItem('obstacles', index)) return null;
                   
                   return (
-                    <List.Item style={{ opacity: !isPlayerView && !isVisibleRaw ? 0.5 : 1 }}>
-                      <div style={{ width: '100%' }}>
-                        {!isPlayerView && toggleRouteItemVisibility && (
-                          <div style={{ marginBottom: 8 }}>
-                            <Checkbox
-                              checked={isVisibleRaw}
-                              onChange={(e) => (setRouteItemVisibility
-                                ? setRouteItemVisibility(route.id, 'obstacles', index, e.target.checked)
-                                : toggleRouteItemVisibility && toggleRouteItemVisibility(route.id, 'obstacles', index)
-                              )}
-                            >
-                              Показать игрокам
-                            </Checkbox>
-                          </div>
-                        )}
+                    <List.Item>
+                      <Space>
+                        <ExclamationCircleOutlined style={{ color: '#faad14' }} />
                         <Text>{obstacle}</Text>
-                      </div>
+                      </Space>
                     </List.Item>
                   );
                 }}
               />
             </Card>
-          </Col>
-        )}
+          )}
 
-        {shouldShowSection('requirements') && route.requirements && route.requirements.length > 0 && (
-          <Col lg={8} span={24}>
-            <Card 
-              className="requirements-card"
-              title={
-                <Space>
-                  <CheckSquareOutlined style={{ color: '#52c41a' }} />
-                  <span>Требования</span>
-                  {!isPlayerView && visibility.requirements === 'hidden' && (
-                    <Tag color="red">Скрыто для игроков</Tag>
-                  )}
-                </Space>
-              }
-              
-            >
+          {/* Требования */}
+          {shouldShowSection('requirements') && (
+            <Card size="small" title="Требования" style={{ marginBottom: 16 }}>
               <List
-                dataSource={route.requirements.map((requirement, index) => ({ requirement, index }))}
-                renderItem={(requirementWithIndex) => {
-                  const { index, requirement } = requirementWithIndex;
-                  const isVisibleForPlayers = shouldShowItem('requirements', index);
-                  const isVisibleRaw = isRouteItemVisible
-                    ? isRouteItemVisible(route.id, 'requirements', index)
-                    : (visibility.requirements[index] !== 'hidden');
-                  
-                  if (isPlayerView && !isVisibleForPlayers) {
-                    return null; // В режиме игрока скрываем невидимые элементы
-                  }
+                size="small"
+                dataSource={route.requirements}
+                renderItem={(requirement, index) => {
+                  if (!shouldShowItem('requirements', index)) return null;
                   
                   return (
-                    <List.Item style={{ opacity: !isPlayerView && !isVisibleRaw ? 0.5 : 1 }}>
-                      <div style={{ width: '100%' }}>
-                        {!isPlayerView && toggleRouteItemVisibility && (
-                          <div style={{ marginBottom: 8 }}>
-                            <Checkbox
-                              checked={isVisibleRaw}
-                              onChange={(e) => (setRouteItemVisibility
-                                ? setRouteItemVisibility(route.id, 'requirements', index, e.target.checked)
-                                : toggleRouteItemVisibility && toggleRouteItemVisibility(route.id, 'requirements', index)
-                              )}
-                            >
-                              Показать игрокам
-                            </Checkbox>
-                          </div>
-                        )}
+                    <List.Item>
+                      <Space>
+                        <CheckSquareOutlined style={{ color: '#52c41a' }} />
                         <Text>{requirement}</Text>
-                      </div>
+                      </Space>
                     </List.Item>
                   );
                 }}
               />
             </Card>
-          </Col>
-        )}
+          )}
 
-        {shouldShowNotes() && route.notes && (
-          <Col lg={8} span={24}>
-            <Card 
-              className="notes-card"
-              title={
-                <Space>
-                  <FileTextOutlined style={{ color: '#722ed1' }} />
-                  <span>Заметки</span>
-                  {!isPlayerView && visibility.notes === 'hidden' && (
-                    <Tag color="red">Скрыто для игроков</Tag>
-                  )}
-                </Space>
-              }
-              
-            >
-              {!isPlayerView && (
-                <div style={{ marginBottom: 16 }}>
-                  <Checkbox
-                    checked={shouldShowNotes()}
-                    onChange={(e) => (setRouteNotesVisibility
-                      ? setRouteNotesVisibility(route.id, e.target.checked)
-                      : toggleRouteNotesVisibility && toggleRouteNotesVisibility(route.id)
-                    )}
-                  >
-                    Показать игрокам
-                  </Checkbox>
-                </div>
-              )}
+          {/* Заметки */}
+          {shouldShowNotes() && route.notes && (
+            <Card size="small" title="Заметки" style={{ marginBottom: 16 }}>
               <Paragraph>{route.notes}</Paragraph>
             </Card>
-          </Col>
-        )}
+          )}
+        </Col>
+
+        <Col xs={24} lg={8}>
+          {/* Аудио эффекты */}
+          {bindings?.routes[route.id] && (
+            <Card 
+              size="small" 
+              title={
+                <Space>
+                  <AudioOutlined />
+                  Звуки пути
+                </Space>
+              }
+              style={{ marginBottom: 16 }}
+            >
+              <RouteEffectButtons
+                routeId={route.id}
+                routeConfig={bindings.routes[route.id]}
+                isLocationTransition={true}
+              />
+            </Card>
+          )}
+
+          {/* Статистика */}
+          <Card size="small" title="Статистика">
+            <Descriptions size="small" column={1}>
+              <Descriptions.Item label="Препятствия">
+                {route.obstacles?.length || 0}
+              </Descriptions.Item>
+              <Descriptions.Item label="Требования">
+                {route.requirements?.length || 0}
+              </Descriptions.Item>
+              <Descriptions.Item label="Заметки">
+                {route.notes ? 'Есть' : 'Нет'}
+              </Descriptions.Item>
+            </Descriptions>
+          </Card>
+        </Col>
       </Row>
     </div>
   );

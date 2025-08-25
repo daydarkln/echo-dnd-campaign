@@ -14,16 +14,18 @@ import {
   Checkbox
 } from 'antd';
 import { 
-  EnvironmentOutlined,
+  CarOutlined,
   ExclamationCircleOutlined,
-  GiftOutlined,
-  SearchOutlined,
-  ThunderboltOutlined,
-  SafetyOutlined,
-  ArrowLeftOutlined
+  CheckSquareOutlined,
+  FileTextOutlined,
+  ArrowLeftOutlined,
+  ClockCircleOutlined,
+  AudioOutlined
 } from '@ant-design/icons';
 import { PointOfInterest } from '../types';
 import { LocationFieldVisibility } from '../types/visibility';
+import { LocationEffectButtons } from './LocationEffectButtons';
+import { useAudio } from '../App';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -35,9 +37,9 @@ interface LocationDetailProps {
   isPlayerView?: boolean;
   fieldVisibility?: LocationFieldVisibility;
   getLocationFieldVisibility?: (locationId: string) => LocationFieldVisibility;
-  toggleLocationItemVisibility?: (locationId: string, field: keyof LocationFieldVisibility, itemIndex: number) => void;
-  setLocationItemVisibility?: (locationId: string, field: keyof LocationFieldVisibility, itemIndex: number, isVisible: boolean) => void;
-  isLocationItemVisible?: (locationId: string, field: keyof LocationFieldVisibility, itemIndex: number) => boolean;
+  toggleLocationItemVisibility?: (locationId: string, field: 'encounters' | 'loot' | 'clues', itemIndex: number) => void;
+  setLocationItemVisibility?: (locationId: string, field: 'encounters' | 'loot' | 'clues', itemIndex: number, isVisible: boolean) => void;
+  isLocationItemVisible?: (locationId: string, field: 'encounters' | 'loot' | 'clues', itemIndex: number) => boolean;
 }
 
 const LocationDetail: React.FC<LocationDetailProps> = ({ 
@@ -52,20 +54,18 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
   setLocationItemVisibility,
   isLocationItemVisible
 }) => {
+  const { bindings, changeLocation } = useAudio();
+
   // Получаем настройки видимости полей
   const visibility = fieldVisibility || getLocationFieldVisibility?.(location.id) || {
-    amplifiers: {},
-    dampeners: {},
     encounters: {},
     loot: {},
     clues: {}
   };
 
   // Проверяем видимость отдельного элемента
-  const shouldShowItem = (field: keyof LocationFieldVisibility, itemIndex: number): boolean => {
+  const shouldShowItem = (field: 'encounters' | 'loot' | 'clues', itemIndex: number): boolean => {
     if (!isPlayerView) return true; // В режиме мастера всегда показываем все
-    // Усилители и ослабители всегда скрыты для игроков
-    if (field === 'amplifiers' || field === 'dampeners') return false;
     
     if (isLocationItemVisible) {
       return isLocationItemVisible(location.id, field, itemIndex);
@@ -73,317 +73,211 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
     
     // Фоллбэк для случая когда функция не передана
     const fieldVisibility = visibility[field];
-    if (typeof fieldVisibility === 'object') {
-      return fieldVisibility[itemIndex] !== 'hidden';
+    if (typeof fieldVisibility === 'object' && fieldVisibility !== null) {
+      return (fieldVisibility as Record<number, string>)[itemIndex] !== 'hidden';
     }
     return true;
   };
 
   // Проверяем нужно ли показывать секцию вообще (если есть хотя бы один видимый элемент)
-  const shouldShowSection = (field: keyof LocationFieldVisibility): boolean => {
+  const shouldShowSection = (field: 'encounters' | 'loot' | 'clues'): boolean => {
     if (!isPlayerView) return true; // В режиме мастера всегда показываем все
-    // Усилители и ослабители всегда скрыты для игроков
-    if (field === 'amplifiers' || field === 'dampeners') return false;
     
     const fieldArray = location[field] || [];
     return fieldArray.some((_, index) => shouldShowItem(field, index));
   };
 
+  // При открытии локации автоматически меняем аудио
+  React.useEffect(() => {
+    if (bindings && location.id) {
+      changeLocation(location.id);
+    }
+  }, [location.id, bindings, changeLocation]);
+
   return (
-    <div className="location-detail-container" style={{ padding: isModal ? 0 : 24, maxWidth: isModal ? '100%' : 1200, margin: '0 auto' }}>
-      {!isModal && (
-        <Space style={{ marginBottom: 24 }}>
+    <div>
+      {/* Заголовок */}
+      <div style={{ marginBottom: 16 }}>
+        <Space>
           <Button 
             icon={<ArrowLeftOutlined />} 
             onClick={onBack}
-            type="primary"
+            size="small"
           >
-            Назад к карте
+            Назад
           </Button>
+          <Title level={3} style={{ margin: 0 }}>
+            {location.name}
+          </Title>
+          <Tag color="blue">{area}</Tag>
         </Space>
-      )}
+      </div>
 
-      <Row gutter={[24, 24]}>
-        <Col span={24}>
-          <Card>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
-              <EnvironmentOutlined style={{ fontSize: 24, color: '#1890ff', marginRight: 12 }} />
-              <div>
-                <Title level={2} style={{ margin: 0 }}>
-                  {location.name}
-                </Title>
-                <Text type="secondary">{area}</Text>
-              </div>
-            </div>
-
-            <Space wrap>
-              {location.tags.map((tag, index) => (
-                <Tag key={index} color="blue">
-                  {tag}
-                </Tag>
-              ))}
-            </Space>
-          </Card>
-        </Col>
-
-        {/* Теперь управление видимостью встроено в каждый элемент */}
-
-        {shouldShowSection('amplifiers') && (
-          <Col lg={12} span={24}>
-            <Card 
-              className="amplifier-card"
-              title={
-                <Space>
-                  <ThunderboltOutlined style={{ color: '#f5222d' }} />
-                  <span>Усилители эффектов</span>
-                  {/* Усилители всегда скрыты для игроков */}
-                </Space>
-              }
-              
-            >
-              <List
-                dataSource={location.amplifiers.map((amplifier, index) => ({ ...amplifier, index }))}
-                renderItem={(amplifierWithIndex) => {
-                  const { index, ...amplifier } = amplifierWithIndex;
-                  const isVisible = shouldShowItem('amplifiers', index);
-                  
-                  if (isPlayerView && !isVisible) {
-                    return null; // В режиме игрока скрываем невидимые элементы
-                  }
-                  
-                  return (
-                    <List.Item>
-                      <div style={{ width: '100%' }}>
-                        <List.Item.Meta
-                          title={amplifier.effect}
-                          description={
-                            <Space wrap>
-                              {amplifier.mechanics.map((mechanic, mIndex) => (
-                                <Tag key={mIndex} color="red">
-                                  {mechanic}
-                                </Tag>
-                              ))}
-                            </Space>
-                          }
-                        />
-                      </div>
-                    </List.Item>
-                  );
-                }}
-              />
+      {/* Основная информация */}
+      <Row gutter={[16, 16]}>
+        <Col xs={24} lg={16}>
+          {/* Теги */}
+          {location.tags && location.tags.length > 0 && (
+            <Card size="small" style={{ marginBottom: 16 }}>
+              <Space wrap>
+                {location.tags.map((tag, index) => (
+                  <Tag key={index} color="green">{tag}</Tag>
+                ))}
+              </Space>
             </Card>
-          </Col>
-        )}
+          )}
 
-        {shouldShowSection('dampeners') && (
-          <Col lg={12} span={24}>
-            <Card 
-              className="dampener-card"
-              title={
-                <Space>
-                  <SafetyOutlined style={{ color: '#52c41a' }} />
-                  <span>Ослабители эффектов</span>
-                  {/* Ослабители всегда скрыты для игроков */}
-                </Space>
-              }
-              
-            >
+          {/* Усилители */}
+          {location.amplifiers && location.amplifiers.length > 0 && (
+            <Card size="small" title="Усилители" style={{ marginBottom: 16 }}>
               <List
-                dataSource={location.dampeners}
-                renderItem={(dampener) => (
+                size="small"
+                dataSource={location.amplifiers}
+                renderItem={(amplifier, index) => (
                   <List.Item>
-                    <List.Item.Meta
-                      title={dampener.effect}
-                      description={
-                        <Space wrap>
-                          {dampener.mechanics.map((mechanic, index) => (
-                            <Tag key={index} color="green">
-                              {mechanic}
-                            </Tag>
-                          ))}
-                        </Space>
-                      }
-                    />
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                      <Text strong>{amplifier.effect}</Text>
+                      <Space wrap>
+                        {amplifier.mechanics.map((mechanic, mechIndex) => (
+                          <Tag key={mechIndex} color="orange">{mechanic}</Tag>
+                        ))}
+                      </Space>
+                    </Space>
                   </List.Item>
                 )}
               />
             </Card>
-          </Col>
-        )}
+          )}
 
-        {shouldShowSection('encounters') && (
-          <Col lg={8} span={24}>
-            <Card 
-              className="encounter-card"
-              title={
-                <Space>
-                  <ExclamationCircleOutlined style={{ color: '#fa8c16' }} />
-                  <span>Энкаунтеры</span>
-                  {/* Для энкаунтеров видимость управляется пометками на элементах */}
-                </Space>
-              }
-              
-            >
+          {/* Ослабители */}
+          {location.dampeners && location.dampeners.length > 0 && (
+            <Card size="small" title="Ослабители" style={{ marginBottom: 16 }}>
               <List
-                dataSource={location.encounters.map((encounter, index) => ({ encounter, index }))}
-                renderItem={(encWithIndex) => {
-                  const { encounter, index } = encWithIndex;
-                  const isVisibleForPlayers = shouldShowItem('encounters', index);
-                  // Сырое состояние видимости (игнорируя режим просмотра)
-                  const isVisibleRaw = isLocationItemVisible
-                    ? isLocationItemVisible(location.id, 'encounters', index)
-                    : (visibility.encounters[index] !== 'hidden');
+                size="small"
+                dataSource={location.dampeners}
+                renderItem={(dampener, index) => (
+                  <List.Item>
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                      <Text strong>{dampener.effect}</Text>
+                      <Space wrap>
+                        {dampener.mechanics.map((mechanic, mechIndex) => (
+                          <Tag key={mechIndex} color="red">{mechanic}</Tag>
+                        ))}
+                      </Space>
+                    </Space>
+                  </List.Item>
+                )}
+              />
+            </Card>
+          )}
 
-                  if (isPlayerView && !isVisibleForPlayers) {
-                    return null;
-                  }
-
+          {/* Энкаунтеры */}
+          {shouldShowSection('encounters') && (
+            <Card size="small" title="Энкаунтеры" style={{ marginBottom: 16 }}>
+              <List
+                size="small"
+                dataSource={location.encounters}
+                renderItem={(encounter, index) => {
+                  if (!shouldShowItem('encounters', index)) return null;
+                  
                   return (
-                    <List.Item style={{ opacity: !isPlayerView && !isVisibleRaw ? 0.5 : 1 }}>
-                      <div style={{ width: '100%' }}>
-                        {!isPlayerView && toggleLocationItemVisibility && (
-                          <div style={{ marginBottom: 8 }}>
-                            <Checkbox
-                              checked={isVisibleRaw}
-                              onChange={(e) => (setLocationItemVisibility
-                                ? setLocationItemVisibility(location.id, 'encounters', index, e.target.checked)
-                                : toggleLocationItemVisibility && toggleLocationItemVisibility(location.id, 'encounters', index)
-                              )}
-                            >
-                              Показать игрокам
-                            </Checkbox>
-                          </div>
-                        )}
-                        <List.Item.Meta
-                          title={
-                            <Space>
-                              <Text strong>{encounter.name}</Text>
-                              <Badge count={encounter.count} style={{ backgroundColor: '#fa8c16' }} />
-                            </Space>
-                          }
-                          description={
-                            <div>
-                              <Text type="secondary">Уровень: {encounter.level}</Text>
-                              {encounter.notes && (
-                                <Paragraph style={{ margin: '4px 0 0 0', fontSize: 12 }}>
-                                  {encounter.notes}
-                                </Paragraph>
-                              )}
-                            </div>
-                          }
+                    <List.Item>
+                      <Space>
+                        <Badge 
+                          count={encounter.count} 
+                          style={{ backgroundColor: '#52c41a' }}
                         />
-                      </div>
+                        <Text strong>{encounter.name}</Text>
+                        <Tag color="purple">Ур. {encounter.level}</Tag>
+                        {encounter.notes && (
+                          <Text type="secondary">({encounter.notes})</Text>
+                        )}
+                      </Space>
                     </List.Item>
                   );
                 }}
               />
             </Card>
-          </Col>
-        )}
+          )}
 
-        {shouldShowSection('loot') && (
-          <Col lg={8} span={24}>
+          {/* Лут */}
+          {shouldShowSection('loot') && (
+            <Card size="small" title="Лут" style={{ marginBottom: 16 }}>
+              <List
+                size="small"
+                dataSource={location.loot}
+                renderItem={(item, index) => {
+                  if (!shouldShowItem('loot', index)) return null;
+                  
+                  return (
+                    <List.Item>
+                      <Text>{item}</Text>
+                    </List.Item>
+                  );
+                }}
+              />
+            </Card>
+          )}
+
+          {/* Подсказки */}
+          {shouldShowSection('clues') && (
+            <Card size="small" title="Подсказки" style={{ marginBottom: 16 }}>
+              <List
+                size="small"
+                dataSource={location.clues}
+                renderItem={(clue, index) => {
+                  if (!shouldShowItem('clues', index)) return null;
+                  
+                  return (
+                    <List.Item>
+                      <Text>{clue}</Text>
+                    </List.Item>
+                  );
+                }}
+              />
+            </Card>
+          )}
+        </Col>
+
+        <Col xs={24} lg={8}>
+          {/* Аудио эффекты */}
+          {bindings?.locations[location.id] && (
             <Card 
-              className="loot-card"
+              size="small" 
               title={
                 <Space>
-                  <GiftOutlined style={{ color: '#722ed1' }} />
-                  <span>Лут</span>
-                  {/* Для лута видимость управляется пометками на элементах */}
+                  <AudioOutlined />
+                  Звуковые эффекты
                 </Space>
               }
-              
+              style={{ marginBottom: 16 }}
             >
-              <List
-                dataSource={location.loot.map((item, index) => ({ item, index }))}
-                renderItem={(itemWithIndex) => {
-                  const { index, item } = itemWithIndex;
-                  const isVisibleForPlayers = shouldShowItem('loot', index);
-                  const isVisibleRaw = isLocationItemVisible
-                    ? isLocationItemVisible(location.id, 'loot', index)
-                    : (visibility.loot[index] !== 'hidden');
-
-                  if (isPlayerView && !isVisibleForPlayers) {
-                    return null; // В режиме игрока скрываем невидимые элементы
-                  }
-
-                  return (
-                    <List.Item style={{ opacity: !isPlayerView && !isVisibleRaw ? 0.5 : 1 }}>
-                      <div style={{ width: '100%' }}>
-                        {!isPlayerView && toggleLocationItemVisibility && (
-                          <div style={{ marginBottom: 8 }}>
-                            <Checkbox
-                              checked={isVisibleRaw}
-                              onChange={(e) => (setLocationItemVisibility
-                                ? setLocationItemVisibility(location.id, 'loot', index, e.target.checked)
-                                : toggleLocationItemVisibility && toggleLocationItemVisibility(location.id, 'loot', index)
-                              )}
-                            >
-                              Показать игрокам
-                            </Checkbox>
-                          </div>
-                        )}
-                        <Text>{item}</Text>
-                      </div>
-                    </List.Item>
-                  );
-                }}
+              <LocationEffectButtons
+                locationId={location.id}
+                locationConfig={bindings.locations[location.id]}
+                isLocationTransition={true}
               />
             </Card>
-          </Col>
-        )}
+          )}
 
-        {shouldShowSection('clues') && (
-          <Col lg={8} span={24}>
-            <Card 
-              className="clues-card"
-              title={
-                <Space>
-                  <SearchOutlined style={{ color: '#13c2c2' }} />
-                  <span>Улики</span>
-                  {/* Для улик видимость управляется пометками на элементах */}
-                </Space>
-              }
-              
-            >
-              <List
-                dataSource={location.clues.map((clue, index) => ({ clue, index }))}
-                renderItem={(clueWithIndex) => {
-                  const { clue, index } = clueWithIndex;
-                  const isVisibleForPlayers = shouldShowItem('clues', index);
-                  const isVisibleRaw = isLocationItemVisible
-                    ? isLocationItemVisible(location.id, 'clues', index)
-                    : (visibility.clues[index] !== 'hidden');
-
-                  if (isPlayerView && !isVisibleForPlayers) {
-                    return null;
-                  }
-
-                  return (
-                    <List.Item style={{ opacity: !isPlayerView && !isVisibleRaw ? 0.5 : 1 }}>
-                      <div style={{ width: '100%' }}>
-                        {!isPlayerView && toggleLocationItemVisibility && (
-                          <div style={{ marginBottom: 8 }}>
-                            <Checkbox
-                              checked={isVisibleRaw}
-                              onChange={(e) => (setLocationItemVisibility
-                                ? setLocationItemVisibility(location.id, 'clues', index, e.target.checked)
-                                : toggleLocationItemVisibility && toggleLocationItemVisibility(location.id, 'clues', index)
-                              )}
-                            >
-                              Показать игрокам
-                            </Checkbox>
-                          </div>
-                        )}
-                        <Text italic>{clue}</Text>
-                      </div>
-                    </List.Item>
-                  );
-                }}
-              />
-            </Card>
-          </Col>
-        )}
+          {/* Статистика */}
+          <Card size="small" title="Статистика">
+            <Descriptions size="small" column={1}>
+              <Descriptions.Item label="Теги">
+                {location.tags?.length || 0}
+              </Descriptions.Item>
+              <Descriptions.Item label="Энкаунтеры">
+                {location.encounters?.length || 0}
+              </Descriptions.Item>
+              <Descriptions.Item label="Лут">
+                {location.loot?.length || 0}
+              </Descriptions.Item>
+              <Descriptions.Item label="Подсказки">
+                {location.clues?.length || 0}
+              </Descriptions.Item>
+            </Descriptions>
+          </Card>
+        </Col>
       </Row>
     </div>
   );

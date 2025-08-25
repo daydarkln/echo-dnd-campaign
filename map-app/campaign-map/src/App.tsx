@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, createContext, useContext } from 'react';
 import { Layout, Spin, Alert, FloatButton, Modal, Tabs, App as AntdApp, ConfigProvider } from 'antd';
 import { TeamOutlined, PartitionOutlined, DashboardOutlined, UserOutlined, FileTextOutlined, ThunderboltOutlined, ReadOutlined } from '@ant-design/icons';
 import TrackersPage from './pages/TrackersPage';
@@ -13,15 +13,30 @@ import LocationDetail from './components/LocationDetail';
 import PlayerLocationDetail from './components/PlayerLocationDetail';
 import PlayerMap from './components/PlayerMap';
 import { GroupManager } from './components/GroupManager';
+import { WeatherTimeController } from './components/WeatherTimeController';
+import VolumeControlPanel from './components/VolumeControlPanel';
 import { PointsData, PathsData, PointOfInterest, GraphNode, GraphEdge } from './types';
 import { parseToSubflows } from './utils/dataParser';
 import pointsData from './tochki-interesa.json';
 import pathsData from './puti-mezhdu-lokaciyami.json';
 import { useFieldVisibility } from './hooks/useFieldVisibility';
+import { useAudioManager } from './hooks/useAudioManager';
 import 'antd/dist/reset.css';
 import './App.css';
 
 const { Content } = Layout;
+
+// Создаем контекст для аудио
+const AudioContext = createContext<ReturnType<typeof useAudioManager> | null>(null);
+
+// Хук для использования аудио в компонентах
+export const useAudio = () => {
+  const context = useContext(AudioContext);
+  if (!context) {
+    throw new Error('useAudio must be used within an AudioProvider');
+  }
+  return context;
+};
 
 type ViewState = 'mindmap' | 'detail' | 'region';
 
@@ -54,6 +69,9 @@ function App() {
     isRouteItemVisible,
     isRouteNotesVisible
   } = useFieldVisibility();
+
+  // Аудио менеджер - теперь глобальный
+  const audioManager = useAudioManager();
 
   useEffect(() => {
     try {
@@ -124,9 +142,10 @@ function App() {
   }
 
   const renderMapView = () => {
-    switch (currentView) {
-      case 'mindmap':
-        return (
+    if (currentView === 'mindmap') {
+      return (
+        <div style={{ position: 'relative' }}>
+          <WeatherTimeController />
           <GroupedMindMap
             nodes={nodes}
             edges={edges}
@@ -136,191 +155,207 @@ function App() {
             onRegionClick={(areaName) => { setFocusedRegion(areaName); setCurrentView('region'); }}
             enableDragging={true}
           />
-        );
-      
-      case 'region':
-        return focusedRegion ? (
+        </div>
+      );
+    } else if (currentView === 'detail' && selectedLocation) {
+      return (
+        <div style={{ padding: 24, maxWidth: 1200, margin: '0 auto' }}>
+          <WeatherTimeController />
+          <LocationDetail
+            location={selectedLocation}
+            area={currentArea}
+            onBack={handleBackToMindMap}
+            fieldVisibility={getLocationFieldVisibility(selectedLocation.id)}
+            getLocationFieldVisibility={getLocationFieldVisibility}
+            toggleLocationItemVisibility={toggleLocationItemVisibility}
+            setLocationItemVisibility={setLocationItemVisibility}
+            isLocationItemVisible={isLocationItemVisible}
+          />
+        </div>
+      );
+    } else if (currentView === 'region' && focusedRegion) {
+      return (
+        <div style={{ position: 'relative' }}>
+          <WeatherTimeController />
           <RegionFocusedMap
             areaName={focusedRegion}
             pointsData={pointsData as PointsData}
             pathsData={pathsData as PathsData}
-            onBack={handleBackToMindMap}
             onNodeClick={handleLocationClick}
+            onBack={handleBackToMindMap}
             enableDragging={true}
           />
-        ) : null;
-      
-      default:
-        return null;
+        </div>
+      );
     }
+    return null;
   };
 
   return (
-    <AntdApp>
-      <ConfigProvider componentSize='small'>
+    <AudioContext.Provider value={audioManager}>
+      <AntdApp>
+        <ConfigProvider componentSize='small'>
 
-      <Layout style={{ minHeight: '100vh', backgroundColor: '#f0f2f5' }}>
-        <Content style={{ padding: 24 }}>
-          <Tabs
-            activeKey={
-              location.pathname.startsWith('/groups') ? 'groups'
-              : location.pathname.startsWith('/trackers') ? 'trackers'
-              : location.pathname.startsWith('/initiative') ? 'initiative'
-              : location.pathname.startsWith('/player-map') ? 'player-map'
-              : location.pathname.startsWith('/character') ? 'character'
-              : location.pathname.startsWith('/quests') ? 'quests'
-              : 'map'
-            }
-            onChange={(key) => {
-              setActiveTab(key);
-              navigate(
-                key === 'groups' ? '/groups'
-                : key === 'trackers' ? '/trackers'
-                : key === 'initiative' ? '/initiative'
-                : key === 'player-map' ? '/player-map'
-                : key === 'character' ? '/character'
-                : key === 'quests' ? '/quests'
-                : '/'
-              );
-            }}
-            items={[
-              {
-                key: 'map',
-                label: (
-                  <span>
-                    <PartitionOutlined /> Карта
-                  </span>
-                ),
-              },
-              {
-                key: 'groups',
-                label: (
-                  <span>
-                    <TeamOutlined /> Группы
-                  </span>
-                ),
-              },
-              {
-                key: 'trackers',
-                label: (
-                  <span>
-                    <DashboardOutlined /> Трекеры
-                  </span>
-                ),
-              },
-              {
-                key: 'initiative',
-                label: (
-                  <span>
-                    <ThunderboltOutlined /> Инициатива
-                  </span>
-                ),
-              },
-              {
-                key: 'player-map',
-                label: (
-                  <span>
-                    <UserOutlined /> Карта для игроков
-                  </span>
-                ),
-              },
-              {
-                key: 'quests',
-                label: (
-                  <span>
-                    <ReadOutlined /> Квесты
-                  </span>
-                ),
-              },
-            ]}
+        <Layout style={{ minHeight: '100vh', backgroundColor: '#f0f2f5' }}>
+          <Content style={{ padding: 24 }}>
+            <Tabs
+              activeKey={
+                location.pathname.startsWith('/groups') ? 'groups'
+                : location.pathname.startsWith('/trackers') ? 'trackers'
+                : location.pathname.startsWith('/initiative') ? 'initiative'
+                : location.pathname.startsWith('/player-map') ? 'player-map'
+                : location.pathname.startsWith('/character') ? 'character'
+                : location.pathname.startsWith('/quests') ? 'quests'
+                : 'map'
+              }
+              onChange={(key) => {
+                setActiveTab(key);
+                navigate(
+                  key === 'groups' ? '/groups'
+                  : key === 'trackers' ? '/trackers'
+                  : key === 'initiative' ? '/initiative'
+                  : key === 'player-map' ? '/player-map'
+                  : key === 'character' ? '/character'
+                  : key === 'quests' ? '/quests'
+                  : '/'
+                );
+              }}
+              items={[
+                {
+                  key: 'map',
+                  label: (
+                    <span>
+                      <PartitionOutlined /> Карта
+                    </span>
+                  ),
+                },
+                {
+                  key: 'groups',
+                  label: (
+                    <span>
+                      <TeamOutlined /> Группы
+                    </span>
+                  ),
+                },
+                {
+                  key: 'trackers',
+                  label: (
+                    <span>
+                      <DashboardOutlined /> Трекеры
+                    </span>
+                  ),
+                },
+                {
+                  key: 'initiative',
+                  label: (
+                    <span>
+                      <ThunderboltOutlined /> Инициатива
+                    </span>
+                  ),
+                },
+                {
+                  key: 'player-map',
+                  label: (
+                    <span>
+                      <UserOutlined /> Карта для игроков
+                    </span>
+                  ),
+                },
+                {
+                  key: 'quests',
+                  label: (
+                    <span>
+                      <ReadOutlined /> Квесты
+                    </span>
+                  ),
+                },
+              ]}
+            />
+
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <>
+                    {renderMapView()}
+                  </>
+                }
+              />
+              <Route
+                path="/groups"
+                element={
+                  <div style={{ maxWidth: 960, margin: '0 auto' }}>
+                    <GroupManager visible={true} onClose={() => {}} asPanel />
+                  </div>
+                }
+              />
+              <Route
+                path="/trackers"
+                element={<TrackersPage />}
+              />
+              <Route
+                path="/initiative"
+                element={<InitiativeTrackerPage />}
+              />
+              <Route
+                path="/player-map"
+                element={<PlayerMapPage />}
+              />
+              <Route
+                path="/quests"
+                element={<QuestsPage />}
+              />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Content>
+        </Layout>
+
+          {/* Модальное окно управления группами (для плавающей кнопки на вкладке Карта) */}
+          <GroupManager 
+            visible={showGroupManager} 
+            onClose={() => setShowGroupManager(false)} 
           />
 
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <>
-                  {renderMapView()}
-                  <FloatButton
-                    icon={<TeamOutlined />}
-                    tooltip="Управление группами"
-                    onClick={() => navigate('/groups')}
-                    style={{ right: 24, bottom: 24 }}
-                  />
-                </>
-              }
-            />
-            <Route
-              path="/groups"
-              element={
-                <div style={{ maxWidth: 960, margin: '0 auto' }}>
-                  <GroupManager visible={true} onClose={() => {}} asPanel />
-                </div>
-              }
-            />
-            <Route
-              path="/trackers"
-              element={<TrackersPage />}
-            />
-            <Route
-              path="/initiative"
-              element={<InitiativeTrackerPage />}
-            />
-            <Route
-              path="/player-map"
-              element={<PlayerMapPage />}
-            />
-            <Route
-              path="/quests"
-              element={<QuestsPage />}
-            />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Content>
-      </Layout>
+          {/* Модальное окно с информацией о локации */}
+          <Modal
+            title="📍 Информация о локации"
+            open={showLocationModal}
+            onCancel={handleBackToMindMap}
+            footer={null}
+            width={1000}
+            style={{ top: 20 }}
+          >
+            {selectedLocation && (
+              location.pathname.startsWith('/player-map') ? (
+                <PlayerLocationDetail
+                  location={selectedLocation}
+                  area={currentArea}
+                  onBack={handleBackToMindMap}
+                  isModal={true}
+                  getLocationFieldVisibility={getLocationFieldVisibility}
+                />
+              ) : (
+                <LocationDetail
+                  location={selectedLocation}
+                  area={currentArea}
+                  onBack={handleBackToMindMap}
+                  isModal={true}
+                  fieldVisibility={getLocationFieldVisibility(selectedLocation.id)}
+                  getLocationFieldVisibility={getLocationFieldVisibility}
+                  toggleLocationItemVisibility={toggleLocationItemVisibility}
+                  setLocationItemVisibility={setLocationItemVisibility}
+                  isLocationItemVisible={isLocationItemVisible}
+                />
+              )
+            )}
+          </Modal>
 
-        {/* Модальное окно управления группами (для плавающей кнопки на вкладке Карта) */}
-        <GroupManager 
-          visible={showGroupManager} 
-          onClose={() => setShowGroupManager(false)} 
-        />
-
-        {/* Модальное окно с информацией о локации */}
-        <Modal
-          title="📍 Информация о локации"
-          open={showLocationModal}
-          onCancel={handleBackToMindMap}
-          footer={null}
-          width={1000}
-          style={{ top: 20 }}
-        >
-          {selectedLocation && (
-            location.pathname.startsWith('/player-map') ? (
-              <PlayerLocationDetail
-                location={selectedLocation}
-                area={currentArea}
-                onBack={handleBackToMindMap}
-                isModal={true}
-                getLocationFieldVisibility={getLocationFieldVisibility}
-              />
-            ) : (
-              <LocationDetail
-                location={selectedLocation}
-                area={currentArea}
-                onBack={handleBackToMindMap}
-                isModal={true}
-                fieldVisibility={getLocationFieldVisibility(selectedLocation.id)}
-                getLocationFieldVisibility={getLocationFieldVisibility}
-                toggleLocationItemVisibility={toggleLocationItemVisibility}
-                setLocationItemVisibility={setLocationItemVisibility}
-                isLocationItemVisible={isLocationItemVisible}
-              />
-            )
-          )}
-        </Modal>
-    
-      </ConfigProvider>
-    </AntdApp>
+          {/* Панель управления громкостью - доступна на всех страницах */}
+          <VolumeControlPanel />
+      
+        </ConfigProvider>
+      </AntdApp>
+    </AudioContext.Provider>
   );
 }
 

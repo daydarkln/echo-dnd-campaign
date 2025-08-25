@@ -275,6 +275,7 @@ const PlayerMapPage: React.FC = () => {
   return (
     <Layout style={{ minHeight: '100vh', backgroundColor: '#f0f2f5' }}>
       <Content style={{ padding: 24 }}>
+        
         {currentView === 'mindmap' && (
           <div style={{ marginBottom: '24px' }}>
             <Title level={1}>

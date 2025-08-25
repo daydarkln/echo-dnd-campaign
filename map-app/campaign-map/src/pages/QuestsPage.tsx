@@ -3,6 +3,7 @@ import { Alert, Button, Col, Divider, Empty, Layout, List, Modal, Row, Space, Sp
 import { PlusOutlined, DeleteOutlined, EditOutlined, EyeOutlined } from '@ant-design/icons';
 import { useQuests } from '../hooks/useQuests';
 import QuestEditor from '../components/QuestEditor';
+import { WeatherTimeController } from '../components/WeatherTimeController';
 import { CreateQuestInput, Quest } from '../types/quests';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -204,6 +205,11 @@ export default function QuestsPage() {
   return (
     <Layout style={{ background: 'transparent' }}>
       <Content>
+        {/* Контроллер погоды и времени */}
+        <div style={{ marginBottom: 24 }}>
+          <WeatherTimeController />
+        </div>
+        
         <Row gutter={16}>
           <Col span={8}>
             <Space direction="vertical" style={{ width: '100%' }} size="middle">

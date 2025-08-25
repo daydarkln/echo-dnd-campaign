@@ -62,20 +62,7 @@ const GroupedMindMap: React.FC<GroupedMindMapProps> = ({
   isPlayerMap = false
 }) => {
   const { notification: appNotification } = App.useApp();
-  
-  // Логируем параметры для отладки
-  console.log('GroupedMindMap - Параметры компонента:', {
-    showSavePosition,
-    enableDragging,
-    isPlayerMap,
-    nodesCount: nodes.length,
-    edgesCount: edges.length
-  });
 
-  // Логируем рендеринг кнопки сохранения
-  useEffect(() => {
-    console.log('GroupedMindMap - Компонент отрендерен, showSavePosition:', showSavePosition);
-  }, [showSavePosition]);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [blockedNodeIds, setBlockedNodeIds] = useState<Set<string>>(new Set());
   const [selectedRoute, setSelectedRoute] = useState<any>(null);
@@ -147,7 +134,7 @@ const GroupedMindMap: React.FC<GroupedMindMapProps> = ({
   }, [setLocationVisibilityWithRegionUpdate, autoOpenRegionIfNeeded]);
 
   const nodeTypes = useMemo(() => ({
-    locationNode: (props: any) => <LocationNode {...props} data={{ ...props.data, enableLocationVisibility: enableLocationVisibility && !isPlayerMap }} onLocationToggle={handleLocationToggle} />,
+    locationNode: (props: any) => <LocationNode {...props} data={{ ...props.data, enableLocationVisibility: enableLocationVisibility && !isPlayerMap, isPlayerMap }} onLocationToggle={handleLocationToggle} />,
     group: (props: any) => <GroupNode {...props} data={{ ...props.data, enableLocationVisibility: enableLocationVisibility && !isPlayerMap }} />,
   }), [enableLocationVisibility, isPlayerMap, handleLocationToggle]);
   
@@ -264,7 +251,7 @@ const GroupedMindMap: React.FC<GroupedMindMapProps> = ({
       return savedPosition ? { ...node, position: savedPosition } : node;
     });
     
-    const nodesWithDraggable = nodesWithSavedPositions.map(node => ({
+    const nodesWithDraggable: Node[] = nodesWithSavedPositions.map(node => ({
       ...node,
       draggable: enableDragging && !isPlayerMap, // Разрешаем перетаскивание всех узлов (кроме карты игроков)
       type: node.type || 'default'
@@ -273,11 +260,6 @@ const GroupedMindMap: React.FC<GroupedMindMapProps> = ({
     // Отладочная информация о перетаскиваемых узлах
     if (enableDragging && !isPlayerMap) {
       const draggableNodes = nodesWithDraggable.filter(n => n.draggable);
-      console.log('GroupedMindMap - Настройка перетаскивания узлов:', {
-        totalNodes: nodesWithDraggable.length,
-        draggableNodes: draggableNodes.length,
-        draggableTypes: draggableNodes.map(n => ({ id: n.id, type: n.type, area: n.data?.area }))
-      });
     }
     
     setNodes(nodesWithDraggable);
@@ -310,14 +292,14 @@ const GroupedMindMap: React.FC<GroupedMindMapProps> = ({
 
   // Функции для сброса стилей
   const resetNodeStyles = useCallback((nds: Node[]) => {
-    return nds.map(n => ({
+    return nds.map((n: Node) => ({
       ...n, 
       style: { ...(n.style || {}), opacity: 1, filter: undefined, boxShadow: undefined }
     }));
   }, []);
 
   const resetEdgeStyles = useCallback((eds: Edge[]) => {
-    return eds.map(e => ({
+    return eds.map((e: Edge) => ({
       ...e,
       style: { ...(e.style || {}), opacity: 1, display: 'block' },
       label: (e.data as any)?.route?.travelTime ?? e.label,
@@ -327,8 +309,8 @@ const GroupedMindMap: React.FC<GroupedMindMapProps> = ({
   // Эффект подсветки связей
   useEffect(() => {
     if (!hoveredNodeId) {
-      setNodes(nds => resetNodeStyles(nds));
-      setEdges(eds => resetEdgeStyles(eds));
+      setNodes((nds: Node[]) => resetNodeStyles(nds));
+      setEdges((eds: Edge[]) => resetEdgeStyles(eds));
       return;
     }
 
@@ -343,7 +325,7 @@ const GroupedMindMap: React.FC<GroupedMindMapProps> = ({
     });
 
     // Применяем стили к узлам
-    setNodes(nds => nds.map(n => {
+    setNodes((nds: Node[]) => nds.map((n: Node) => {
       const isLocation = n.type === 'locationNode';
       const keep = connected.has(n.id);
       const dim = isLocation && !keep;
@@ -358,7 +340,7 @@ const GroupedMindMap: React.FC<GroupedMindMapProps> = ({
     }));
 
     // Применяем стили к ребрам
-    setEdges(eds => eds.map(e => {
+    setEdges((eds: Edge[]) => eds.map((e: Edge) => {
       const isConnected = (e.source === hoveredNodeId || e.target === hoveredNodeId);
       return {
         ...e,
@@ -496,7 +478,7 @@ const GroupedMindMap: React.FC<GroupedMindMapProps> = ({
                             detail: { nodeId: locId, duration: 300 } 
                           }));
                           
-                          setNodes(nds => nds.map(n => 
+                          setNodes((nds: Node[]) => nds.map((n: Node) => 
                             n.id === locId 
                               ? { ...n, style: { ...n.style, boxShadow: '0 0 0 3px #1890ff' } } 
                               : n
@@ -516,7 +498,7 @@ const GroupedMindMap: React.FC<GroupedMindMapProps> = ({
                             }
                           }, 100);
                           
-                          setTimeout(() => setNodes(nds => nds.map(n => 
+                          setTimeout(() => setNodes((nds: Node[]) => nds.map((n: Node) => 
                             n.id === locId 
                               ? { ...n, style: { ...n.style, boxShadow: undefined } } 
                               : n

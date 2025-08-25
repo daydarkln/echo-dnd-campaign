@@ -1,0 +1,558 @@
+{
+  "locations": {
+    "gornaya-krepost": {
+      "name": "Горная крепость",
+      "type": "city",
+      "ambient": {
+        "primary": "city-market",
+        "layers": [],
+        "volume": 0.7,
+        "crossfadeTime": 2500
+      },
+      "music": {
+        "theme": "main-theme",
+        "volume": 0.4,
+        "loop": true
+      },
+      "effects": {
+        "doorHeavy": {
+          "sound": "door_metal_heavy",
+          "volume": 0.9,
+          "fadeOutAmbient": true,
+          "ambientFadeTime": 1500
+        },
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.7
+        },
+        "marketHaggle": {
+          "sound": "haggle_voices",
+          "volume": 0.6
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+    "remeslennyy-kvartal": {
+      "name": "Ремесленный квартал",
+      "type": "city",
+      "ambient": {
+        "primary": "city-market",
+        "layers": [],
+        "volume": 0.8,
+        "crossfadeTime": 2000
+      },
+      "music": {
+        "theme": "main-theme",
+        "volume": 0.3,
+        "loop": true
+      },
+      "effects": {
+        "doorHeavy": {
+          "sound": "door_metal_heavy",
+          "volume": 0.8,
+          "fadeOutAmbient": true,
+          "ambientFadeTime": 1500
+        },
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.6
+        },
+        "marketHaggle": {
+          "sound": "haggle_voices",
+          "volume": 0.7
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+    "gorod-kladbishche-detailed": {
+      "name": "Городское кладбище",
+      "type": "dungeon",
+      "ambient": {
+        "primary": "library-ambient",
+        "layers": ["pages", "candles", "echo"],
+        "volume": 0.4,
+        "crossfadeTime": 4000
+      },
+      "music": {
+        "theme": "mystery_theme",
+        "volume": 0.6,
+        "loop": true
+      },
+      "effects": {
+        "doorHeavy": {
+          "sound": "door_ancient_heavy",
+          "volume": 0.7,
+          "fadeOutAmbient": false
+        },
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.5
+        },
+        "bookOpen": {
+          "sound": "book_pages",
+          "volume": 0.5
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+    "svetlaya-polyana-district": {
+      "name": "Светлая поляна (район)",
+      "type": "city",
+      "ambient": {
+        "primary": "city-market",
+        "layers": [],
+        "volume": 0.6,
+        "crossfadeTime": 3000
+      },
+      "music": {
+        "theme": "main-theme",
+        "volume": 0.4,
+        "loop": true
+      },
+      "effects": {
+        "doorHeavy": {
+          "sound": "door_wooden",
+          "volume": 0.6,
+          "fadeOutAmbient": false
+        },
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.5
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+    "gorod-gribnoy-rynok": {
+      "name": "Грибной рынок",
+      "type": "city",
+      "ambient": {
+        "primary": "city-market",
+        "layers": [],
+        "volume": 0.8,
+        "crossfadeTime": 2000
+      },
+      "music": {
+        "theme": "main-theme",
+        "volume": 0.3,
+        "loop": true
+      },
+      "effects": {
+        "doorHeavy": {
+          "sound": "door_metal_heavy",
+          "volume": 0.8,
+          "fadeOutAmbient": true,
+          "ambientFadeTime": 1500
+        },
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.6
+        },
+        "marketHaggle": {
+          "sound": "haggle_voices",
+          "volume": 0.8
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+    "akademiya-rezonansa": {
+      "name": "Академия резонанса",
+      "type": "city",
+      "ambient": {
+        "primary": "city-market",
+        "layers": [],
+        "volume": 0.5,
+        "crossfadeTime": 3500
+      },
+      "music": {
+        "theme": "mystery_theme",
+        "volume": 0.5,
+        "loop": true
+      },
+      "effects": {
+        "doorHeavy": {
+          "sound": "door_ancient_heavy",
+          "volume": 0.7,
+          "fadeOutAmbient": false
+        },
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.6
+        },
+        "bookOpen": {
+          "sound": "book_pages",
+          "volume": 0.6
+        },
+        "scrollUnroll": {
+          "sound": "scroll_paper",
+          "volume": 0.5
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+    "sanitarnaya-sluzhba": {
+      "name": "Санитарная служба",
+      "type": "city",
+      "ambient": {
+        "primary": "city-market",
+        "layers": [],
+        "volume": 0.6,
+        "crossfadeTime": 3000
+      },
+      "music": {
+        "theme": "main-theme",
+        "volume": 0.4,
+        "loop": true
+      },
+      "effects": {
+        "doorHeavy": {
+          "sound": "door_metal_heavy",
+          "volume": 0.8,
+          "fadeOutAmbient": true,
+          "ambientFadeTime": 1500
+        },
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.6
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+    "oranzhereya-miceliuma": {
+      "name": "Оранжерея мицеллиума",
+      "type": "city",
+      "ambient": {
+        "primary": "city-market",
+        "layers": [],
+        "volume": 0.5,
+        "crossfadeTime": 3500
+      },
+      "music": {
+        "theme": "exploration",
+        "volume": 0.5,
+        "loop": true
+      },
+      "effects": {
+        "doorHeavy": {
+          "sound": "door_wooden",
+          "volume": 0.6,
+          "fadeOutAmbient": false
+        },
+        "footsteps": {
+          "surface": "grass",
+          "volume": 0.4
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+    "kolokolnya-majatnikov": {
+      "name": "Колокольня маятников",
+      "type": "city",
+      "ambient": {
+        "primary": "city-market",
+        "layers": [],
+        "volume": 0.7,
+        "crossfadeTime": 2500
+      },
+      "music": {
+        "theme": "main-theme",
+        "volume": 0.4,
+        "loop": true
+      },
+      "effects": {
+        "doorHeavy": {
+          "sound": "door_ancient_heavy",
+          "volume": 0.8,
+          "fadeOutAmbient": false
+        },
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.7
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+    "starye-katakomby": {
+      "name": "Старые катакомбы",
+      "type": "dungeon",
+      "ambient": {
+        "primary": "library-ambient",
+        "layers": ["pages", "candles", "echo"],
+        "volume": 0.6,
+        "crossfadeTime": 4000
+      },
+      "music": {
+        "theme": "mystery_theme",
+        "volume": 0.6,
+        "loop": true
+      },
+      "effects": {
+        "doorHeavy": {
+          "sound": "door_ancient_heavy",
+          "volume": 0.8,
+          "fadeOutAmbient": false
+        },
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.7
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "none",
+        "weather": "none"
+      }
+    },
+    "gorod-tsentralnaya-ploshchad": {
+      "name": "Центральная площадь",
+      "type": "city",
+      "ambient": {
+        "primary": "city-market",
+        "layers": [],
+        "volume": 0.9,
+        "crossfadeTime": 2000
+      },
+      "music": {
+        "theme": "main-theme",
+        "volume": 0.6,
+        "loop": true
+      },
+      "effects": {
+        "doorHeavy": {
+          "sound": "door_metal_heavy",
+          "volume": 0.8,
+          "fadeOutAmbient": true,
+          "ambientFadeTime": 1500
+        },
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.6
+        },
+        "marketHaggle": {
+          "sound": "haggle_voices",
+          "volume": 0.8
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+    "gorod-voennyy-kvartal": {
+      "name": "Военный квартал",
+      "type": "city",
+      "ambient": {
+        "primary": "city-market",
+        "layers": [],
+        "volume": 0.7,
+        "crossfadeTime": 2500
+      },
+      "music": {
+        "theme": "main-theme",
+        "volume": 0.4,
+        "loop": true
+      },
+      "effects": {
+        "doorHeavy": {
+          "sound": "door_metal_heavy",
+          "volume": 0.9,
+          "fadeOutAmbient": true,
+          "ambientFadeTime": 1500
+        },
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.7
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+    "gorod-biblioteka-drevnih-znaniy": {
+      "name": "Библиотека древних знаний",
+      "type": "dungeon",
+      "ambient": {
+        "primary": "library-ambient",
+        "layers": ["pages", "candles", "echo"],
+        "volume": 0.5,
+        "crossfadeTime": 4000
+      },
+      "music": {
+        "theme": "mystery_theme",
+        "volume": 0.5,
+        "loop": true
+      },
+      "effects": {
+        "doorHeavy": {
+          "sound": "door_ancient_heavy",
+          "volume": 0.8,
+          "fadeOutAmbient": false
+        },
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.7
+        },
+        "bookOpen": {
+          "sound": "book_pages",
+          "volume": 0.6
+        },
+        "scrollUnroll": {
+          "sound": "scroll_paper",
+          "volume": 0.5
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+    "gorod-apteka-travnika": {
+      "name": "Аптека травника",
+      "type": "city",
+      "ambient": {
+        "primary": "city-market",
+        "layers": [],
+        "volume": 0.6,
+        "crossfadeTime": 3000
+      },
+      "music": {
+        "theme": "main-theme",
+        "volume": 0.4,
+        "loop": true
+      },
+      "effects": {
+        "doorHeavy": {
+          "sound": "door_wooden",
+          "volume": 0.6,
+          "fadeOutAmbient": false
+        },
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.5
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "indoors",
+        "timeOfDay": "auto",
+        "weather": "auto"
+      }
+    },
+    "gorod-taynaya-ulica": {
+      "name": "Тайная улица",
+      "type": "city",
+      "ambient": {
+        "primary": "city-market",
+        "layers": [],
+        "volume": 0.4,
+        "crossfadeTime": 4000
+      },
+      "music": {
+        "theme": "mystery_theme",
+        "volume": 0.6,
+        "loop": true
+      },
+      "effects": {
+        "doorHeavy": {
+          "sound": "door_wooden",
+          "volume": 0.5,
+          "fadeOutAmbient": false
+        },
+        "footsteps": {
+          "surface": "stone",
+          "volume": 0.4
+        }
+      },
+      "environment": {
+        "indoorOutdoor": "outdoors",
+        "timeOfDay": "night",
+        "weather": "auto"
+      }
+    }
+  },
+
+  "globalEffects": {
+    "weather": {
+      "rain": {
+        "ambientLayer": "rain_ambient",
+        "volume": 0.4,
+        "affectsFootsteps": true,
+        "footstepModifier": 0.8
+      },
+      "wind": {
+        "ambientLayer": "wind_ambient",
+        "volume": 0.3,
+        "affectsMusic": true,
+        "musicModifier": 0.9
+      },
+      "storm": {
+        "ambientLayer": "storm_ambient",
+        "volume": 0.6,
+        "affectsFootsteps": true,
+        "footstepModifier": 0.6,
+        "affectsMusic": true,
+        "musicModifier": 0.7
+      }
+    },
+    "timeOfDay": {
+      "morning": {
+        "ambientModifier": 1.2,
+        "musicModifier": 1.0,
+        "volumeModifier": 1.1
+      },
+      "day": {
+        "ambientModifier": 1.0,
+        "musicModifier": 1.0,
+        "volumeModifier": 1.0
+      },
+      "evening": {
+        "ambientModifier": 0.8,
+        "musicModifier": 0.9,
+        "volumeModifier": 0.9
+      },
+      "night": {
+        "ambientModifier": 0.6,
+        "musicModifier": 0.8,
+        "volumeModifier": 0.7
+      }
+    }
+  }
+}

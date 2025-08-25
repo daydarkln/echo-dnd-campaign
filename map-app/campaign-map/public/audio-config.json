@@ -1,0 +1,259 @@
+{
+  "globalSettings": {
+    "masterVolume": 1,
+    "fadeInDuration": 2000,
+    "fadeOutDuration": 1500,
+    "crossfadeDuration": 3000,
+    "enableDynamicMixing": true,
+    "defaultAmbientVolume": 0.2,
+    "defaultMusicVolume": 0.8,
+    "defaultSfxVolume": 0.7,
+    "defaultVoiceVolume": 0.8
+  },
+  
+  "categoryVolumes": {
+    "music": 0.9,
+    "ambient": 0.05,
+    "sfx": 0.1,
+    "voice": 0.9
+  },
+  
+  "transitionEffects": {
+    "doorHeavy": {
+      "soundFile": "door_metal_heavy",
+      "volume": 0.9,
+      "fadeOutAmbient": true,
+      "ambientFadeTime": 2000,
+      "newAmbientDelay": 500,
+      "category": "sfx"
+    },
+    "doorWooden": {
+      "soundFile": "door_wooden",
+      "volume": 0.7,
+      "fadeOutAmbient": false,
+      "ambientFadeTime": 1000,
+      "category": "sfx"
+    },
+    "doorAncient": {
+      "soundFile": "door_ancient_heavy",
+      "volume": 0.8,
+      "fadeOutAmbient": false,
+      "ambientFadeTime": 1500,
+      "category": "sfx"
+    },
+    "fungalMembrane": {
+      "soundFile": "fungal_membrane",
+      "volume": 0.6,
+      "fadeOutAmbient": true,
+      "ambientFadeTime": 3000,
+      "category": "sfx"
+    },
+    "bookOpen": {
+      "soundFile": "book_pages",
+      "volume": 0.6,
+      "fadeOutAmbient": false,
+      "category": "sfx"
+    },
+    "scrollUnroll": {
+      "soundFile": "scroll_paper",
+      "volume": 0.5,
+      "fadeOutAmbient": false,
+      "category": "sfx"
+    },
+    "sporeBurst": {
+      "soundFile": "spore_explosion",
+      "volume": 0.8,
+      "fadeOutAmbient": false,
+      "category": "sfx"
+    },
+    "mindWhisper": {
+      "soundFile": "hive_whisper",
+      "volume": 0.5,
+      "fadeOutAmbient": false,
+      "category": "sfx"
+    },
+    "marketHaggle": {
+      "soundFile": "haggle_voices",
+      "volume": 0.7,
+      "fadeOutAmbient": false,
+      "category": "sfx"
+    }
+  },
+  
+  "encounterSettings": {
+    "battle": {
+      "musicTransition": "battle_theme",
+      "ambientFadeOut": true,
+      "priority": "high",
+      "crossfadeTime": 2000,
+      "volume": 0.8
+    },
+    "social": {
+      "musicTransition": "social_theme", 
+      "ambientFadeOut": false,
+      "priority": "medium",
+      "crossfadeTime": 3000,
+      "volume": 0.5
+    },
+    "mystery": {
+      "musicTransition": "mystery_theme",
+      "ambientFadeOut": false,
+      "priority": "medium",
+      "crossfadeTime": 4000,
+      "volume": 0.6
+    },
+    "exploration": {
+      "musicTransition": "exploration_theme",
+      "ambientFadeOut": false,
+      "priority": "low",
+      "crossfadeTime": 5000,
+      "volume": 0.4
+    }
+  },
+  
+  "timeOfDay": {
+    "morning": {
+      "ambientModifier": 1.2,
+      "musicModifier": 1.0,
+      "volumeModifier": 1.1,
+      "description": "Утро - яркие звуки, активная природа"
+    },
+    "day": {
+      "ambientModifier": 1.0,
+      "musicModifier": 1.0,
+      "volumeModifier": 1.0,
+      "description": "День - стандартная громкость"
+    },
+    "evening": {
+      "ambientModifier": 0.8,
+      "musicModifier": 0.9,
+      "volumeModifier": 0.9,
+      "description": "Вечер - затихающие звуки"
+    },
+    "night": {
+      "ambientModifier": 0.6,
+      "musicModifier": 0.8,
+      "volumeModifier": 0.7,
+      "description": "Ночь - тихие, таинственные звуки"
+    }
+  },
+  
+  "weatherEffects": {
+    "clear": {
+      "ambientLayer": null,
+      "volume": 0.0,
+      "affectsFootsteps": false,
+      "affectsMusic": false,
+      "description": "Ясная погода - без дополнительных эффектов"
+    },
+    "rain": {
+      "ambientLayer": "rain_ambient",
+      "volume": 0.4,
+      "affectsFootsteps": true,
+      "footstepModifier": 0.8,
+      "affectsMusic": false,
+      "description": "Дождь - приглушает шаги, добавляет звук дождя"
+    },
+    "wind": {
+      "ambientLayer": "wind_ambient", 
+      "volume": 0.3,
+      "affectsFootsteps": false,
+      "affectsMusic": true,
+      "musicModifier": 0.9,
+      "description": "Ветер - влияет на музыку, добавляет звук ветра"
+    },
+    "storm": {
+      "ambientLayer": "storm_ambient",
+      "volume": 0.6,
+      "affectsFootsteps": true,
+      "footstepModifier": 0.6,
+      "affectsMusic": true,
+      "musicModifier": 0.7,
+      "description": "Буря - сильно влияет на все звуки"
+    }
+  },
+  
+  "footstepSettings": {
+    "stone": {
+      "soundFile": "footstep_stone",
+      "volume": 0.6,
+      "pitchVariation": 0.1,
+      "surfaceType": "hard",
+      "description": "Каменная поверхность - громкие, четкие шаги"
+    },
+    "wood": {
+      "soundFile": "footstep_wood",
+      "volume": 0.5,
+      "pitchVariation": 0.15,
+      "surfaceType": "medium",
+      "description": "Деревянная поверхность - средние по громкости шаги"
+    },
+    "grass": {
+      "soundFile": "footstep_grass",
+      "volume": 0.4,
+      "pitchVariation": 0.05,
+      "surfaceType": "soft",
+      "description": "Травяная поверхность - тихие, мягкие шаги"
+    },
+    "fungal": {
+      "soundFile": "footstep_fungal",
+      "volume": 0.3,
+      "pitchVariation": 0.2,
+      "surfaceType": "organic",
+      "description": "Грибная поверхность - очень тихие, органические шаги"
+    }
+  },
+  
+  "audioFilters": {
+    "indoors": {
+      "reverb": 0.3,
+      "lowPass": 0.8,
+      "highPass": 0.9,
+      "description": "Внутри помещений - легкая реверберация, приглушенные высокие частоты"
+    },
+    "outdoors": {
+      "reverb": 0.1,
+      "lowPass": 1.0,
+      "highPass": 1.0,
+      "description": "На открытом воздухе - минимальная реверберация, полный диапазон частот"
+    },
+    "cave": {
+      "reverb": 0.7,
+      "lowPass": 0.6,
+      "highPass": 0.7,
+      "description": "В пещерах - сильная реверберация, ограниченный диапазон частот"
+    },
+    "underwater": {
+      "reverb": 0.5,
+      "lowPass": 0.4,
+      "highPass": 0.5,
+      "description": "Под водой - средняя реверберация, сильно ограниченный диапазон"
+    }
+  },
+  
+  "performanceSettings": {
+    "maxSimultaneousSounds": 32,
+    "streamingEnabled": true,
+    "compressionQuality": "high",
+    "cacheSize": "100MB",
+    "preloadThreshold": 0.8,
+    "cleanupInterval": 30000,
+    "description": "Настройки производительности аудио системы"
+  },
+  
+  "accessibilitySettings": {
+    "enableSubtitles": true,
+    "subtitleStyle": "default",
+    "volumeNormalization": true,
+    "dynamicRangeCompression": false,
+    "description": "Настройки доступности для игроков с особыми потребностями"
+  },
+  
+  "debugSettings": {
+    "enableLogging": false,
+    "logLevel": "warn",
+    "performanceMonitoring": false,
+    "audioVisualization": false,
+    "description": "Настройки отладки и мониторинга"
+  }
+}
