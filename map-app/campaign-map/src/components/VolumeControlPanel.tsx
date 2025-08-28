@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Slider, Button, FloatButton, Card, Space, Typography, Divider, Badge, Modal } from 'antd';
-import { AudioOutlined, SettingOutlined, PlayCircleOutlined, SoundOutlined } from '@ant-design/icons';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Slider, Button, FloatButton, Card, Space, Typography, Divider, Badge, Modal, Tabs, Select, Tooltip, Row, Col } from 'antd';
+import { AudioOutlined, SettingOutlined, PlayCircleOutlined, SoundOutlined, CloudOutlined, ClockCircleOutlined, MutedOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { useAudio } from '../App';
 
 const { Text } = Typography;
+const { Option } = Select;
+const { TabPane } = Tabs;
 
 interface TrackVolumeControlProps {}
 
@@ -13,7 +15,7 @@ interface TrackInfo {
   category: 'ambient' | 'music' | 'sfx' | 'voice';
   currentVolume: number;
   description: string;
-  icon: React.ReactNode;
+  icon: string;
 }
 
 export const VolumeControlPanel: React.FC<TrackVolumeControlProps> = () => {
@@ -24,7 +26,14 @@ export const VolumeControlPanel: React.FC<TrackVolumeControlProps> = () => {
     updateCategoryVolume, 
     updateMasterVolume,
     updateTrackVolume,
-    getCurrentLocationInfo
+    getCurrentLocationInfo,
+    getActiveTracks,
+    currentTimeOfDay,
+    currentWeather,
+    isMuted,
+    setTimeOfDay,
+    setWeather,
+    setIsMuted
   } = useAudio();
 
   const [localVolumes, setLocalVolumes] = useState<Record<string, number>>({});
@@ -33,170 +42,46 @@ export const VolumeControlPanel: React.FC<TrackVolumeControlProps> = () => {
   // Получаем информацию о текущей локации
   const locationInfo = getCurrentLocationInfo?.();
 
-  // Собираем все доступные дорожки
-  const allTracks = useMemo((): TrackInfo[] => {
-    const tracks: TrackInfo[] = [];
-    
-    if (!audioConfig || !bindings) return tracks;
+  // Стабилизируем ключевые значения для предотвращения бесконечных циклов
+  const timeOfDayEnabled = locationInfo?.timeOfDayEnabled ?? false;
+  const weatherEnabled = locationInfo?.weatherEnabled ?? false;
+  const locationName = locationInfo?.name ?? '';
+  const locationType = locationInfo?.type ?? '';
 
-    // Добавляем общую громкость
-    tracks.push({
-      id: 'master',
-      name: 'Общая громкость',
-      category: 'ambient',
-      currentVolume: audioConfig.globalSettings.masterVolume,
-      description: 'Общая громкость всех звуков',
-      icon: <AudioOutlined style={{ color: '#1890ff' }} />
-    });
-
-    // Добавляем дорожки из текущей локации
-    if (currentLocation && bindings.locations[currentLocation]) {
-      const locationConfig = bindings.locations[currentLocation];
-      
-      // Основной ambient
-      if (locationConfig.ambient?.primary) {
-        tracks.push({
-          id: `ambient-${locationConfig.ambient.primary}`,
-          name: `Ambient: ${locationConfig.ambient.primary}`,
-          category: 'ambient',
-          currentVolume: locationConfig.ambient.volume || 0.6,
-          description: `Основной ambient локации "${locationConfig.name}"`,
-          icon: <SoundOutlined style={{ color: '#52c41a' }} />
-        });
-      }
-
-      // Дополнительные ambient слои
-      if (locationConfig.ambient?.layers) {
-        locationConfig.ambient.layers.forEach((layerId, index) => {
-          tracks.push({
-            id: `ambient-layer-${layerId}`,
-            name: `Ambient Layer: ${layerId}`,
-            category: 'ambient',
-            currentVolume: (locationConfig.ambient.volume || 0.6) * 0.7,
-            description: `Дополнительный ambient слой ${index + 1}`,
-            icon: <SoundOutlined style={{ color: '#13c2c2' }} />
-          });
-        });
-      }
-
-      // Музыкальная тема
-      if (locationConfig.music?.theme) {
-        tracks.push({
-          id: `music-${locationConfig.music.theme}`,
-          name: `Music: ${locationConfig.music.theme}`,
-          category: 'music',
-          currentVolume: locationConfig.music.volume || 0.4,
-          description: `Музыкальная тема локации "${locationConfig.name}"`,
-          icon: <PlayCircleOutlined style={{ color: '#722ed1' }} />
-        });
-      }
-    }
-
-    // Добавляем дорожки времени суток
-    if (audioConfig.timeOfDay) {
-      Object.entries(audioConfig.timeOfDay).forEach(([time, config]) => {
-        tracks.push({
-          id: `time-${time}`,
-          name: `Time: ${time}`,
-          category: 'ambient',
-          currentVolume: config.volumeModifier || 1,
-          description: `Эффект времени суток: ${config.description}`,
-          icon: <SoundOutlined style={{ color: '#faad14' }} />
-        });
-      });
-    }
-
-    // Добавляем дорожки погоды
-    if (audioConfig.weatherEffects) {
-      Object.entries(audioConfig.weatherEffects).forEach(([weather, config]) => {
-        if (config.ambientLayer) {
-          tracks.push({
-            id: `weather-${weather}`,
-            name: `Weather: ${weather}`,
-            category: 'ambient',
-            currentVolume: config.volume || 0.5,
-            description: `Эффект погоды: ${config.description}`,
-            icon: <SoundOutlined style={{ color: '#13c2c2' }} />
-          });
-        }
-      });
-    }
-
-    // Добавляем категории звуков
-    tracks.push({
-      id: 'category-music',
-      name: 'Категория: Музыка',
-      category: 'music',
-      currentVolume: audioConfig.categoryVolumes.music,
-      description: 'Общая громкость всех музыкальных треков',
-      icon: <PlayCircleOutlined style={{ color: '#722ed1' }} />
-    });
-
-    tracks.push({
-      id: 'category-ambient',
-      name: 'Категория: Эмбиент',
-      category: 'ambient',
-      currentVolume: audioConfig.categoryVolumes.ambient,
-      description: 'Общая громкость всех ambient звуков',
-      icon: <SoundOutlined style={{ color: '#52c41a' }} />
-    });
-
-    tracks.push({
-      id: 'category-sfx',
-      name: 'Категория: Эффекты',
-      category: 'sfx',
-      currentVolume: audioConfig.categoryVolumes.sfx,
-      description: 'Общая громкость всех звуковых эффектов',
-      icon: <SoundOutlined style={{ color: '#fa8c16' }} />
-    });
-
-    tracks.push({
-      id: 'category-voice',
-      name: 'Категория: Голос',
-      category: 'voice',
-      currentVolume: audioConfig.categoryVolumes.voice,
-      description: 'Общая громкость всех голосовых звуков',
-      icon: <SoundOutlined style={{ color: '#eb2f96' }} />
-    });
-
-    return tracks;
-  }, [audioConfig, bindings, currentLocation, getCurrentLocationInfo]);
+  // Получаем только активные дорожки
+  const activeTracks = useMemo((): TrackInfo[] => {
+    return getActiveTracks?.() || [];
+  }, [getActiveTracks]);
 
   // Инициализация локальных значений
   useEffect(() => {
     const volumes: Record<string, number> = {};
-    allTracks.forEach(track => {
+    activeTracks.forEach(track => {
       volumes[track.id] = track.currentVolume;
     });
     setLocalVolumes(volumes);
-  }, [allTracks]);
+  }, [activeTracks]);
 
   // Обработка изменения громкости
-  const handleVolumeChange = (trackId: string, volume: number) => {
+  const handleVolumeChange = useCallback((trackId: string, volume: number) => {
     setLocalVolumes(prev => ({ ...prev, [trackId]: volume }));
     
     if (trackId === 'master') {
       updateMasterVolume(volume);
-    } else if (trackId.startsWith('category-')) {
-      const category = trackId.replace('category-', '') as 'music' | 'ambient' | 'sfx' | 'voice';
-      updateCategoryVolume(category, volume);
     } else {
       // Для отдельных треков используем updateTrackVolume
       updateTrackVolume(trackId, volume);
     }
-  };
+  }, [updateMasterVolume, updateTrackVolume]);
 
   // Сброс к значениям по умолчанию
-  const resetToDefaults = () => {
+  const resetToDefaults = useCallback(() => {
     if (audioConfig) {
       const defaults: Record<string, number> = {};
       
-      allTracks.forEach(track => {
+      activeTracks.forEach(track => {
         if (track.id === 'master') {
           defaults[track.id] = audioConfig.globalSettings.masterVolume;
-        } else if (track.id.startsWith('category-')) {
-          const category = track.id.replace('category-', '') as 'music' | 'ambient' | 'sfx' | 'voice';
-          defaults[track.id] = audioConfig.categoryVolumes[category];
         } else {
           defaults[track.id] = track.currentVolume;
         }
@@ -210,32 +95,28 @@ export const VolumeControlPanel: React.FC<TrackVolumeControlProps> = () => {
       }
       
       Object.entries(defaults).forEach(([trackId, volume]) => {
-        if (trackId.startsWith('category-')) {
-          const category = trackId.replace('category-', '') as 'music' | 'ambient' | 'sfx' | 'voice';
-          updateCategoryVolume(category, volume);
-        } else if (trackId !== 'master') {
-          // Для отдельных треков используем updateTrackVolume
+        if (trackId !== 'master') {
           updateTrackVolume(trackId, volume);
         }
       });
     }
-  };
+  }, [audioConfig, activeTracks, updateMasterVolume, updateTrackVolume]);
 
   if (!audioConfig) return null;
 
-  const volumePanelContent = (
-          <div>
-
+  // Контент для таба "Каналы"
+  const channelsTabContent = (
+    <div>
       {/* Информация о текущей локации */}
       {locationInfo && (
         <Card size="small" style={{ marginBottom: '16px', backgroundColor: '#f6f8fa' }}>
           <Space direction="vertical" size="small" style={{ width: '100%' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Badge color="blue" />
-              <Text strong>Текущая локация: {locationInfo.name}</Text>
+              <Text strong>Текущая локация: {locationName}</Text>
             </div>
             <div style={{ fontSize: '12px', color: '#666' }}>
-              Тип: {locationInfo.type} • Время: {locationInfo.timeOfDayEnabled ? 'активно' : 'отключено'} • Погода: {locationInfo.weatherEnabled ? 'активна' : 'отключена'}
+              Тип: {locationType} • Время: {timeOfDayEnabled ? 'активно' : 'отключено'} • Погода: {weatherEnabled ? 'активна' : 'отключена'}
             </div>
           </Space>
         </Card>
@@ -243,7 +124,7 @@ export const VolumeControlPanel: React.FC<TrackVolumeControlProps> = () => {
 
       {/* Слайдеры громкости для каждой дорожки */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {allTracks.map((track) => (
+        {activeTracks.map((track) => (
           <div key={track.id} style={{ 
             padding: '12px', 
             border: '1px solid #f0f0f0', 
@@ -258,7 +139,7 @@ export const VolumeControlPanel: React.FC<TrackVolumeControlProps> = () => {
               marginBottom: '8px'
             }}>
               <Space>
-                {track.icon}
+                <span style={{ fontSize: '16px' }}>{track.icon}</span>
                 <div>
                   <Text strong style={{ fontSize: '13px' }}>{track.name}</Text>
                   <div style={{ fontSize: '11px', color: '#666', marginTop: '2px' }}>
@@ -318,9 +199,150 @@ export const VolumeControlPanel: React.FC<TrackVolumeControlProps> = () => {
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Text type="secondary" style={{ fontSize: '11px' }}>
-            Всего дорожек: {allTracks.length}
+            Активных каналов: {activeTracks.length}
           </Text>
         </div>
+      </div>
+    </div>
+  );
+
+  // Контент для таба "Атмосфера"
+  const atmosphereTabContent = (
+    <div>
+      {/* Информация о текущей локации */}
+      {locationInfo && (
+        <div style={{ 
+          padding: 12, 
+          backgroundColor: '#f6f8fa', 
+          borderRadius: 6, 
+          border: '1px solid #e1e4e8',
+          marginBottom: 16
+        }}>
+          <div style={{ fontSize: '12px', fontWeight: 500, marginBottom: 4 }}>
+            📍 {locationName}
+          </div>
+          <Row gutter={8}>
+            <Col span={12}>
+              <Space>
+                <ClockCircleOutlined style={{ color: timeOfDayEnabled ? '#52c41a' : '#d9d9d9' }} />
+                <span style={{ fontSize: '11px', color: timeOfDayEnabled ? '#52c41a' : '#999' }}>
+                  {timeOfDayEnabled ? 'Время суток активно' : 'Время суток отключено'}
+                </span>
+              </Space>
+            </Col>
+            <Col span={12}>
+              <Space>
+                <CloudOutlined style={{ color: weatherEnabled ? '#52c41a' : '#d9d9d9' }} />
+                <span style={{ fontSize: '11px', color: weatherEnabled ? '#52c41a' : '#999' }}>
+                  {weatherEnabled ? 'Погода активна' : 'Погода отключена'}
+                </span>
+              </Space>
+            </Col>
+          </Row>
+        </div>
+      )}
+
+      {/* Время дня */}
+      <div style={{ marginBottom: 16 }}>
+        <Space>
+          <ClockCircleOutlined />
+          <span>Время дня:</span>
+          {!timeOfDayEnabled && (
+            <Tooltip title="Эффекты времени суток отключены для текущей локации">
+              <InfoCircleOutlined style={{ color: '#faad14' }} />
+            </Tooltip>
+          )}
+        </Space>
+        <Select
+          value={currentTimeOfDay}
+          onChange={setTimeOfDay}
+          style={{ width: '100%', marginTop: 8 }}
+          size="small"
+          disabled={!timeOfDayEnabled}
+        >
+          {Object.entries(audioConfig.timeOfDay).map(([time, config]) => (
+            <Option key={time} value={time}>
+              {time === 'morning' && '🌅'}
+              {time === 'day' && '☀️'}
+              {time === 'evening' && '🌆'}
+              {time === 'night' && '🌙'}
+              {' '}{time.charAt(0).toUpperCase() + time.slice(1)}
+            </Option>
+          ))}
+        </Select>
+        {audioConfig.timeOfDay[currentTimeOfDay] && (
+          <div style={{ fontSize: '12px', color: '#666', marginTop: 4 }}>
+            {audioConfig.timeOfDay[currentTimeOfDay].description}
+            {!timeOfDayEnabled && (
+              <span style={{ color: '#faad14', marginLeft: 8 }}>
+                (не применяется в {locationName})
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Погода */}
+      <div style={{ marginBottom: 16 }}>
+        <Space>
+          <CloudOutlined />
+          <span>Погода:</span>
+          {!weatherEnabled && (
+            <Tooltip title="Эффекты погоды отключены для текущей локации">
+              <InfoCircleOutlined style={{ color: '#faad14' }} />
+            </Tooltip>
+          )}
+        </Space>
+        <Select
+          value={currentWeather}
+          onChange={setWeather}
+          style={{ width: '100%', marginTop: 8 }}
+          size="small"
+          disabled={!weatherEnabled}
+        >
+          {Object.entries(audioConfig.weatherEffects).map(([weather, config]) => (
+            <Option key={weather} value={weather}>
+              {weather === 'clear' && '☀️'}
+              {weather === 'rain' && '🌧️'}
+              {weather === 'wind' && '💨'}
+              {weather === 'storm' && '⛈️'}
+              {' '}{weather.charAt(0).toUpperCase() + weather.slice(1)}
+            </Option>
+          ))}
+        </Select>
+        {audioConfig.weatherEffects[currentWeather] && (
+          <div style={{ fontSize: '12px', color: '#666', marginTop: 4 }}>
+            {audioConfig.weatherEffects[currentWeather].description}
+            {!weatherEnabled && (
+              <span style={{ color: '#faad14', marginLeft: 8 }}>
+                (не применяется в {locationName})
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      <Divider style={{ margin: '12px 0' }} />
+
+      {/* Кнопка отключения звука */}
+      <Button
+        type={isMuted ? 'primary' : 'default'}
+        icon={isMuted ? <MutedOutlined /> : <SoundOutlined />}
+        onClick={() => setIsMuted(!isMuted)}
+        size="small"
+        style={{ width: '100%' }}
+      >
+        {isMuted ? 'Включить звук' : 'Отключить звук'}
+      </Button>
+
+      {/* Информация о текущих настройках */}
+      <div style={{ fontSize: '11px', color: '#999', textAlign: 'center', marginTop: 12 }}>
+        Громкость: {Math.round(audioConfig.globalSettings.masterVolume * 100)}%
+        {locationName && (
+          <span style={{ marginLeft: 8 }}>
+            • {locationName}
+          </span>
+        )}
       </div>
     </div>
   );
@@ -330,7 +352,7 @@ export const VolumeControlPanel: React.FC<TrackVolumeControlProps> = () => {
       <FloatButton
         icon={<SettingOutlined />}
         tooltip={{
-          title: 'Управление дорожками',
+          title: 'Настройки звука и атмосферы',
           placement: 'left'
         }}
         onClick={() => setShowPanel(true)}
@@ -341,17 +363,29 @@ export const VolumeControlPanel: React.FC<TrackVolumeControlProps> = () => {
         title={
           <Space>
             <AudioOutlined style={{ color: '#1890ff' }} />
-            <span>Управление дорожками</span>
+            <span>Настройки звука и атмосферы</span>
           </Space>
         }
         open={showPanel}
         onCancel={() => setShowPanel(false)}
         footer={null}
-        width={450}
+        width={500}
         style={{ top: 20 }}
         bodyStyle={{ padding: '16px', maxHeight: '70vh', overflowY: 'auto' }}
       >
-        {volumePanelContent}
+        <Tabs defaultActiveKey="channels" size="small">
+          <TabPane 
+            tab={
+              <span>
+                <AudioOutlined />
+                Каналы
+              </span>
+            } 
+            key="channels"
+          >
+            {channelsTabContent}
+          </TabPane>
+        </Tabs>
       </Modal>
     </>
   );

@@ -137,6 +137,8 @@
       "description": "Ночь - тихие, таинственные звуки"
     }
   },
+
+
   
   "weatherEffects": {
     "clear": {
@@ -155,21 +157,21 @@
       "description": "Дождь - приглушает шаги, добавляет звук дождя"
     },
     "wind": {
-      "ambientLayer": "wind_ambient", 
+      "ambientLayer": null,
       "volume": 0.3,
       "affectsFootsteps": false,
       "affectsMusic": true,
       "musicModifier": 0.9,
-      "description": "Ветер - влияет на музыку, добавляет звук ветра"
+      "description": "Ветер - влияет на музыку (файл недоступен)"
     },
     "storm": {
-      "ambientLayer": "storm_ambient",
+      "ambientLayer": null,
       "volume": 0.6,
       "affectsFootsteps": true,
       "footstepModifier": 0.6,
       "affectsMusic": true,
       "musicModifier": 0.7,
-      "description": "Буря - сильно влияет на все звуки"
+      "description": "Буря - сильно влияет на все звуки (файл недоступен)"
     }
   },
   

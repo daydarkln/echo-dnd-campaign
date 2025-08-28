@@ -194,7 +194,7 @@ const RouteDetail: React.FC<RouteDetailProps> = ({
 
         <Col xs={24} lg={8}>
           {/* Аудио эффекты */}
-          {bindings?.routes[route.id] && (
+          {bindings?.routes && bindings.routes[route.id] && (
             <Card 
               size="small" 
               title={

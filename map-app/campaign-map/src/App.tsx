@@ -13,8 +13,9 @@ import LocationDetail from './components/LocationDetail';
 import PlayerLocationDetail from './components/PlayerLocationDetail';
 import PlayerMap from './components/PlayerMap';
 import { GroupManager } from './components/GroupManager';
-import { WeatherTimeController } from './components/WeatherTimeController';
+
 import VolumeControlPanel from './components/VolumeControlPanel';
+import { WeatherTimeController } from './components/WeatherTimeController';
 import { PointsData, PathsData, PointOfInterest, GraphNode, GraphEdge } from './types';
 import { parseToSubflows } from './utils/dataParser';
 import pointsData from './tochki-interesa.json';
@@ -145,7 +146,6 @@ function App() {
     if (currentView === 'mindmap') {
       return (
         <div style={{ position: 'relative' }}>
-          <WeatherTimeController />
           <GroupedMindMap
             nodes={nodes}
             edges={edges}
@@ -160,7 +160,6 @@ function App() {
     } else if (currentView === 'detail' && selectedLocation) {
       return (
         <div style={{ padding: 24, maxWidth: 1200, margin: '0 auto' }}>
-          <WeatherTimeController />
           <LocationDetail
             location={selectedLocation}
             area={currentArea}
@@ -176,7 +175,6 @@ function App() {
     } else if (currentView === 'region' && focusedRegion) {
       return (
         <div style={{ position: 'relative' }}>
-          <WeatherTimeController />
           <RegionFocusedMap
             areaName={focusedRegion}
             pointsData={pointsData as PointsData}
@@ -352,6 +350,9 @@ function App() {
 
           {/* Панель управления громкостью - доступна на всех страницах */}
           <VolumeControlPanel />
+          
+          {/* Контроллер погоды и времени суток - доступен на всех страницах */}
+          <WeatherTimeController />
       
         </ConfigProvider>
       </AntdApp>

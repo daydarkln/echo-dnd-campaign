@@ -47,6 +47,7 @@ export const useAudioManager = () => {
       };
       localStorage.setItem('dnd_audioSettings', JSON.stringify(settings));
       console.log('Saved audio settings to localStorage:', settings);
+      console.log('Current muted state after save:', isMuted);
     } catch (error) {
       console.error('Failed to save audio settings to localStorage:', error);
     }
@@ -157,7 +158,7 @@ export const useAudioManager = () => {
     }
 
     // Формируем путь к звуковому файлу
-    const soundPath = `/audio/${category}/${soundId}.wav`;
+    const soundPath = `/audio/${category}/${soundId}.mp3`;
     
     // Применяем громкость из конфига
     const baseVolume = volume * audioConfig.categoryVolumes[category] * audioConfig.globalSettings.masterVolume;
@@ -171,12 +172,13 @@ export const useAudioManager = () => {
         const errorMessage = `Ошибка загрузки аудио: ${soundPath}`;
         const reason = `Причина: ${error}`;
         
-        message.error(`${errorMessage}. ${reason}`);
         console.error('Ошибка загрузки аудио:', { soundId, category, soundPath, error });
         
-        // Для SFX показываем дополнительную нотификацию
+        // Показываем ошибку только для критичных звуков
         if (category === 'sfx') {
-          message.error(`🔊 Не удалось воспроизвести звуковой эффект "${soundId}". ${reason}`);
+          message.error(`🔊 Не удалось воспроизвести звуковой эффект "${soundId}". Файл отсутствует или поврежден.`);
+        } else if (category === 'ambient') {
+          console.warn(`⚠️ Ambient звук "${soundId}" недоступен. Проверьте наличие файла: ${soundPath}`);
         }
       },
       onplayerror: (id, error) => {
@@ -516,18 +518,29 @@ export const useAudioManager = () => {
         const weatherConfig = audioConfig.weatherEffects[currentWeather];
         if (weatherConfig && weatherConfig.ambientLayer) {
           const weatherSoundId = `weather-${currentWeather}`;
-          playSound(weatherConfig.ambientLayer, 'ambient', {
-            volume: weatherConfig.volume,
-            loop: true
-          });
           
-          // Переименовываем звук для лучшего отслеживания
-          const sound = activeSounds.current.get(weatherConfig.ambientLayer);
-          if (sound) {
-            activeSounds.current.delete(weatherConfig.ambientLayer);
-            activeSounds.current.set(weatherSoundId, sound);
-            console.log(`Auto-added weather layer: ${weatherSoundId}`);
+          // Проверяем, не играет ли уже этот звук
+          const existingWeatherSound = activeSounds.current.get(weatherSoundId);
+          if (!existingWeatherSound) {
+            playSound(weatherConfig.ambientLayer, 'ambient', {
+              volume: weatherConfig.volume,
+              loop: true
+            });
+            
+            // Переименовываем звук для лучшего отслеживания
+            const sound = activeSounds.current.get(weatherConfig.ambientLayer);
+            if (sound) {
+              activeSounds.current.delete(weatherConfig.ambientLayer);
+              activeSounds.current.set(weatherSoundId, sound);
+              console.log(`Auto-added weather layer: ${weatherSoundId}`);
+            } else {
+              console.warn(`Failed to auto-add weather layer: ${weatherSoundId} - sound not found in activeSounds`);
+            }
+          } else {
+            console.log(`Weather layer ${weatherSoundId} is already playing, skipping auto-add`);
           }
+        } else {
+          console.log(`No ambient layer for weather: ${currentWeather}`);
         }
       }
     }, 2000); // Задержка для плавного появления
@@ -661,7 +674,12 @@ export const useAudioManager = () => {
   const setTimeOfDay = useCallback((time: string) => {
     if (!audioConfig || !bindings || !currentLocation) return;
 
+    console.log(`Setting time of day to: ${time} for location: ${currentLocation}`);
     setCurrentTimeOfDay(time);
+    
+    // Включаем звук при смене времени суток
+    console.log(`Time of day changed to ${time}, unmuting audio. Previous muted state: ${isMuted}`);
+    setIsMuted(false);
     
     // Сохраняем настройки в localStorage
     setTimeout(() => saveAudioSettings(), 100);
@@ -732,6 +750,8 @@ export const useAudioManager = () => {
       }
     }, audioConfig.globalSettings.fadeOutDuration);
 
+
+
     // Применяем модификаторы к активным ambient звукам локации
     activeSounds.current.forEach((sound) => {
       if (sound.category === 'ambient' && !sound.id.startsWith('weather-')) {
@@ -754,17 +774,33 @@ export const useAudioManager = () => {
   const setWeather = useCallback((weather: string) => {
     if (!audioConfig || !bindings || !currentLocation) return;
 
+    console.log(`Setting weather to: ${weather} for location: ${currentLocation}`);
     setCurrentWeather(weather);
+    
+    // Если погода не "clear", то включаем звук (сбрасываем muted)
+    if (weather !== 'clear') {
+      setIsMuted(false);
+      console.log(`Weather changed to ${weather}, unmuting audio. Previous muted state: ${isMuted}`);
+    } else {
+      // Для ясной погоды оставляем текущее состояние muted
+      console.log(`Weather changed to clear, keeping current muted state: ${isMuted}`);
+    }
     
     // Сохраняем настройки в localStorage
     setTimeout(() => saveAudioSettings(), 100);
     
     const weatherConfig = audioConfig.weatherEffects[weather];
-    if (!weatherConfig) return;
+    if (!weatherConfig) {
+      console.log(`Weather config not found for: ${weather}`);
+      return;
+    }
 
     // Получаем конфигурацию текущей локации
     const locationConfig = bindings.locations[currentLocation];
-    if (!locationConfig) return;
+    if (!locationConfig) {
+      console.log(`Location config not found for: ${currentLocation}`);
+      return;
+    }
 
     // Проверяем, нужно ли применять эффекты погоды
     const shouldApplyWeatherEffects = locationConfig.environment.weather !== 'none';
@@ -773,6 +809,8 @@ export const useAudioManager = () => {
       console.log(`Weather effects disabled for location: ${currentLocation}`);
       return;
     }
+
+    console.log(`Applying weather effects for location: ${currentLocation}, weather: ${weather}`);
 
     // Останавливаем предыдущий слой погоды
     activeSounds.current.forEach((sound, id) => {
@@ -786,17 +824,59 @@ export const useAudioManager = () => {
     // Добавляем новый слой погоды, если есть ambientLayer
     if (weatherConfig.ambientLayer) {
       const weatherSoundId = `weather-${weather}`;
-      playSound(weatherConfig.ambientLayer, 'ambient', {
-        volume: weatherConfig.volume,
-        loop: true
-      });
+      console.log(`Playing weather ambient: ${weatherConfig.ambientLayer} with volume: ${weatherConfig.volume}`);
       
-      // Переименовываем звук для лучшего отслеживания
-      const sound = activeSounds.current.get(weatherConfig.ambientLayer);
-      if (sound) {
-        activeSounds.current.delete(weatherConfig.ambientLayer);
-        activeSounds.current.set(weatherSoundId, sound);
-        console.log(`Added weather layer: ${weatherSoundId}`);
+      // Проверяем, не играет ли уже этот звук
+      const existingWeatherSound = activeSounds.current.get(weatherSoundId);
+      if (existingWeatherSound) {
+        console.log(`Weather sound ${weatherSoundId} is already playing, updating volume`);
+        existingWeatherSound.howl.volume(weatherConfig.volume);
+        existingWeatherSound.volume = weatherConfig.volume;
+      } else {
+        // Создаем звук погоды напрямую с правильным ID
+        const soundPath = `/audio/ambient/${weatherConfig.ambientLayer}.mp3`;
+        
+        // Применяем громкость из конфига
+        const baseVolume = weatherConfig.volume * audioConfig.categoryVolumes.ambient * audioConfig.globalSettings.masterVolume;
+        
+        const howl = new Howl({
+          src: [soundPath],
+          volume: baseVolume,
+          loop: true,
+          onloaderror: (id, error) => {
+            console.warn(`⚠️ Weather sound "${weatherConfig.ambientLayer}" недоступен. Проверьте наличие файла: ${soundPath}`);
+          },
+          onplayerror: (id, error) => {
+            console.error(`Ошибка воспроизведения погоды: ${soundPath}`, error);
+          }
+        });
+
+        const activeSound: ActiveSound = {
+          id: weatherSoundId,
+          howl,
+          category: 'ambient',
+          volume: baseVolume,
+          isLooping: true
+        };
+
+        activeSounds.current.set(weatherSoundId, activeSound);
+        
+        if (weatherConfig.volume > 0) {
+          howl.play();
+          console.log(`Added weather layer: ${weatherSoundId}, volume: ${baseVolume}`);
+        } else {
+          console.log(`Weather layer ${weatherSoundId} created but not playing due to zero volume`);
+        }
+      }
+    } else {
+      console.log(`No ambient layer for weather: ${weather} - applying only modifiers`);
+      
+      // Даже если нет ambient слоя, применяем модификаторы к существующим звукам
+      if (weatherConfig.affectsFootsteps) {
+        console.log(`Applying footstep modifiers for weather: ${weather}`);
+      }
+      if (weatherConfig.affectsMusic) {
+        console.log(`Applying music modifiers for weather: ${weather}`);
       }
     }
 
@@ -824,6 +904,8 @@ export const useAudioManager = () => {
         }
       });
     }
+    
+    console.log(`Weather effects applied successfully for: ${weather}`);
   }, [audioConfig, bindings, currentLocation, playSound]);
 
   // Обновление громкости категории в реальном времени
@@ -875,6 +957,13 @@ export const useAudioManager = () => {
           console.log(`Updated music ${musicId} volume to ${volume} in location ${location.name}`);
         }
       });
+    } else if (trackId.startsWith('weather-')) {
+      const weatherType = trackId.replace('weather-', '');
+      // Обновляем громкость эффекта погоды в конфиге
+      if (audioConfig.weatherEffects[weatherType]) {
+        audioConfig.weatherEffects[weatherType].volume = volume;
+        console.log(`Updated weather ${weatherType} volume to ${volume}`);
+      }
     }
     
     // Применяем к активным звукам
@@ -1057,18 +1146,29 @@ export const useAudioManager = () => {
         const weatherConfig = audioConfig.weatherEffects[currentWeather];
         if (weatherConfig && weatherConfig.ambientLayer) {
           const weatherSoundId = `weather-${currentWeather}`;
-          playSound(weatherConfig.ambientLayer, 'ambient', {
-            volume: weatherConfig.volume,
-            loop: true
-          });
           
-          // Переименовываем звук для лучшего отслеживания
-          const sound = activeSounds.current.get(weatherConfig.ambientLayer);
-          if (sound) {
-            activeSounds.current.delete(weatherConfig.ambientLayer);
-            activeSounds.current.set(weatherSoundId, sound);
-            console.log(`Auto-added weather layer: ${weatherSoundId}`);
+          // Проверяем, не играет ли уже этот звук
+          const existingWeatherSound = activeSounds.current.get(weatherSoundId);
+          if (!existingWeatherSound) {
+            playSound(weatherConfig.ambientLayer, 'ambient', {
+              volume: weatherConfig.volume,
+              loop: true
+            });
+            
+            // Переименовываем звук для лучшего отслеживания
+            const sound = activeSounds.current.get(weatherConfig.ambientLayer);
+            if (sound) {
+              activeSounds.current.delete(weatherConfig.ambientLayer);
+              activeSounds.current.set(weatherSoundId, sound);
+              console.log(`Auto-added weather layer: ${weatherSoundId}`);
+            } else {
+              console.warn(`Failed to auto-add weather layer: ${weatherSoundId} - sound not found in activeSounds`);
+            }
+          } else {
+            console.log(`Weather layer ${weatherSoundId} is already playing, skipping auto-add`);
           }
+        } else {
+          console.log(`No ambient layer for weather: ${currentWeather}`);
         }
       }
     }, 2000); // Задержка для плавного появления
@@ -1090,6 +1190,97 @@ export const useAudioManager = () => {
     };
   }, [bindings, currentLocation]);
 
+  // Получение активных дорожек для отображения в панели управления
+  const getActiveTracks = useCallback(() => {
+    if (!audioConfig) return [];
+    
+    const tracks: Array<{
+      id: string;
+      name: string;
+      category: 'ambient' | 'music' | 'sfx' | 'voice';
+      currentVolume: number;
+      description: string;
+      icon: string;
+    }> = [];
+    
+    // Добавляем общую громкость
+    tracks.push({
+      id: 'master',
+      name: 'Общая громкость',
+      category: 'ambient',
+      currentVolume: audioConfig.globalSettings.masterVolume,
+      description: 'Общая громкость всех звуков',
+      icon: '🔊'
+    });
+
+    // Добавляем только те дорожки, которые действительно играют
+    activeSounds.current.forEach((sound, soundId) => {
+      
+      let name = soundId;
+      let description = '';
+      
+      // Определяем название и описание на основе ID и категории
+      if (soundId.startsWith('weather-')) {
+        const weatherType = soundId.replace('weather-', '');
+        const weatherNames: Record<string, string> = {
+          'clear': 'Ясно',
+          'rain': 'Дождь',
+          'wind': 'Ветер',
+          'storm': 'Буря'
+        };
+        name = `Погода: ${weatherNames[weatherType] || weatherType}`;
+        description = `Звуковой эффект погоды`;
+      } else if (soundId.includes('ambient') || sound.category === 'ambient') {
+        // Убираем префиксы для более читаемых названий
+        const cleanName = soundId
+          .replace('ambient-', '')
+          .replace('day-', '')
+          .replace('night-', '');
+        
+        // Если это ambient локации, добавляем название локации
+        if (currentLocation && bindings?.locations[currentLocation]) {
+          const locationName = bindings.locations[currentLocation].name;
+          name = `Эмбиент: ${locationName}`;
+        } else {
+          name = `Эмбиент: ${cleanName}`;
+        }
+        description = `Фоновая атмосфера локации`;
+      } else if (soundId.includes('music') || sound.category === 'music') {
+        const cleanName = soundId.replace('music-', '');
+        
+        // Если это музыка локации, добавляем название локации
+        if (currentLocation && bindings?.locations[currentLocation]) {
+          const locationName = bindings.locations[currentLocation].name;
+          name = `Музыка: ${locationName}`;
+        } else {
+          name = `Музыка: ${cleanName}`;
+        }
+        description = `Музыкальная тема`;
+      } else if (sound.category === 'sfx') {
+        name = `Эффект: ${soundId}`;
+        description = `Звуковой эффект`;
+      } else if (sound.category === 'voice') {
+        name = `Голос: ${soundId}`;
+        description = `Голосовая дорожка`;
+      } else {
+        // Для неизвестных типов используем ID как есть
+        name = soundId;
+        description = `Звуковая дорожка`;
+      }
+      
+      tracks.push({
+        id: soundId,
+        name,
+        category: sound.category,
+        currentVolume: sound.volume,
+        description,
+        icon: sound.category === 'music' ? '🎵' : sound.category === 'ambient' ? '🌍' : sound.category === 'sfx' ? '🔊' : '🗣️'
+      });
+    });
+    
+    return tracks;
+  }, [audioConfig, currentLocation, currentTimeOfDay, currentWeather, bindings]);
+
   return {
     bindings,
     audioConfig,
@@ -1109,6 +1300,7 @@ export const useAudioManager = () => {
     setTimeOfDay,
     setWeather,
     setIsMuted: (muted: boolean) => {
+      console.log(`setIsMuted called with: ${muted}, previous state: ${isMuted}`);
       setIsMuted(muted);
       setTimeout(() => saveAudioSettings(), 100);
     },
@@ -1117,6 +1309,7 @@ export const useAudioManager = () => {
     updateMasterVolume,
     updateTrackVolume,
     getCurrentLocationInfo,
+    getActiveTracks,
     clearAudioSettings,
     getSavedSettingsInfo
   };

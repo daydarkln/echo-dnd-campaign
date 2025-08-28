@@ -183,10 +183,11 @@ export const RouteEffectButtons: React.FC<RouteEffectButtonsProps> = ({
                 <strong>Путь:</strong> {routeConfig.name}
                 <br />
                 <strong>Тип:</strong> {routeConfig.type}
-                {routeConfig.ambient?.primary && (
+                {routeConfig.ambient && (
                   <>
                     <br />
-                    <strong>Ambient:</strong> {routeConfig.ambient.primary}
+                    <strong>Ambient:</strong> {routeConfig.ambient.day}
+                    {routeConfig.ambient.night && ` / ${routeConfig.ambient.night}`}
                   </>
                 )}
                 {isLocationTransition && (

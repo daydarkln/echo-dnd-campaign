@@ -215,10 +215,11 @@ export const LocationEffectButtons: React.FC<LocationEffectButtonsProps> = ({
                 <strong>Локация:</strong> {locationConfig.name}
                 <br />
                 <strong>Тип:</strong> {locationConfig.type}
-                {locationConfig.ambient?.primary && (
+                {locationConfig.ambient && (
                   <>
                     <br />
-                    <strong>Ambient:</strong> {locationConfig.ambient.primary}
+                    <strong>Ambient:</strong> {locationConfig.ambient.day}
+                    {locationConfig.ambient.night && ` / ${locationConfig.ambient.night}`}
                   </>
                 )}
                 {isLocationTransition && (

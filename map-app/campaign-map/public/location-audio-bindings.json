@@ -4,13 +4,13 @@
       "name": "Горная крепость",
       "type": "city",
       "ambient": {
-        "day": "city-day",
-        "night": "city-night",
+        "day": "city",
+        "night": "city-empty",
         "volume": 0.7,
         "crossfadeTime": 2500
       },
       "music": {
-        "theme": "city_theme",
+        "theme": "skyholm_theme",
         "volume": 0.4,
         "loop": true
       },
@@ -20,14 +20,6 @@
           "volume": 0.9,
           "fadeOutAmbient": true,
           "ambientFadeTime": 1500
-        },
-        "footsteps": {
-          "surface": "stone",
-          "volume": 0.7
-        },
-        "marketHaggle": {
-          "sound": "haggle_voices",
-          "volume": 0.6
         }
       },
       "environment": {
@@ -40,13 +32,13 @@
       "name": "Ремесленный квартал",
       "type": "city",
       "ambient": {
-        "day": "city-day",
-        "night": "city-night",
+        "day": "city",
+        "night": "city-empty",
         "volume": 0.8,
         "crossfadeTime": 2000
       },
       "music": {
-        "theme": "city_theme",
+        "theme": "world_fallen_theme",
         "volume": 0.3,
         "loop": true
       },
@@ -56,14 +48,6 @@
           "volume": 0.8,
           "fadeOutAmbient": true,
           "ambientFadeTime": 1500
-        },
-        "footsteps": {
-          "surface": "stone",
-          "volume": 0.6
-        },
-        "marketHaggle": {
-          "sound": "haggle_voices",
-          "volume": 0.7
         }
       },
       "environment": {
@@ -76,12 +60,12 @@
       "name": "Городское кладбище",
       "type": "dungeon",
       "ambient": {
-        "day": "library-ambient",
+        "day": "cave",
         "volume": 0.4,
         "crossfadeTime": 4000
       },
       "music": {
-        "theme": "library_theme",
+        "theme": "dark_idle",
         "volume": 0.6,
         "loop": true
       },
@@ -90,14 +74,6 @@
           "sound": "door_ancient_heavy",
           "volume": 0.7,
           "fadeOutAmbient": false
-        },
-        "footsteps": {
-          "surface": "stone",
-          "volume": 0.5
-        },
-        "bookOpen": {
-          "sound": "book_pages",
-          "volume": 0.5
         }
       },
       "environment": {
@@ -116,7 +92,7 @@
         "crossfadeTime": 3000
       },
       "music": {
-        "theme": "exploration",
+        "theme": "forest",
         "volume": 0.4,
         "loop": true
       },
@@ -125,14 +101,6 @@
           "sound": "door_wooden",
           "volume": 0.6,
           "fadeOutAmbient": false
-        },
-        "footsteps": {
-          "surface": "grass",
-          "volume": 0.5
-        },
-        "birds": {
-          "sound": "birds",
-          "volume": 0.4
         }
       },
       "environment": {
@@ -145,8 +113,8 @@
       "name": "Грибной рынок",
       "type": "city",
       "ambient": {
-        "day": "city-market",
-        "night": "city-night",
+        "day": "city",
+        "night": "city-empty",
         "volume": 0.8,
         "crossfadeTime": 2000
       },
@@ -161,14 +129,6 @@
           "volume": 0.8,
           "fadeOutAmbient": true,
           "ambientFadeTime": 1500
-        },
-        "footsteps": {
-          "surface": "stone",
-          "volume": 0.6
-        },
-        "marketHaggle": {
-          "sound": "haggle_voices",
-          "volume": 0.8
         }
       },
       "environment": {
@@ -181,13 +141,13 @@
       "name": "Академия резонанса",
       "type": "city",
       "ambient": {
-        "day": "city-day",
-        "night": "city-night",
+        "day": "city",
+        "night": "city-empty",
         "volume": 0.5,
         "crossfadeTime": 3500
       },
       "music": {
-        "theme": "library_theme",
+        "theme": "dark_idle",
         "volume": 0.5,
         "loop": true
       },
@@ -196,18 +156,6 @@
           "sound": "door_ancient_heavy",
           "volume": 0.7,
           "fadeOutAmbient": false
-        },
-        "footsteps": {
-          "surface": "stone",
-          "volume": 0.6
-        },
-        "bookOpen": {
-          "sound": "book_pages",
-          "volume": 0.6
-        },
-        "scrollUnroll": {
-          "sound": "scroll_paper",
-          "volume": 0.5
         }
       },
       "environment": {
@@ -348,8 +296,8 @@
       "name": "Центральная площадь",
       "type": "city",
       "ambient": {
-        "day": "city-market",
-        "night": "city-night",
+        "day": "city",
+        "night": "city-empty",
         "volume": 0.9,
         "crossfadeTime": 2000
       },
@@ -364,14 +312,6 @@
           "volume": 0.8,
           "fadeOutAmbient": true,
           "ambientFadeTime": 1500
-        },
-        "footsteps": {
-          "surface": "stone",
-          "volume": 0.6
-        },
-        "marketHaggle": {
-          "sound": "haggle_voices",
-          "volume": 0.8
         }
       },
       "environment": {
@@ -384,13 +324,13 @@
       "name": "Военный квартал",
       "type": "city",
       "ambient": {
-        "day": "city-street",
-        "night": "city-night",
+        "day": "city",
+        "night": "city-empty",
         "volume": 0.7,
         "crossfadeTime": 2500
       },
       "music": {
-        "theme": "city_theme",
+        "theme": "skyholm_theme",
         "volume": 0.4,
         "loop": true
       },
@@ -400,10 +340,6 @@
           "volume": 0.9,
           "fadeOutAmbient": true,
           "ambientFadeTime": 1500
-        },
-        "footsteps": {
-          "surface": "stone",
-          "volume": 0.7
         }
       },
       "environment": {
@@ -729,30 +665,17 @@
       "name": "Кордонная застава",
       "type": "outpost",
       "ambient": {
-        "day": "city-street",
-        "night": "city-night",
+        "day": "city",
+        "night": "city-empty",
         "volume": 0.7,
         "crossfadeTime": 2500
       },
       "music": {
-        "theme": "city_theme",
+        "theme": "skyholm_theme",
         "volume": 0.4,
         "loop": true
       },
-      "effects": {
-        "footsteps": {
-          "surface": "stone",
-          "volume": 0.6
-        },
-        "guardDuty": {
-          "sound": "guard_activity",
-          "volume": 0.5
-        },
-        "gateOpen": {
-          "sound": "gate_creak",
-          "volume": 0.7
-        }
-      },
+      "effects": {},
       "environment": {
         "indoorOutdoor": "outdoors",
         "timeOfDay": "auto",
@@ -770,24 +693,11 @@
         "crossfadeTime": 4000
       },
       "music": {
-        "theme": "mystery_theme",
+        "theme": "fungi_theme",
         "volume": 0.5,
         "loop": true
       },
-      "effects": {
-        "footsteps": {
-          "surface": "grass",
-          "volume": 0.3
-        },
-        "sacredChanting": {
-          "sound": "sacred_chanting",
-          "volume": 0.6
-        },
-        "sporeBlessing": {
-          "sound": "spore_blessing",
-          "volume": 0.4
-        }
-      },
+      "effects": {},
       "environment": {
         "indoorOutdoor": "outdoors",
         "timeOfDay": "auto",
@@ -799,29 +709,16 @@
       "name": "Старый колодец",
       "type": "dungeon",
       "ambient": {
-        "day": "library-ambient",
+        "day": "cave",
         "volume": 0.6,
         "crossfadeTime": 4000
       },
       "music": {
-        "theme": "dark_mystery",
+        "theme": "dark_idle",
         "volume": 0.5,
         "loop": true
       },
-      "effects": {
-        "footsteps": {
-          "surface": "stone",
-          "volume": 0.7
-        },
-        "wellEcho": {
-          "sound": "well_echo",
-          "volume": 0.6
-        },
-        "waterDrop": {
-          "sound": "water_drop",
-          "volume": 0.4
-        }
-      },
+      "effects": {},
       "environment": {
         "indoorOutdoor": "indoors",
         "timeOfDay": "none",
@@ -1888,24 +1785,11 @@
         "crossfadeTime": 2500
       },
       "music": {
-        "theme": "seaside_theme",
+        "theme": "swanlake_theme",
         "volume": 0.4,
         "loop": true
       },
-      "effects": {
-        "footsteps": {
-          "surface": "wood",
-          "volume": 0.6
-        },
-        "fishingActivity": {
-          "sound": "fishing_activity",
-          "volume": 0.5
-        },
-        "waterElementals": {
-          "sound": "water_elementals",
-          "volume": 0.4
-        }
-      },
+      "effects": {},
       "environment": {
         "indoorOutdoor": "outdoors",
         "timeOfDay": "auto",
@@ -2267,30 +2151,16 @@
       "name": "Гнездо Тени",
       "type": "dungeon",
       "ambient": {
-        "day": "library-ambient",
-        "night": "library-ambient",
+        "day": "cave",
         "volume": 0.2,
         "crossfadeTime": 6000
       },
       "music": {
-        "theme": "dark_mystery",
+        "theme": "dark_idle",
         "volume": 1.0,
         "loop": true
       },
-      "effects": {
-        "footsteps": {
-          "surface": "shadow",
-          "volume": 0.9
-        },
-        "shadowWhispers": {
-          "sound": "shadow_whispers",
-          "volume": 1.0
-        },
-        "realityDistortion": {
-          "sound": "reality_distortion",
-          "volume": 0.9
-        }
-      },
+      "effects": {},
       "environment": {
         "indoorOutdoor": "indoors",
         "timeOfDay": "none",
@@ -2312,14 +2182,6 @@
         "volume": 0.3,
         "affectsMusic": true,
         "musicModifier": 0.9
-      },
-      "storm": {
-        "ambientLayer": "storm_ambient",
-        "volume": 0.6,
-        "affectsFootsteps": true,
-        "footstepModifier": 0.6,
-        "affectsMusic": true,
-        "musicModifier": 0.7
       }
     },
     "timeOfDay": {

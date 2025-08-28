@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, Typography, Row, Col, Button, Space, Tag, Divider } from 'antd';
 import { useTrackers } from '../hooks/useTrackers';
 import { useGroups } from '../hooks/useGroups';
-import { WeatherTimeController } from '../components/WeatherTimeController';
+
 
 const { Title, Text } = Typography;
 
@@ -73,9 +73,6 @@ const TrackersPage: React.FC = () => {
   ][state.swarm];
   return (
     <div style={{ padding: 24 }}>
-      {/* Контроллер погоды и времени */}
-      <WeatherTimeController />
-      
       <Card style={{ height: '100%', border: 'none' }}>
         <div style={{ marginBottom: 16, textAlign: 'center' }}>
           <Title level={2} style={{ margin: 0, color: '#1890ff' }}>
