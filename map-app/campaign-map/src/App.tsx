@@ -16,12 +16,15 @@ import { GroupManager } from './components/GroupManager';
 
 import VolumeControlPanel from './components/VolumeControlPanel';
 import { WeatherTimeController } from './components/WeatherTimeController';
+import GameModeToggle from './components/GameModeToggle';
+import GameModeView from './components/GameModeView';
 import { PointsData, PathsData, PointOfInterest, GraphNode, GraphEdge } from './types';
 import { parseToSubflows } from './utils/dataParser';
 import pointsData from './tochki-interesa.json';
 import pathsData from './puti-mezhdu-lokaciyami.json';
 import { useFieldVisibility } from './hooks/useFieldVisibility';
 import { useAudioManager } from './hooks/useAudioManager';
+import { GameModeProvider, useGameMode } from './contexts/GameModeContext';
 import 'antd/dist/reset.css';
 import './App.css';
 
@@ -41,7 +44,8 @@ export const useAudio = () => {
 
 type ViewState = 'mindmap' | 'detail' | 'region';
 
-function App() {
+// Внутренний компонент, который использует хук useGameMode
+function AppContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [nodes, setNodes] = useState<GraphNode[]>([]);
@@ -73,6 +77,9 @@ function App() {
 
   // Аудио менеджер - теперь глобальный
   const audioManager = useAudioManager();
+
+  // Хук для управления режимом игры
+  const { isGameMode, isPlanningMode } = useGameMode();
 
   useEffect(() => {
     try {
@@ -142,6 +149,30 @@ function App() {
     );
   }
 
+  // Если включен режим игры, показываем упрощенный интерфейс
+  if (isGameMode) {
+    return (
+      <AudioContext.Provider value={audioManager}>
+        <ConfigProvider componentSize='small'>
+          <AntdApp>
+            <Layout style={{ minHeight: '100vh', backgroundColor: '#f0f2f5' }}>
+              <GameModeToggle />
+              <Content>
+                <GameModeView />
+              </Content>
+            </Layout>
+            
+            {/* Панель управления громкостью - доступна в режиме игры */}
+            <VolumeControlPanel />
+            
+            {/* Контроллер погоды и времени суток - доступен в режиме игры */}
+            <WeatherTimeController />
+          </AntdApp>
+        </ConfigProvider>
+      </AudioContext.Provider>
+    );
+  }
+
   const renderMapView = () => {
     if (currentView === 'mindmap') {
       return (
@@ -195,6 +226,7 @@ function App() {
         <ConfigProvider componentSize='small'>
 
         <Layout style={{ minHeight: '100vh', backgroundColor: '#f0f2f5' }}>
+          <GameModeToggle />
           <Content style={{ padding: 24 }}>
             <Tabs
               activeKey={
@@ -357,6 +389,15 @@ function App() {
         </ConfigProvider>
       </AntdApp>
     </AudioContext.Provider>
+  );
+}
+
+// Основная функция App, которая оборачивает AppContent в GameModeProvider
+function App() {
+  return (
+    <GameModeProvider>
+      <AppContent />
+    </GameModeProvider>
   );
 }
 

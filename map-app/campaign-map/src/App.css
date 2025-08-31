@@ -4,6 +4,59 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
+/* Стили для карточек в игровом режиме */
+.game-mode-card {
+  transition: all 0.3s ease;
+  border: 1px solid #d9d9d9;
+  border-radius: 12px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+}
+
+.game-mode-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border-color: #40a9ff;
+}
+
+.game-mode-card .ant-card-body {
+  padding: 24px;
+  text-align: center;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.game-mode-card .anticon {
+  font-size: 32px;
+  margin-bottom: 16px;
+  transition: all 0.3s ease;
+}
+
+.game-mode-card:hover .anticon {
+  transform: scale(1.1);
+}
+
+.game-mode-card .ant-typography {
+  transition: all 0.3s ease;
+}
+
+.game-mode-card:hover .ant-typography {
+  color: #1890ff;
+}
+
+/* Анимация для иконок */
+@keyframes iconPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.game-mode-card:hover .anticon {
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
 /* Стили для React Flow */
 .react-flow__node {
   border-radius: 8px;
