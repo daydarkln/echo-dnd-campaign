@@ -1,5 +1,6 @@
 # Table of contents
 
+* [Синопсис кампании](sinopsis-kampanii.md)
 * [Глоссарий](README.md)
   * [Мир](glossarii/mir/README.md)
     * [Великие Дома](glossarii/mir/velikie-doma.md)
@@ -42,6 +43,7 @@
   * [Карта Кампании](globalnyi-syuzhet/karta-kampanii.md)
   * [Таблица истиности](globalnyi-syuzhet/tablica-istinosti.md)
 * [Разные механики](raznye-mekhaniki/README.md)
+  * [Социальные энкаунтеры](raznye-mekhaniki/sotsialnye-enkauntery.md)
   * [Слухи](raznye-mekhaniki/slukhi.md)
   * [Вертикальность данжа](raznye-mekhaniki/vertikalnost-danzha.md)
   * [Описания препятствий](raznye-mekhaniki/opisaniya-prepyatstviy.md)
