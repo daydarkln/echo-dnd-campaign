@@ -3,7 +3,7 @@ import { Segmented } from 'antd';
 import { useAudio } from '../App';
 import './WeatherTimeController.css';
 
-export const WeatherTimeController: React.FC = () => {
+export const WeatherTimeController: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
   const {
     currentWeather,
     audioConfig,
@@ -56,7 +56,7 @@ export const WeatherTimeController: React.FC = () => {
   }));
 
   return (
-    <div className="control-section">
+    <div className={`control-section ${embedded ? '' : 'floating'}`}>
       <div style={{ marginBottom: '8px', fontSize: '12px', color: isMuted ? '#ff4d4f' : '#52c41a' }}>
         {isMuted ? '🔇 Звук отключен' : '🔊 Звук включен'}
       </div>

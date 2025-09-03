@@ -362,6 +362,9 @@ const GroupedMindMap: React.FC<GroupedMindMapProps> = ({
       if (node.type === 'locationNode') {
         const locationData = node.data as any;
         if (locationData.location && locationData.area) {
+          try {
+            window.dispatchEvent(new CustomEvent('gm:locationSelected', { detail: { id: locationData.location.id, name: locationData.location.name, area: locationData.area } }));
+          } catch {}
           onNodeClick(locationData.location, locationData.area);
         }
       }

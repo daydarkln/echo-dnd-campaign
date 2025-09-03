@@ -18,7 +18,7 @@ interface TrackInfo {
   icon: string;
 }
 
-export const VolumeControlPanel: React.FC<TrackVolumeControlProps> = () => {
+export const VolumeControlPanel: React.FC<TrackVolumeControlProps & { asWidget?: boolean }> = ({ asWidget }) => {
   const { 
     audioConfig, 
     bindings, 
@@ -346,6 +346,14 @@ export const VolumeControlPanel: React.FC<TrackVolumeControlProps> = () => {
       </div>
     </div>
   );
+
+  if (asWidget) {
+    return (
+      <div>
+        {channelsTabContent}
+      </div>
+    );
+  }
 
   return (
     <>

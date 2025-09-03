@@ -162,11 +162,7 @@ function AppContent() {
               </Content>
             </Layout>
             
-            {/* Панель управления громкостью - доступна в режиме игры */}
-            <VolumeControlPanel />
-            
-            {/* Контроллер погоды и времени суток - доступен в режиме игры */}
-            <WeatherTimeController />
+            {/* Громкость и погода/время управляются из виджетов GameModeView */}
           </AntdApp>
         </ConfigProvider>
       </AudioContext.Provider>
@@ -333,6 +329,10 @@ function AppContent() {
               />
               <Route
                 path="/quests"
+                element={<QuestsPage />}
+              />
+              <Route
+                path="/quests/:id"
                 element={<QuestsPage />}
               />
               <Route path="*" element={<Navigate to="/" replace />} />

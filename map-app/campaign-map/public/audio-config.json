@@ -82,7 +82,7 @@
   
   "encounterSettings": {
     "battle": {
-      "musicTransition": "battle_theme",
+      "musicTransition": "main_battle_theme",
       "ambientFadeOut": true,
       "priority": "high",
       "crossfadeTime": 2000,

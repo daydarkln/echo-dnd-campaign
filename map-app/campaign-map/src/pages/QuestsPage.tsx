@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Alert, Button, Col, Divider, Empty, Layout, List, Modal, Row, Space, Spin, Tag, Typography, message, Card } from 'antd';
 import { PlusOutlined, DeleteOutlined, EditOutlined, EyeOutlined } from '@ant-design/icons';
 import { useQuests } from '../hooks/useQuests';
@@ -59,6 +60,8 @@ _Споровая свеча памяти_: мягкий свет, помеха 
 
 export default function QuestsPage() {
   const { data, loading, error, createQuest, updateQuest, deleteQuest, refetch } = useQuests();
+  const params = useParams();
+  const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = useMemo(() => data.find(q => q.id === selectedId) || null, [data, selectedId]);
   const [draft, setDraft] = useState<Quest | null>(null);
@@ -73,6 +76,15 @@ export default function QuestsPage() {
       }).catch(() => {});
     }
   }, [loading, data.length, createQuest, refetch]);
+
+  // Синхронизация выбора с роутом /quests/:id
+  useEffect(() => {
+    const routeId = params.id;
+    if (routeId && data.some(q => q.id === routeId)) {
+      setSelectedId(routeId);
+      setViewMode('view');
+    }
+  }, [params.id, data]);
 
   useEffect(() => {
     setDraft(selected ? { ...selected } : null);
@@ -125,6 +137,7 @@ export default function QuestsPage() {
   const handleQuestClick = (quest: Quest) => {
     setSelectedId(quest.id);
     setViewMode('view'); // Клик по названию открывает только просмотр
+    navigate(`/quests/${quest.id}`);
   };
 
   const handleEditClick = (quest: Quest) => {

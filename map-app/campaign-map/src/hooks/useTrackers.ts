@@ -12,6 +12,8 @@ export interface TrackersState {
   cityPanic: number;   // 0-4
   ecosystem: number;   // 0-4
   swarm: number;       // 0-4
+  // Узнаваемость/репутация (сдвигает отношение NPC), 0 — враждебно, 4 — дружелюбно
+  recognizability: number; // 0-4
 }
 
 const STORAGE_KEY = 'campaign-map-trackers';
@@ -24,6 +26,7 @@ export const useTrackers = () => {
     cityPanic: 0,
     ecosystem: 0,
     swarm: 0,
+    recognizability: 2,
   });
 
   useEffect(() => {
@@ -38,6 +41,7 @@ export const useTrackers = () => {
           cityPanic: clamp(parsed.cityPanic ?? 0, 0, 4),
           ecosystem: clamp(parsed.ecosystem ?? 0, 0, 4),
           swarm: clamp(parsed.swarm ?? 0, 0, 4),
+          recognizability: clamp((parsed as any).recognizability ?? 2, 0, 4),
         });
       }
     } catch {}
@@ -49,13 +53,13 @@ export const useTrackers = () => {
   }, []);
 
   // Глобальные часы
-  const setValue = useCallback((key: 'cityPanic' | 'ecosystem' | 'swarm', value: number) => {
+  const setValue = useCallback((key: 'cityPanic' | 'ecosystem' | 'swarm' | 'recognizability', value: number) => {
     save({ ...state, [key]: clamp(value, 0, 4) });
   }, [state, save]);
 
-  const inc = useCallback((key: 'cityPanic' | 'ecosystem' | 'swarm') => setValue(key, (state[key] as number) + 1), [state, setValue]);
-  const dec = useCallback((key: 'cityPanic' | 'ecosystem' | 'swarm') => setValue(key, (state[key] as number) - 1), [state, setValue]);
-  const reset = useCallback((key: 'cityPanic' | 'ecosystem' | 'swarm') => setValue(key, 0), [setValue]);
+  const inc = useCallback((key: 'cityPanic' | 'ecosystem' | 'swarm' | 'recognizability') => setValue(key, (state[key] as number) + 1), [state, setValue]);
+  const dec = useCallback((key: 'cityPanic' | 'ecosystem' | 'swarm' | 'recognizability') => setValue(key, (state[key] as number) - 1), [state, setValue]);
+  const reset = useCallback((key: 'cityPanic' | 'ecosystem' | 'swarm' | 'recognizability') => setValue(key, 0), [setValue]);
 
   // Персонажные трекеры
   const getCharacterStages = useCallback((characterId: string): CharacterStages => {

@@ -45,6 +45,10 @@ export function useQuests() {
   const updateQuest = useCallback(async (id: string, input: UpdateQuestInput) => {
     const updated = await apiClient.quests.updateQuest(id, { ...input, updatedAt: new Date().toISOString() });
     setData(prev => prev.map(q => (q.id === id ? updated : q)));
+    try {
+      // Сообщим об изменении квеста слушателям (история в GameModeView)
+      window.dispatchEvent(new CustomEvent('gm:questUpdated', { detail: { id, input } }));
+    } catch {}
     return updated;
   }, []);
 

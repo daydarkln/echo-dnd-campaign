@@ -214,6 +214,95 @@
   }
 }
 
+/* Простая анимация появления/скрытия для зон GameModeView */
+.gm-zone-enter {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.gm-zone-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.gm-zone-exit {
+  opacity: 1;
+}
+
+.gm-zone-exit-active {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* Masonry-стиль сетка для GameModeView */
+.gm-masonry-container {
+  /* Pinterest-like колонки: равномерный вертикальный поток без больших разрывов */
+  column-count: 3;
+  column-gap: 12px;
+}
+
+@media (max-width: 1200px) {
+  .gm-masonry-container { column-count: 2; }
+}
+
+@media (max-width: 768px) {
+  .gm-masonry-container { column-count: 1; column-gap: 8px; }
+}
+
+.gm-masonry-item {
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  page-break-inside: avoid;
+  margin-bottom: 12px;
+  width: 100%;
+  display: inline-block;
+  transition: all 0.25s ease;
+}
+
+.gm-masonry-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Адаптивная сетка для разных экранов */
+@media (max-width: 768px) {
+  .gm-masonry-item { margin-bottom: 8px; }
+}
+
+/* Специальные стили для разных типов виджетов */
+.gm-widget-compact {
+  min-height: auto;
+}
+
+.gm-widget-tall {
+  min-height: 200px;
+}
+
+.gm-widget-full { width: 100%; }
+
+/* Боевой режим - центральное расположение */
+.gm-combat-center {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 60vh;
+}
+
+/* Flexbox fallback для старых браузеров */
+.gm-masonry-fallback {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.gm-masonry-fallback > * {
+  flex: 1 1 300px;
+  min-width: 300px;
+}
+
 /* Стили для различных типов карточек */
 .amplifier-card .ant-card-head {
   background-color: #fff2f0;

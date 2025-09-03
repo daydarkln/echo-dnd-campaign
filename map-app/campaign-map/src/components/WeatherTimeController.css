@@ -1,9 +1,17 @@
 .control-section {
-  padding: 10px 10px;
-  background: white;
+  padding: 10px;
+  background: #fff;
+  position: static; /* В режиме виджета не фиксированный */
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+  box-shadow: none;
+}
+
+/* Когда используется в виде плавающей панели, можно добавить класс .floating */
+.control-section.floating {
   position: fixed;
   right: 25px;
   top: 60px;
-  border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: none;
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Typography, Row, Col, Button, Space, Tag, Divider } from 'antd';
+import { Card, Typography, Row, Col, Button, Space, Tag, Divider, Slider } from 'antd';
 import { useTrackers } from '../hooks/useTrackers';
 import { useGroups } from '../hooks/useGroups';
 
@@ -41,8 +41,9 @@ const Meter: React.FC<{ label: string; value: number; description?: string | str
 };
 
 const TrackersPage: React.FC = () => {
-  const { state, inc, dec, reset, getCharacterStages, incCharacterStage, decCharacterStage, resetCharacterStage } = useTrackers();
+  const { state, inc, dec, reset, setValue, getCharacterStages, incCharacterStage, decCharacterStage, resetCharacterStage } = useTrackers();
   const { groups } = useGroups();
+  const attitudeLabels = ['Враждебно', 'Недружелюбно', 'Нейтрально', 'Доброжелательно', 'Дружелюбно'];
 
   // Кумулятивные побочки для справки (не используются напрямую, т.к. теперь персонажные)
   // Оставлено на случай будущего переназначения
@@ -85,6 +86,24 @@ const TrackersPage: React.FC = () => {
       <Row gutter={[16, 16]}>
         <Col span={24}>
           <Title level={4} style={{ margin: 0 }}>Общие трекеры</Title>
+        </Col>
+        <Col xs={24}>
+          <Card>
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Text strong>Узнаваемость</Text>
+              <Slider
+                min={0}
+                max={4}
+                step={1}
+                value={state.recognizability}
+                onChange={(v) => setValue('recognizability', Number(v))}
+              />
+              <div style={{ fontWeight: 500 }}>{attitudeLabels[state.recognizability]}</div>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                Смещает распределение отношения случайно встречаемых NPC.
+              </Text>
+            </Space>
+          </Card>
         </Col>
         <Col xs={24} md={12} lg={8}>
           <Meter label="Городская паника" value={state.cityPanic} description={cityDesc} onInc={() => inc('cityPanic')} onDec={() => dec('cityPanic')} />

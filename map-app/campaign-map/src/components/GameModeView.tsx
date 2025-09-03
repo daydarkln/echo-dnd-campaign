@@ -1,221 +1,841 @@
-import React from 'react';
-import { Card, Typography, Space, Row, Col, Divider } from 'antd';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Layout, Card, Typography, Space, Row, Col, Button, Divider, Tag, Tooltip, Badge, Input, List, Empty, Slider } from 'antd';
 import { 
   PlayCircleOutlined, 
-  TeamOutlined, 
-  CompassOutlined, 
-  BookOutlined,
+  StopOutlined,
+  SoundOutlined,
+  PauseCircleOutlined,
+  CustomerServiceOutlined,
   ThunderboltOutlined,
-  InfoCircleOutlined
+  BookOutlined,
+  GlobalOutlined,
+  TeamOutlined,
+  ReadOutlined,
+  FileTextOutlined,
+  HistoryOutlined,
+  AimOutlined,
+  UserOutlined
 } from '@ant-design/icons';
+import { SaveOutlined } from '@ant-design/icons';
+import { useAudio } from '../App';
+import { useQuests } from '../hooks/useQuests';
+import InitiativeTracker from './InitiativeTracker';
+import GroupedMindMap from './GroupedMindMap';
+import RegionFocusedMap from './RegionFocusedMap';
+import { PointsData, PathsData } from '../types';
+import pointsData from '../tochki-interesa.json';
+import pathsData from '../puti-mezhdu-lokaciyami.json';
+import { parseToSubflows } from '../utils/dataParser';
+import { useInitiativeTracker } from '../hooks/useInitiativeTracker';
+import { useCharacters } from '../hooks/useCharacters';
+import { useGroups } from '../hooks/useGroups';
+import { useTrackers } from '../hooks/useTrackers';
+import { useNavigate } from 'react-router-dom';
+import VolumeControlPanel from './VolumeControlPanel';
+import { WeatherTimeController } from './WeatherTimeController';
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
+
+type Mode = 'exploration' | 'combat';
+type MusicMode = 'exploration' | 'battle' | 'ambient';
+
+const zoneStyle: React.CSSProperties = { transition: 'opacity 0.25s ease, transform 0.25s ease' };
+const STORAGE_NOTES_KEY = 'gm-notes';
+const STORAGE_HISTORY_KEY = 'gm-history';
+const STORAGE_NPCS_KEY = 'gm-generated-npcs';
+
+const NotesPanel: React.FC<{ value: string; onChange: (v: string) => void }>
+  = ({ value, onChange }) => {
+  return (
+    <Card size="small" title={<Space><FileTextOutlined /> <span>Заметки мастера</span></Space>}>
+      <Input.TextArea rows={6} value={value} onChange={(e) => onChange(e.target.value)} placeholder="Быстрые заметки... (Z — добавить)" />
+    </Card>
+  );
+};
 
 export const GameModeView: React.FC = () => {
-  // Обработчики кликов для карточек
-  const handleLocationClick = () => {
-    console.log('Клик по карточке локации');
-    // Здесь можно добавить навигацию к деталям локации
+  const audio = useAudio();
+  const { data: quests } = useQuests();
+  const { currentEncounter, startCombat, endCombat } = useInitiativeTracker();
+  const { characters } = useCharacters();
+  const { groups } = useGroups();
+  const { state: trackers, setValue: setTrackerValue, inc: incTracker, dec: decTracker } = useTrackers();
+  const navigate = useNavigate();
+
+  const [mode, setMode] = useState<Mode>('exploration');
+  const [musicMode, setMusicMode] = useState<MusicMode>('exploration');
+  const [showInitiative, setShowInitiative] = useState(false);
+  const [showMap, setShowMap] = useState(true);
+  const [showQuests, setShowQuests] = useState(true);
+  const [showWorldTrackers, setShowWorldTrackers] = useState(true);
+  const [showNotes, setShowNotes] = useState(true);
+  const [notes, setNotes] = useState<string>(() => {
+    try { return localStorage.getItem(STORAGE_NOTES_KEY) ?? ''; } catch { return ''; }
+  });
+  const [history, setHistory] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_HISTORY_KEY);
+      if (!saved) return [];
+      const arr = JSON.parse(saved);
+      return Array.isArray(arr) ? arr : [];
+    } catch { return []; }
+  });
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [currentView, setCurrentView] = useState<'mindmap' | 'region'>('mindmap');
+  const [focusedRegion, setFocusedRegion] = useState<string | null>(null);
+
+  const pushHistory = useCallback((record: string) => {
+    setHistory((prev) => {
+      const next = [new Date().toLocaleTimeString('ru-RU') + ' — ' + record, ...prev].slice(0, 50);
+      try { localStorage.setItem(STORAGE_HISTORY_KEY, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, []);
+
+  // NPC генерация
+  type GeneratedNpc = { name: string; race: string; age: string; attitudeIndex: number; attitudeLabel: string };
+  const [generatedNpcs, setGeneratedNpcs] = useState<GeneratedNpc[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_NPCS_KEY);
+      const arr = saved ? JSON.parse(saved) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch { return []; }
+  });
+  const [npcLoading, setNpcLoading] = useState(false);
+  const [npcError, setNpcError] = useState<string | null>(null);
+
+  const attitudeLabels = ['Враждебный', 'Недружелюбный', 'Нейтральный', 'Доброжелательный', 'Дружелюбный'];
+  const attitudeColors = ['red', 'volcano', 'default', 'green', 'blue'];
+
+  const sampleAttitude = useCallback((bias: number) => {
+    const mu = Math.max(0, Math.min(4, bias));
+    const sigma = 0.9;
+    const weights = Array.from({ length: 5 }).map((_, i) => {
+      const z = (i - mu) / sigma;
+      return Math.exp(-0.5 * z * z);
+    });
+    const sum = weights.reduce((a, b) => a + b, 0);
+    const probs = weights.map((w) => w / sum);
+    const r = Math.random();
+    let acc = 0;
+    for (let i = 0; i < probs.length; i++) {
+      acc += probs[i];
+      if (r <= acc) return i;
+    }
+    return 2;
+  }, []);
+
+  const parseNpcFromResponse = (raw: any): { name?: string; race?: string; age?: string } => {
+    const tryObj = (o: any) => {
+      if (!o || typeof o !== 'object') return {} as any;
+      return {
+        name: o.name || o.Name || o.fullName || o.character || o.title,
+        race: o.race || o.Race || o.species,
+        age: (o.age ?? o.Age ?? o?.details?.age)?.toString(),
+      } as any;
+    };
+    // Новый формат 7tools: refPackage.References["0"].ReferenceIds[raw.npc]
+    try {
+      const npcId = raw?.npc;
+      const refs = raw?.refPackage?.References;
+      const ref0 = refs?.["0"] ?? refs?.[0];
+      const ids = ref0?.ReferenceIds;
+      const entry = npcId && ids ? ids[npcId] : undefined;
+      if (entry && typeof entry === 'object') {
+        const vp = entry.VisualAppearance || {};
+        return {
+          name: entry.Name || entry.name,
+          race: entry.RaceName || entry.race || raw?.race,
+          age: (vp.age || vp.Age || entry.age || '').toString() || undefined,
+        };
+      }
+    } catch {}
+    if (Array.isArray(raw)) return tryObj(raw[0]);
+    if (raw?.data) {
+      if (Array.isArray(raw.data)) return tryObj(raw.data[0]);
+      return tryObj(raw.data);
+    }
+    if (raw?.result && typeof raw.result === 'string') {
+      const text = raw.result as string;
+      const name = (text.match(/(?:Name|Имя)[:\-]?\s*([^,\n]+)/i)?.[1] || '').trim();
+      const race = (text.match(/(?:Race|Раса)[:\-]?\s*([^,\n]+)/i)?.[1] || '').trim();
+      const age = (text.match(/(?:Age|Возраст)[:\-]?\s*([^,\n]+)/i)?.[1] || '').trim();
+      return { name, race, age };
+    }
+    return tryObj(raw);
   };
 
-  const handleGroupClick = () => {
-    console.log('Клик по карточке группы');
-    // Здесь можно добавить навигацию к управлению группой
-  };
+  const generateNpc = useCallback(async () => {
+    setNpcLoading(true);
+    setNpcError(null);
+    try {
+      const url = 'https://7tools.dev/api/GetNPC?adjective=true&generationCount=1&race=Random&gender=Any';
+      const res = await fetch(url, { headers: { Accept: 'application/json' } });
+      const text = await res.text();
+      let name = 'Незнакомец';
+      let race = '—';
+      let age = '—';
+      try {
+        const json = JSON.parse(text);
+        const parsed = parseNpcFromResponse(json);
+        if (parsed.name) name = parsed.name;
+        if (parsed.race) race = parsed.race;
+        if (parsed.age) age = parsed.age;
+      } catch {
+        const nameM = text.match(/(?:Name|Имя)[:\-]?\s*([^,\n]+)/i);
+        const raceM = text.match(/(?:Race|Раса)[:\-]?\s*([^,\n]+)/i);
+        const ageM = text.match(/(?:Age|Возраст)[:\-]?\s*([^,\n]+)/i);
+        if (nameM) name = nameM[1].trim();
+        if (raceM) race = raceM[1].trim();
+        if (ageM) age = ageM[1].trim();
+      }
+      const idx = sampleAttitude(trackers.recognizability ?? 2);
+      const label = attitudeLabels[idx];
+      setGeneratedNpcs((prev) => [{ name, race, age, attitudeIndex: idx, attitudeLabel: label }, ...prev].slice(0, 10));
+      pushHistory(`NPC: ${name} (${race}, ${age}) — ${label.toLowerCase()}`);
+    } catch (e: any) {
+      setNpcError('Не удалось сгенерировать NPC. Проверьте соединение.');
+    } finally {
+      setNpcLoading(false);
+    }
+  }, [sampleAttitude, trackers.recognizability, attitudeLabels, pushHistory]);
 
-  const handleQuestsClick = () => {
-    console.log('Клик по карточке квестов');
-    // Здесь можно добавить навигацию к странице квестов
-  };
+  // Подготовка данных карты
+  const { nodes, edges } = useMemo(() => parseToSubflows(pointsData as PointsData, pathsData as PathsData), []);
 
-  const handleActionsClick = () => {
-    console.log('Клик по карточке быстрых действий');
-    // Здесь можно добавить навигацию к инструментам мастера
-  };
+  // Начальная загрузка из localStorage выполнена в инициализации useState
 
+  // Сохранение состояния в localStorage
+  useEffect(() => {
+    try { localStorage.setItem(STORAGE_NOTES_KEY, notes); } catch {}
+  }, [notes]);
+  useEffect(() => {
+    try { localStorage.setItem(STORAGE_HISTORY_KEY, JSON.stringify(history)); } catch {}
+  }, [history]);
+  useEffect(() => {
+    try { localStorage.setItem(STORAGE_NPCS_KEY, JSON.stringify(generatedNpcs)); } catch {}
+  }, [generatedNpcs]);
+
+  const playMusicTransition = useCallback(async (target: MusicMode) => {
+    if (!audio?.audioConfig) return;
+    
+    const cfg = audio.audioConfig.encounterSettings;
+    
+    if (target === 'ambient') {
+      // Плавно затухаем музыку, оставляем только ambient
+      const activeSounds = audio.getActiveTracks();
+      const musicSounds = activeSounds.filter(track => track.category === 'music');
+      
+      for (const musicSound of musicSounds) {
+        audio.stopSound(musicSound.id, true); // С fade-out
+      }
+      
+      setMusicMode('ambient');
+      return;
+    }
+    
+    // Для battle/exploration - плавный переход
+    const pick = target === 'battle' ? cfg.battle : cfg.exploration;
+    
+    if (target === 'exploration') {
+      // При возврате к исследованию - восстанавливаем музыку текущей локации
+      const locationInfo = audio.getCurrentLocationInfo();
+      if (locationInfo) {
+        // Плавно затухаем боевую музыку
+        const activeSounds = audio.getActiveTracks();
+        const musicSounds = activeSounds.filter(track => track.category === 'music');
+        
+        // Запускаем fade-out для текущей музыки
+        const fadePromises = musicSounds.map(musicSound => 
+          new Promise<void>(resolve => {
+            audio.stopSound(musicSound.id, true);
+            setTimeout(resolve, audio.audioConfig?.globalSettings.fadeOutDuration || 1500);
+          })
+        );
+        
+        // Ждём завершения fade-out, затем запускаем музыку локации
+        await Promise.all(fadePromises);
+        
+        // Восстанавливаем музыку локации через playLocationSpotlight
+        setTimeout(() => {
+          audio.playLocationSpotlight(locationInfo.id);
+          setMusicMode(target);
+        }, 200);
+        
+        return;
+      }
+    }
+    
+    // Стандартный переход для battle или fallback для exploration
+    if (pick?.musicTransition) {
+      // Плавно затухаем текущую музыку
+      const activeSounds = audio.getActiveTracks();
+      const musicSounds = activeSounds.filter(track => track.category === 'music');
+      
+      const fadePromises = musicSounds.map(musicSound => 
+        new Promise<void>(resolve => {
+          audio.stopSound(musicSound.id, true);
+          setTimeout(resolve, audio.audioConfig?.globalSettings.fadeOutDuration || 1500);
+        })
+      );
+      
+      // Ждём завершения fade-out, затем запускаем новую музыку
+      await Promise.all(fadePromises);
+      
+      setTimeout(() => {
+        audio.playSound(pick.musicTransition!, 'music', { 
+          volume: pick.volume || 0.6, 
+          loop: true, 
+          fadeIn: true 
+        });
+        setMusicMode(target);
+      }, 200);
+    }
+  }, [audio, pushHistory]);
+
+  const handleStartEncounter = useCallback(() => {
+    setMode('combat');
+    setShowInitiative(true);
+    setShowMap(false);
+    setShowQuests(false);
+    setShowWorldTrackers(false);
+    setShowNotes(false);
+    playMusicTransition('battle');
+    if (currentEncounter && !currentEncounter.isActive) {
+      try { startCombat(currentEncounter.id); } catch {}
+    }
+    pushHistory('Бой начат');
+  }, [currentEncounter, startCombat, playMusicTransition, pushHistory]);
+
+  const handleEndEncounter = useCallback(() => {
+    setMode('exploration');
+    setShowInitiative(false);
+    setShowMap(true);
+    setShowQuests(true);
+    setShowWorldTrackers(true);
+    setShowNotes(true);
+    playMusicTransition('exploration');
+    if (currentEncounter?.isActive) {
+      try { endCombat(currentEncounter.id); } catch {}
+    }
+    pushHistory('Бой завершён');
+  }, [currentEncounter, endCombat, playMusicTransition, pushHistory]);
+
+  const toggleEncounter = useCallback(() => {
+    if (mode === 'exploration') handleStartEncounter(); else handleEndEncounter();
+  }, [mode, handleStartEncounter, handleEndEncounter]);
+
+  const cycleMusic = useCallback(() => {
+    const order: MusicMode[] = ['exploration', 'battle', 'ambient'];
+    const next = order[(order.indexOf(musicMode) + 1) % order.length];
+    playMusicTransition(next);
+  }, [musicMode, playMusicTransition]);
+
+  // Горячие клавиши
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      // Игнорировать, если зажаты модификаторы Cmd/Ctrl
+      if (e.metaKey || e.ctrlKey) return;
+      // Игнорировать, если фокус в поле ввода/редактировании
+      const ae = (document.activeElement as HTMLElement | null);
+      if (ae) {
+        const tag = ae.tagName?.toLowerCase();
+        const isInput = tag === 'input' || tag === 'textarea';
+        const isEditable = (ae as any).isContentEditable === true || !!ae.closest?.('[contenteditable="true"], .ant-input, .ant-mentions, .ant-select-open, .ant-picker-focused');
+        if (isInput || isEditable) return;
+      }
+      const key = e.key.toUpperCase();
+      if (key === 'Q') { e.preventDefault(); toggleEncounter(); }
+      if (key === 'W') { e.preventDefault(); cycleMusic(); }
+      if (key === 'X') { e.preventDefault(); audio.setIsMuted(!audio.isMuted); pushHistory(audio.isMuted ? 'Звук: включен' : 'Звук: выключен'); }
+      if (key === 'A') { e.preventDefault(); setShowInitiative((v) => !v); }
+      if (key === 'E') { e.preventDefault(); setShowMap((v) => !v); }
+      if (key === 'R') { e.preventDefault(); setShowQuests((v) => !v); }
+      if (key === 'T') { e.preventDefault(); setShowWorldTrackers((v) => !v); }
+      if (key === 'Y') { e.preventDefault(); setShowNotes((v) => !v); }
+      if (key === 'Z') { e.preventDefault(); setNotes((n) => (n ? n + '\n- ' : '- ')); }
+      // S/D/C/F/V — заглушки-акции
+      if (key === 'S') { e.preventDefault(); pushHistory('Генерация NPC (заглушка)'); }
+      if (key === 'D') { e.preventDefault(); pushHistory('Генерация лута (заглушка)'); }
+      if (key === 'C') { e.preventDefault(); pushHistory('Открыт быстрый справочник (заглушка)'); }
+      if (key === 'V') { e.preventDefault(); pushHistory('Открыта история событий'); setShowNotes(true); }
+      if (key === 'F') { e.preventDefault(); pushHistory('Переключение карточек игроков'); }
+    };
+    window.addEventListener('keydown', onKey);
+    // Событие выбора локации из карт
+    const onLocationSelected = (e: any) => {
+      try {
+        const d = e.detail;
+        if (d && d.name) pushHistory(`Локация: ${d.name}`);
+      } catch {}
+    };
+    window.addEventListener('gm:locationSelected', onLocationSelected as any);
+    // Событие обновления квеста (summary/status)
+    const onQuestUpdated = (e: any) => {
+      try {
+        const d = e.detail as { id: string; input: any };
+        if (!d) return;
+        const parts: string[] = [];
+        if (typeof d.input?.status === 'string') parts.push(`статус → ${d.input.status}`);
+        if (typeof d.input?.summary === 'string') parts.push('обновлён краткий обзор');
+        if (parts.length > 0) pushHistory(`Квест #${d.id}: ${parts.join(', ')}`);
+      } catch {}
+    };
+    window.addEventListener('gm:questUpdated', onQuestUpdated as any);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [audio, toggleEncounter, cycleMusic, pushHistory]);
+
+  // Правый столбец: карточки игроков
+  const renderPlayerCards = () => {
+    if (mode === 'combat' && currentEncounter) {
+      return (
+        <Space direction="vertical" style={{ width: '100%' }}>
+          {currentEncounter.characters.map((c) => {
+            const cd = (Object.entries(characters).find(([id]) => id.endsWith(c.id))?.[1] ?? null);
+            const parsed = cd ? JSON.parse(cd.data) : null;
+            const hpCur = parsed?.vitality?.['hp-current']?.value ?? '—';
+            const hpMax = parsed?.vitality?.['hp-max']?.value ?? '—';
+            const ac = parsed?.vitality?.ac?.value ?? '—';
+            return (
+              <Card key={c.id} size="small" bodyStyle={{ padding: 8 }}>
+                <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                  <Space>
+                    <Badge color={c.groupColor} />
+                    <Text strong>{c.name}</Text>
+                  </Space>
+                  <Space>
+                    <Tag color="blue">КД {ac}</Tag>
+                    <Tag color="red">ХП {hpCur}/{hpMax}</Tag>
+                  </Space>
+                </Space>
+              </Card>
+            );
+          })}
+        </Space>
+      );
+    }
+    // Exploration: упрощённые карточки из групп
+    const members = groups.flatMap((g) => g.members.map((m) => ({ ...m, groupColor: g.color })));
   return (
-    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
-      {/* Заголовок */}
-      <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-        <Title level={2} style={{ color: '#52c41a' }}>
-          <PlayCircleOutlined style={{ marginRight: '12px' }} />
-          Режим игры
-        </Title>
-        <Text type="secondary">
-          Упрощенный интерфейс для игрового процесса
-        </Text>
-      </div>
-
-      {/* Основные секции */}
-      <Row gutter={[24, 24]}>
-        {/* Текущая локация */}
-        <Col xs={24} md={12}>
-          <Card 
-            hoverable
-            onClick={handleLocationClick}
-            className="game-mode-card"
-            style={{ height: '100%' }}
-          >
-            <CompassOutlined style={{ 
-              fontSize: '32px', 
-              color: '#1890ff', 
-              marginBottom: '16px' 
-            }} />
-            <Title level={4} style={{ marginBottom: '8px', color: '#1890ff' }}>
-              Текущая локация
-            </Title>
-            <Text style={{ 
-              fontSize: '20px', 
-              fontWeight: 'bold',
-              display: 'block',
-              marginBottom: '8px'
-            }}>
-              Городское кладбище
-            </Text>
-            <Text type="secondary" style={{ fontSize: '14px' }}>
-              Тип: dungeon • Время: отключено • Погода: активна
-            </Text>
+      <Space direction="vertical" style={{ width: '100%' }}>
+        {members.map((m) => (
+          <Card key={m.id} size="small" bodyStyle={{ padding: 8 }}>
+            <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+              <Space>
+                <Badge color={m.groupColor} />
+                <Text strong>{m.name}</Text>
+              </Space>
+              <Text type="secondary">{m.class || '—'}</Text>
+            </Space>
           </Card>
-        </Col>
+        ))}
+        {members.length === 0 && <Empty description="Нет игроков" />}
+      </Space>
+    );
+  };
 
-        {/* Группа игроков */}
-        <Col xs={24} md={12}>
-          <Card 
-            hoverable
-            onClick={handleGroupClick}
-            className="game-mode-card"
-            style={{ height: '100%' }}
-          >
-            <TeamOutlined style={{ 
-              fontSize: '32px', 
-              color: '#722ed1', 
-              marginBottom: '16px' 
-            }} />
-            <Title level={4} style={{ marginBottom: '8px', color: '#722ed1' }}>
-              Группа игроков
-            </Title>
-            <Text style={{ 
-              fontSize: '20px', 
-              fontWeight: 'bold',
-              display: 'block',
-              marginBottom: '8px'
-            }}>
-              4 персонажа
-            </Text>
-            <Text type="secondary" style={{ fontSize: '14px' }}>
-              Уровень: 3-4 • Здоровье: 85%
-            </Text>
-          </Card>
-        </Col>
+  // Список активных квестов (компактно)
+  const questList = useMemo(() => quests.filter((q) => q.status === 'active').slice(0, 10), [quests]);
 
-        {/* Активные квесты */}
-        <Col xs={24} md={12}>
-          <Card 
-            hoverable
-            onClick={handleQuestsClick}
-            className="game-mode-card"
-            style={{ height: '100%' }}
-          >
-            <BookOutlined style={{ 
-              fontSize: '32px', 
-              color: '#fa8c16', 
-              marginBottom: '16px' 
-            }} />
-            <Title level={4} style={{ marginBottom: '8px', color: '#fa8c16' }}>
-              Активные квесты
-            </Title>
-            <Text style={{ 
-              fontSize: '20px', 
-              fontWeight: 'bold',
-              display: 'block',
-              marginBottom: '8px'
-            }}>
-              2 активных квеста
-            </Text>
-            <Text type="secondary" style={{ fontSize: '14px' }}>
-              Основной: Лунные нити памяти
-            </Text>
-          </Card>
-        </Col>
+  // Верхняя панель
+  const TopBar = (
+    <Card bodyStyle={{ padding: 8 }} style={{ marginBottom: 12 }}>
+      <Space wrap>
+        <Tooltip title="Start/End Encounter (Q)">
+          {mode === 'exploration' ? (
+            <Button type="primary" icon={<PlayCircleOutlined />} onClick={handleStartEncounter}>Start Encounter</Button>
+          ) : (
+            <Button danger icon={<StopOutlined />} onClick={handleEndEncounter}>End Encounter</Button>
+          )}
+        </Tooltip>
+        <Tooltip title="Музыка: Исследование ↔ Бой ↔ Атмосфера (W)">
+          <Button icon={<SoundOutlined />} onClick={cycleMusic}>Музыка</Button>
+        </Tooltip>
+        <Tooltip title="Пауза/Play (X)">
+          <Button icon={audio.isMuted ? <CustomerServiceOutlined /> : <PauseCircleOutlined />} onClick={() => audio.setIsMuted(!audio.isMuted)}>
+            {audio.isMuted ? 'Включить звук' : 'Выключить звук'}
+          </Button>
+        </Tooltip>
+        <Tooltip title="Генератор NPC (S)"><Button icon={<TeamOutlined />} loading={npcLoading} onClick={generateNpc}>NPC</Button></Tooltip>
+        <Tooltip title="Генератор лута (D)"><Button icon={<ThunderboltOutlined />} onClick={() => pushHistory('Генерация лута (заглушка)')}>Лут</Button></Tooltip>
+      </Space>
+    </Card>
+  );
 
-        {/* Быстрые действия */}
-        <Col xs={24} md={12}>
-          <Card 
-            hoverable
-            onClick={handleActionsClick}
-            className="game-mode-card"
-            style={{ height: '100%' }}
-          >
-            <ThunderboltOutlined style={{ 
-              fontSize: '32px', 
-              color: '#eb2f96', 
-              marginBottom: '16px' 
-            }} />
-            <Title level={4} style={{ marginBottom: '8px', color: '#eb2f96' }}>
-              Быстрые действия
-            </Title>
-            <Text style={{ 
-              fontSize: '20px', 
-              fontWeight: 'bold',
-              display: 'block',
-              marginBottom: '8px'
-            }}>
-              Инструменты мастера
-            </Text>
-            <Text type="secondary" style={{ fontSize: '14px' }}>
-              Часто используемые функции
-            </Text>
-          </Card>
-        </Col>
-      </Row>
+  // Собираем все виджеты и распределяем по сторонам
+  const allWidgets = useMemo(() => {
+    const widgets: Array<{ id: string; order: number; side: 'left' | 'center' | 'right'; className: string; content: React.ReactNode }> = [];
 
-      {/* Информационная панель */}
-      <Card 
-        style={{ marginTop: '24px' }}
-        title={
+    // Карточки игроков (всегда видимы)
+    widgets.push({
+      id: 'players',
+      order: 3,
+      side: 'right',
+      className: 'gm-widget-compact',
+      content: (
+        <Card size="small" title={<Space><UserOutlined /> Карточки игроков (F)</Space>}>
+          {renderPlayerCards()}
+        </Card>
+      )
+    });
+
+    if (mode === 'exploration') {
+      // Состояние мира
+      if (showWorldTrackers) {
+        widgets.push({
+          id: 'world-trackers',
+          order: 4,
+          side: 'left',
+          className: 'gm-widget-compact',
+          content: (
+            <Card size="small" title={<Space><GlobalOutlined /> Состояние мира (T)</Space>}>
+              <Space direction="vertical" style={{ width: '100%' }}>
+                <Text strong>Узнаваемость</Text>
+                <Slider
+                  min={0}
+                  max={4}
+                  step={1}
+                  value={trackers.recognizability}
+                  onChange={(v) => {
+                    const oldVal = trackers.recognizability;
+                    const newVal = Number(v);
+                    if (newVal !== oldVal) {
+                      setTrackerValue('recognizability', newVal);
+                      const labels = ['Враждебно','Недружелюбно','Нейтрально','Доброжелательно','Дружелюбно'];
+                      pushHistory(`Узнаваемость: ${labels[oldVal]} → ${labels[newVal]}`);
+                    }
+                  }}
+                />
+                <div style={{ fontWeight: 500 }}>{['Враждебно','Недружелюбно','Нейтрально','Доброжелательно','Дружелюбно'][trackers.recognizability]}</div>
+                <Divider style={{ margin: '8px 0' }} />
+                <Space direction="vertical" style={{ width: '100%' }}>
+                  <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                    <Text>Городская паника</Text>
+                    <Space>
+                      <Button size="small" onClick={() => {
+                        const prev = trackers.cityPanic;
+                        const next = Math.max(0, Math.min(4, prev - 1));
+                        if (next !== prev) {
+                          setTrackerValue('cityPanic', next);
+                          pushHistory(`Городская паника: ${prev} → ${next}`);
+                        }
+                      }}>-</Button>
+                      <Tag color="blue">{trackers.cityPanic}</Tag>
+                      <Button size="small" onClick={() => {
+                        const prev = trackers.cityPanic;
+                        const next = Math.max(0, Math.min(4, prev + 1));
+                        if (next !== prev) {
+                          setTrackerValue('cityPanic', next);
+                          pushHistory(`Городская паника: ${prev} → ${next}`);
+                        }
+                      }}>+</Button>
+                    </Space>
+                  </Space>
+                  <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                    <Text>Экосистема</Text>
+                    <Space>
+                      <Button size="small" onClick={() => {
+                        const prev = trackers.ecosystem;
+                        const next = Math.max(0, Math.min(4, prev - 1));
+                        if (next !== prev) {
+                          setTrackerValue('ecosystem', next);
+                          pushHistory(`Экосистема: ${prev} → ${next}`);
+                        }
+                      }}>-</Button>
+                      <Tag color="green">{trackers.ecosystem}</Tag>
+                      <Button size="small" onClick={() => {
+                        const prev = trackers.ecosystem;
+                        const next = Math.max(0, Math.min(4, prev + 1));
+                        if (next !== prev) {
+                          setTrackerValue('ecosystem', next);
+                          pushHistory(`Экосистема: ${prev} → ${next}`);
+                        }
+                      }}>+</Button>
+                    </Space>
+                  </Space>
+                  <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                    <Text>Рой</Text>
+                    <Space>
+                      <Button size="small" onClick={() => {
+                        const prev = trackers.swarm;
+                        const next = Math.max(0, Math.min(4, prev - 1));
+                        if (next !== prev) {
+                          setTrackerValue('swarm', next);
+                          pushHistory(`Рой: ${prev} → ${next}`);
+                        }
+                      }}>-</Button>
+                      <Tag color="magenta">{trackers.swarm}</Tag>
+                      <Button size="small" onClick={() => {
+                        const prev = trackers.swarm;
+                        const next = Math.max(0, Math.min(4, prev + 1));
+                        if (next !== prev) {
+                          setTrackerValue('swarm', next);
+                          pushHistory(`Рой: ${prev} → ${next}`);
+                        }
+                      }}>+</Button>
+                    </Space>
+                  </Space>
+                </Space>
+              </Space>
+            </Card>
+          )
+        });
+      }
+
+      // Карта — центральная колонка. Для columns layout она будет тяготеть к центру при большем размере.
+      if (showMap) {
+        widgets.push({
+          id: 'map',
+          order: 5,
+          side: 'center',
+          className: 'gm-widget-tall',
+          content: (
+            <Card size="small" title={<Space><AimOutlined /> Карта мира (E)</Space>}>
+              {currentView === 'mindmap' ? (
+                <GroupedMindMap
+                  nodes={nodes}
+                  edges={edges}
+                  pointsData={pointsData as PointsData}
+                  pathsData={pathsData as PathsData}
+                  onNodeClick={() => {}}
+                  onRegionClick={(area) => setFocusedRegion(area)}
+                  enableDragging={false}
+                />
+              ) : (
+                focusedRegion && (
+                  <RegionFocusedMap
+                    areaName={focusedRegion}
+                    pointsData={pointsData as PointsData}
+                    pathsData={pathsData as PathsData}
+                    onBack={() => { setFocusedRegion(null); setCurrentView('mindmap'); }}
+                    onNodeClick={() => {}}
+                    enableDragging={false}
+                  />
+                )
+              )}
+            </Card>
+          )
+        });
+      }
+
+      // Квесты
+      if (showQuests) {
+        widgets.push({
+          id: 'quests',
+          order: 1,
+          side: 'right',
+          className: 'gm-widget-compact',
+          content: (
+            <Card size="small" title={<Space><ReadOutlined /> Активные задания (R)</Space>}>
+              {questList.length === 0 ? (
+                <Empty description="Нет активных квестов" />
+              ) : (
+                <List
+                  size="small"
+                  dataSource={questList}
+                  renderItem={(q) => (
+                    <List.Item onClick={() => navigate(`/quests/${q.id}`)} style={{ cursor: 'pointer' }}>
+                      <Space direction="vertical" size={0} style={{ width: '100%' }}>
           <Space>
-            <InfoCircleOutlined style={{ color: '#13c2c2' }} />
-            Информация о режиме игры
+                          <Text strong>{q.title}</Text>
+                          <Tag>{q.status}</Tag>
+                        </Space>
+                        <Typography.Paragraph type="secondary" ellipsis={{ rows: 2 }} style={{ margin: 0 }}>
+                          {q.summary}
+                        </Typography.Paragraph>
           </Space>
-        }
-      >
-        <Paragraph>
-          <Text strong>Режим игры</Text> - это упрощенный интерфейс, специально разработанный для использования во время игровых сессий.
-        </Paragraph>
-        <Row gutter={[16, 16]}>
-          <Col xs={24} md={8}>
-            <div style={{ textAlign: 'center', padding: '16px' }}>
-              <CompassOutlined style={{ fontSize: '24px', color: '#1890ff', marginBottom: '8px' }} />
-              <div><Text strong>Быстрый доступ</Text></div>
-              <Text type="secondary" style={{ fontSize: '12px' }}>
-                К важной информации о локациях, персонажах и квестах
-              </Text>
+                    </List.Item>
+                  )}
+                />
+              )}
+            </Card>
+          )
+        });
+      }
+
+      // Заметки и история в exploration
+      if (showNotes) {
+        widgets.push({
+          id: 'notes',
+          order: 2,
+          side: 'left',
+          className: 'gm-widget-compact',
+          content: <NotesPanel value={notes} onChange={setNotes} />
+        });
+      }
+
+      // Правая колонка: инструменты мастера (аккордеоны)
+      widgets.push({
+        id: 'history',
+        order: 6,
+        side: 'left',
+        className: 'gm-widget-compact',
+        content: (
+          <Card size="small" title={
+            <Space>
+              <HistoryOutlined /> История действий
+              <Tag color="geekblue">{history.length}</Tag>
+              {isHistoryOpen && history.length > 0 && (
+                <Button size="small" type="primary" icon={<SaveOutlined />} onClick={() => {
+                  try {
+                    const payload = {
+                      generatedAt: new Date().toISOString(),
+                      actions: history.slice().reverse(),
+                      notes
+                    };
+                    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `campaign-history-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    setHistory([]);
+                    try { localStorage.setItem(STORAGE_HISTORY_KEY, JSON.stringify([])); } catch {}
+                    setNotes('');
+                    try { localStorage.setItem(STORAGE_NOTES_KEY, ''); } catch {}
+                  } catch {}
+                }}>Сохранить</Button>
+              )}
+            </Space>
+          }>
+            <details open={isHistoryOpen} onToggle={(e) => setIsHistoryOpen((e.target as HTMLDetailsElement).open)}>
+              <summary style={{ cursor: 'pointer', userSelect: 'none' }}>Показать / скрыть</summary>
+              <div style={{ marginTop: 8 }}>
+                {history.length === 0 ? (
+                  <Empty description="Пока пусто" />
+                ) : (
+                  <List size="small" dataSource={history} renderItem={(i) => <List.Item>{i}</List.Item>} />
+                )}
+              </div>
+            </details>
+          </Card>
+        )
+      });
+      widgets.push({
+        id: 'npc',
+        order: 7,
+        side: 'right',
+        className: 'gm-widget-compact',
+        content: (
+          <Card size="small" title={<Space><TeamOutlined /> Генератор NPC (S)</Space>}>
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Space>
+                <Button type="primary" onClick={generateNpc} loading={npcLoading}>Сгенерировать</Button>
+                <Tag>{attitudeLabels[trackers.recognizability]} (сдвиг)</Tag>
+              </Space>
+              {npcError && <Text type="danger">{npcError}</Text>}
+              <List
+                size="small"
+                locale={{ emptyText: 'Пока нет NPC' }}
+                dataSource={generatedNpcs}
+                renderItem={(n) => (
+                  <List.Item>
+                    <Space direction="vertical" size={0} style={{ width: '100%' }}>
+                      <Space style={{ justifyContent: 'space-between', width: '100%' }}>
+                        <Text strong>{n.name}</Text>
+                        <Tag color={attitudeColors[n.attitudeIndex]}>{n.attitudeLabel}</Tag>
+                      </Space>
+                      <Space>
+                        <Tag color="geekblue">{n.race || '—'}</Tag>
+                        <Tag color="purple">{n.age || '—'}</Tag>
+                      </Space>
+                    </Space>
+                  </List.Item>
+                )}
+              />
+            </Space>
+          </Card>
+        )
+      });
+      widgets.push({
+        id: 'loot',
+        order: 8,
+        side: 'right',
+        className: 'gm-widget-compact',
+        content: (
+          <Card size="small" title={<Space><ThunderboltOutlined /> Генератор лута (D)</Space>}>
+            <Text type="secondary">Пока заглушка. Нажмите D для быстрого доступа.</Text>
+          </Card>
+        )
+      });
+      widgets.push({
+        id: 'music-controls',
+        order: 9,
+        side: 'left',
+        className: 'gm-widget-compact',
+        content: (
+          <Card size="small" title={<Space><SoundOutlined /> Управление музыкой</Space>}>
+            <div>
+              <details>
+                <summary style={{ cursor: 'pointer', userSelect: 'none' }}>Громкость и каналы</summary>
+                <div style={{ marginTop: 8 }}>
+                  <VolumeControlPanel asWidget />
+                </div>
+              </details>
+              <div style={{ marginTop: 12 }}>
+                <details>
+                  <summary style={{ cursor: 'pointer', userSelect: 'none' }}>Погода</summary>
+                  <div style={{ marginTop: 8 }}>
+                    <WeatherTimeController embedded />
+                  </div>
+                </details>
+              </div>
             </div>
-          </Col>
-          <Col xs={24} md={8}>
-            <div style={{ textAlign: 'center', padding: '16px' }}>
-              <TeamOutlined style={{ fontSize: '24px', color: '#722ed1', marginBottom: '8px' }} />
-              <div><Text strong>Управление группой</Text></div>
-              <Text type="secondary" style={{ fontSize: '12px' }}>
-                Отслеживание здоровья, инициативы и состояния персонажей
-              </Text>
+          </Card>
+        )
+      });
+    }
+
+    if (mode === 'combat') {
+      // Трекер инициативы в центре
+      if (showInitiative) {
+        widgets.push({
+          id: 'initiative',
+          order: 2,
+          side: 'center',
+          className: 'gm-widget-full',
+          content: (
+            <div style={{ animation: 'fadein 0.25s' }}>
+              <InitiativeTracker />
             </div>
-          </Col>
-          <Col xs={24} md={8}>
-            <div style={{ textAlign: 'center', padding: '16px' }}>
-              <BookOutlined style={{ fontSize: '24px', color: '#fa8c16', marginBottom: '8px' }} />
-              <div><Text strong>Квесты и прогресс</Text></div>
-              <Text type="secondary" style={{ fontSize: '12px' }}>
-                Мониторинг активных заданий и достижений игроков
-              </Text>
+          )
+        });
+      }
+    }
+
+    // Сортируем по порядку
+    return widgets.sort((a, b) => a.order - b.order);
+  }, [mode, showWorldTrackers, showMap, showQuests, showNotes, questList, notes, history, showInitiative, currentView, focusedRegion, nodes, edges, renderPlayerCards, trackers.recognizability, setTrackerValue, npcLoading, npcError, generatedNpcs]);
+
+    return (
+    <div style={{ padding: 12 }}>
+      {TopBar}
+      
+      {/* Трёхколоночный лэйаут: 25% / 50% / 25% */}
+      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+        <div style={{ width: '25%' }}>
+          {allWidgets.filter(w => w.side === 'left').map((widget) => (
+            <div key={widget.id} className={`gm-masonry-item ${widget.className}`} style={zoneStyle}>
+              {widget.content}
             </div>
-          </Col>
-        </Row>
-        <Divider />
-        <Text type="secondary" style={{ fontSize: '12px', textAlign: 'center', display: 'block' }}>
-          💡 Это базовая версия режима игры. Функциональность будет расширяться в зависимости от потребностей.
-        </Text>
-      </Card>
+          ))}
+        </div>
+        <div style={{ width: '50%' }}>
+          {allWidgets.filter(w => w.side === 'center').map((widget) => (
+            <div key={widget.id} className={`gm-masonry-item ${widget.className}`} style={zoneStyle}>
+              {widget.content}
+            </div>
+          ))}
+        </div>
+        <div style={{ width: '25%' }}>
+          {allWidgets.filter(w => w.side === 'right').map((widget) => (
+            <div key={widget.id} className={`gm-masonry-item ${widget.className}`} style={zoneStyle}>
+              {widget.content}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
