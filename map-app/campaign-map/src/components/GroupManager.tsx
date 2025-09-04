@@ -75,7 +75,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ visible, onClose, as
     getGroupCharacterUpdate
   } = useCharacters();
   const { getCharacterData } = useCharacters();
-  const { getCharacterStages } = useTrackers();
+  const { getCharacterStages, incCharacterStage, decCharacterStage } = useTrackers();
 
   const [showGroupForm, setShowGroupForm] = useState(false);
   const [showCharacterForm, setShowCharacterForm] = useState<string | null>(null);
@@ -381,13 +381,65 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ visible, onClose, as
                           label: (
                             <div style={{ minWidth: '200px' }}>
                               <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{m.name.split(' ')[0]}</div>
-                              <Space size={16}>
-                                <span style={{ fontWeight: 'bold', color: st.sporesStage > 2 ? '#ff4d4f' : '#1890ff' }}>
-                                  Споры: {st.sporesStage}/4
-                                </span>
-                                <span style={{ fontWeight: 'bold', color: st.shadowStage > 2 ? '#ff4d4f' : '#722ed1' }}>
-                                  Тень: {st.shadowStage}/4
-                                </span>
+                              <Space direction="vertical" size={4}>
+                                <Space style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <Text style={{ fontSize: 11, color: '#8c8c8c' }}>Споры:</Text>
+                                  <Space size={4}>
+                                    <Button 
+                                      size="small" 
+                                      type="text" 
+                                      style={{ minWidth: 18, height: 18, padding: 0, fontSize: 10 }}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        decCharacterStage(id, 'sporesStage');
+                                      }}
+                                    >-</Button>
+                                    <Tag 
+                                      color={st.sporesStage > 2 ? 'red' : 'blue'} 
+                                      style={{ margin: 0, fontSize: 10, padding: '0 4px', minWidth: 20, textAlign: 'center' }}
+                                    >
+                                      {st.sporesStage}
+                                    </Tag>
+                                    <Button 
+                                      size="small" 
+                                      type="text" 
+                                      style={{ minWidth: 18, height: 18, padding: 0, fontSize: 10 }}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        incCharacterStage(id, 'sporesStage');
+                                      }}
+                                    >+</Button>
+                                  </Space>
+                                </Space>
+                                <Space style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <Text style={{ fontSize: 11, color: '#8c8c8c' }}>Тень:</Text>
+                                  <Space size={4}>
+                                    <Button 
+                                      size="small" 
+                                      type="text" 
+                                      style={{ minWidth: 18, height: 18, padding: 0, fontSize: 10 }}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        decCharacterStage(id, 'shadowStage');
+                                      }}
+                                    >-</Button>
+                                    <Tag 
+                                      color={st.shadowStage > 2 ? 'red' : 'purple'} 
+                                      style={{ margin: 0, fontSize: 10, padding: '0 4px', minWidth: 20, textAlign: 'center' }}
+                                    >
+                                      {st.shadowStage}
+                                    </Tag>
+                                    <Button 
+                                      size="small" 
+                                      type="text" 
+                                      style={{ minWidth: 18, height: 18, padding: 0, fontSize: 10 }}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        incCharacterStage(id, 'shadowStage');
+                                      }}
+                                    >+</Button>
+                                  </Space>
+                                </Space>
                               </Space>
                             </div>
                           )
@@ -576,9 +628,11 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ visible, onClose, as
                           avatar={<Avatar >{character.name.charAt(0).toUpperCase()}</Avatar>}
                           title={character.name}
                           description={
-                            <Space size={4}>
-                              {character.class && <Tag color="blue">{character.class}</Tag>}
-                              {character.level && <Tag color="green">Ур. {character.level}</Tag>}
+                            <Space direction="vertical" size={4}>
+                              <Space size={4}>
+                                {character.class && <Tag color="blue">{character.class}</Tag>}
+                                {character.level && <Tag color="green">Ур. {character.level}</Tag>}
+                              </Space>
                             </Space>
                           }
                         />

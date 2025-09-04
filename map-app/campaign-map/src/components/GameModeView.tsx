@@ -33,6 +33,8 @@ import { useTrackers } from '../hooks/useTrackers';
 import { useNavigate } from 'react-router-dom';
 import VolumeControlPanel from './VolumeControlPanel';
 import { WeatherTimeController } from './WeatherTimeController';
+import CurrentLocationGraph from './CurrentLocationGraph';
+import PlayersOverlay from './PlayersOverlay';
 
 const { Title, Text } = Typography;
 
@@ -48,7 +50,7 @@ const NotesPanel: React.FC<{ value: string; onChange: (v: string) => void }>
   = ({ value, onChange }) => {
   return (
     <Card size="small" title={<Space><FileTextOutlined /> <span>Заметки мастера</span></Space>}>
-      <Input.TextArea rows={6} value={value} onChange={(e) => onChange(e.target.value)} placeholder="Быстрые заметки... (Z — добавить)" />
+      <Input.TextArea id="gm-notes-input" rows={6} value={value} onChange={(e) => onChange(e.target.value)} placeholder="Быстрые заметки... (Z — добавить)" />
     </Card>
   );
 };
@@ -59,7 +61,7 @@ export const GameModeView: React.FC = () => {
   const { currentEncounter, startCombat, endCombat } = useInitiativeTracker();
   const { characters } = useCharacters();
   const { groups } = useGroups();
-  const { state: trackers, setValue: setTrackerValue, inc: incTracker, dec: decTracker } = useTrackers();
+  const { state: trackers, setValue: setTrackerValue, inc: incTracker, dec: decTracker, incCharacterStage, decCharacterStage, getCharacterStages } = useTrackers();
   const navigate = useNavigate();
 
   const [mode, setMode] = useState<Mode>('exploration');
@@ -81,8 +83,17 @@ export const GameModeView: React.FC = () => {
     } catch { return []; }
   });
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [showPlayers, setShowPlayers] = useState<boolean>(true);
+  const [showNpcWidget, setShowNpcWidget] = useState<boolean>(true);
+  const [showMapFullscreen, setShowMapFullscreen] = useState<boolean>(false);
+  const [showPlayersOverlay, setShowPlayersOverlay] = useState<boolean>(false);
   const [currentView, setCurrentView] = useState<'mindmap' | 'region'>('mindmap');
   const [focusedRegion, setFocusedRegion] = useState<string | null>(null);
+  
+  // Состояния сворачивания виджетов
+  const [isWorldTrackersCollapsed, setIsWorldTrackersCollapsed] = useState<boolean>(false);
+  const [isMapCollapsed, setIsMapCollapsed] = useState<boolean>(false);
+  const [isQuestsCollapsed, setIsQuestsCollapsed] = useState<boolean>(false);
 
   const pushHistory = useCallback((record: string) => {
     setHistory((prev) => {
@@ -333,7 +344,7 @@ export const GameModeView: React.FC = () => {
 
   // Горячие клавиши
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
+    const onKeyDown = (e: KeyboardEvent) => {
       // Игнорировать, если зажаты модификаторы Cmd/Ctrl
       if (e.metaKey || e.ctrlKey) return;
       // Игнорировать, если фокус в поле ввода/редактировании
@@ -344,24 +355,35 @@ export const GameModeView: React.FC = () => {
         const isEditable = (ae as any).isContentEditable === true || !!ae.closest?.('[contenteditable="true"], .ant-input, .ant-mentions, .ant-select-open, .ant-picker-focused');
         if (isInput || isEditable) return;
       }
-      const key = e.key.toUpperCase();
-      if (key === 'Q') { e.preventDefault(); toggleEncounter(); }
-      if (key === 'W') { e.preventDefault(); cycleMusic(); }
-      if (key === 'X') { e.preventDefault(); audio.setIsMuted(!audio.isMuted); pushHistory(audio.isMuted ? 'Звук: включен' : 'Звук: выключен'); }
-      if (key === 'A') { e.preventDefault(); setShowInitiative((v) => !v); }
-      if (key === 'E') { e.preventDefault(); setShowMap((v) => !v); }
-      if (key === 'R') { e.preventDefault(); setShowQuests((v) => !v); }
-      if (key === 'T') { e.preventDefault(); setShowWorldTrackers((v) => !v); }
-      if (key === 'Y') { e.preventDefault(); setShowNotes((v) => !v); }
-      if (key === 'Z') { e.preventDefault(); setNotes((n) => (n ? n + '\n- ' : '- ')); }
-      // S/D/C/F/V — заглушки-акции
-      if (key === 'S') { e.preventDefault(); pushHistory('Генерация NPC (заглушка)'); }
-      if (key === 'D') { e.preventDefault(); pushHistory('Генерация лута (заглушка)'); }
-      if (key === 'C') { e.preventDefault(); pushHistory('Открыт быстрый справочник (заглушка)'); }
-      if (key === 'V') { e.preventDefault(); pushHistory('Открыта история событий'); setShowNotes(true); }
-      if (key === 'F') { e.preventDefault(); pushHistory('Переключение карточек игроков'); }
+      const code = e.code; // физическая клавиша по раскладке
+      if (code === 'KeyQ') { e.preventDefault(); toggleEncounter(); }
+      if (code === 'KeyW') { e.preventDefault(); cycleMusic(); }
+      if (code === 'KeyX') { e.preventDefault(); audio.setIsMuted(!audio.isMuted); pushHistory(audio.isMuted ? 'Звук: включен' : 'Звук: выключен'); }
+      if (code === 'KeyA') { e.preventDefault(); setShowInitiative((v) => !v); }
+      if (code === 'KeyE') { e.preventDefault(); setIsMapCollapsed((v) => !v); }
+      if (code === 'KeyR') { e.preventDefault(); setIsQuestsCollapsed((v) => !v); }
+      if (code === 'KeyT') { e.preventDefault(); setIsWorldTrackersCollapsed((v) => !v); }
+      if (code === 'KeyY') { e.preventDefault(); setShowNotes((v) => !v); }
+      if (code === 'KeyZ') { e.preventDefault(); setShowNotes(true); setTimeout(() => document.getElementById('gm-notes-input')?.focus(), 0); }
+      if (code === 'KeyS') { e.preventDefault(); generateNpc(); }
+      if (code === 'KeyO') { e.preventDefault(); setShowQuests((v) => !v); }
+      if (code === 'KeyC') { e.preventDefault(); setShowPlayers((v) => !v); }
+      if (code === 'KeyG') { e.preventDefault(); setShowNpcWidget((v) => !v); }
+      if (code === 'KeyM') { e.preventDefault(); setShowMapFullscreen((v) => !v); }
+      if (code === 'KeyH') { 
+        e.preventDefault(); 
+        if (!showPlayersOverlay) {
+          setShowPlayersOverlay(true); 
+        }
+      }
     };
-    window.addEventListener('keydown', onKey);
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey) return;
+      const code = e.code;
+      if (code === 'KeyH') setShowPlayersOverlay(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
     // Событие выбора локации из карт
     const onLocationSelected = (e: any) => {
       try {
@@ -382,8 +404,25 @@ export const GameModeView: React.FC = () => {
       } catch {}
     };
     window.addEventListener('gm:questUpdated', onQuestUpdated as any);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [audio, toggleEncounter, cycleMusic, pushHistory]);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
+    };
+  }, [audio, toggleEncounter, cycleMusic, pushHistory, generateNpc, showPlayersOverlay]);
+
+  // Универсальная функция для создания сворачиваемых карточек
+  const renderCollapsibleCard = useCallback((
+    title: React.ReactNode,
+    content: React.ReactNode,
+    isCollapsed: boolean,
+    hotkey?: string
+  ) => {
+    return (
+      <Card size="small" title={title} bodyStyle={isCollapsed ? { display: 'none' } : { padding: 8 }}>
+        {!isCollapsed && content}
+      </Card>
+    );
+  }, []);
 
   // Правый столбец: карточки игроков
   const renderPlayerCards = () => {
@@ -396,17 +435,103 @@ export const GameModeView: React.FC = () => {
             const hpCur = parsed?.vitality?.['hp-current']?.value ?? '—';
             const hpMax = parsed?.vitality?.['hp-max']?.value ?? '—';
             const ac = parsed?.vitality?.ac?.value ?? '—';
+            const stages = getCharacterStages(c.id);
+            const isPlayerCharacter = groups.some(g => g.isPlayers && g.members.some(m => m.id === c.id));
+            
             return (
               <Card key={c.id} size="small" bodyStyle={{ padding: 8 }}>
-                <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-                  <Space>
-                    <Badge color={c.groupColor} />
-                    <Text strong>{c.name}</Text>
+                <Space direction="vertical" style={{ width: '100%' }} size={4}>
+                  <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                    <Space>
+                      <Badge color={c.groupColor} />
+                      <Text strong>{c.name}</Text>
+                    </Space>
+                    <Space>
+                      <Tag color="blue">КД {ac}</Tag>
+                      <Tag color="red">ХП {hpCur}/{hpMax}</Tag>
+                    </Space>
                   </Space>
-                  <Space>
-                    <Tag color="blue">КД {ac}</Tag>
-                    <Tag color="red">ХП {hpCur}/{hpMax}</Tag>
-                  </Space>
+                  
+                  {/* Трекеры заражения только для игроков в бою */}
+                  {isPlayerCharacter && (
+                    <Space direction="vertical" style={{ width: '100%' }} size={2}>
+                      <Space style={{ width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Text style={{ fontSize: 11, color: '#8c8c8c' }}>Споры:</Text>
+                        <Space size={4}>
+                          <Button 
+                            size="small" 
+                            type="text" 
+                            style={{ minWidth: 20, height: 20, padding: 0, fontSize: 10 }}
+                            onClick={() => {
+                              const prev = stages.sporesStage;
+                              decCharacterStage(c.id, 'sporesStage');
+                              const newVal = Math.max(0, prev - 1);
+                              if (newVal !== prev) {
+                                pushHistory(`${c.name}: Споры ${prev} → ${newVal}`);
+                              }
+                            }}
+                          >-</Button>
+                          <Tag 
+                            color={stages.sporesStage > 2 ? 'red' : 'blue'} 
+                            style={{ margin: 0, fontSize: 10, padding: '0 4px' }}
+                          >
+                            {stages.sporesStage}
+                          </Tag>
+                          <Button 
+                            size="small" 
+                            type="text" 
+                            style={{ minWidth: 20, height: 20, padding: 0, fontSize: 10 }}
+                            onClick={() => {
+                              const prev = stages.sporesStage;
+                              incCharacterStage(c.id, 'sporesStage');
+                              const newVal = Math.min(4, prev + 1);
+                              if (newVal !== prev) {
+                                pushHistory(`${c.name}: Споры ${prev} → ${newVal}`);
+                              }
+                            }}
+                          >+</Button>
+                        </Space>
+                      </Space>
+                      
+                      <Space style={{ width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Text style={{ fontSize: 11, color: '#8c8c8c' }}>Тень:</Text>
+                        <Space size={4}>
+                          <Button 
+                            size="small" 
+                            type="text" 
+                            style={{ minWidth: 20, height: 20, padding: 0, fontSize: 10 }}
+                            onClick={() => {
+                              const prev = stages.shadowStage;
+                              decCharacterStage(c.id, 'shadowStage');
+                              const newVal = Math.max(0, prev - 1);
+                              if (newVal !== prev) {
+                                pushHistory(`${c.name}: Тень ${prev} → ${newVal}`);
+                              }
+                            }}
+                          >-</Button>
+                          <Tag 
+                            color={stages.shadowStage > 2 ? 'red' : 'purple'} 
+                            style={{ margin: 0, fontSize: 10, padding: '0 4px' }}
+                          >
+                            {stages.shadowStage}
+                          </Tag>
+                          <Button 
+                            size="small" 
+                            type="text" 
+                            style={{ minWidth: 20, height: 20, padding: 0, fontSize: 10 }}
+                            onClick={() => {
+                              const prev = stages.shadowStage;
+                              incCharacterStage(c.id, 'shadowStage');
+                              const newVal = Math.min(4, prev + 1);
+                              if (newVal !== prev) {
+                                pushHistory(`${c.name}: Тень ${prev} → ${newVal}`);
+                              }
+                            }}
+                          >+</Button>
+                        </Space>
+                      </Space>
+                    </Space>
+                  )}
                 </Space>
               </Card>
             );
@@ -415,20 +540,107 @@ export const GameModeView: React.FC = () => {
       );
     }
     // Exploration: упрощённые карточки из групп
-    const members = groups.flatMap((g) => g.members.map((m) => ({ ...m, groupColor: g.color })));
+    const members = groups.flatMap((g) => g.members.map((m) => ({ ...m, groupColor: g.color, isPlayerGroup: g.isPlayers, groupId: g.id })));
   return (
       <Space direction="vertical" style={{ width: '100%' }}>
-        {members.map((m) => (
-          <Card key={m.id} size="small" bodyStyle={{ padding: 8 }}>
-            <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-              <Space>
-                <Badge color={m.groupColor} />
-                <Text strong>{m.name}</Text>
+        {members.map((m) => {
+          const characterId = `${m.groupId}-${m.id}`;
+          const stages = getCharacterStages(characterId);
+          return (
+            <Card key={m.id} size="small" bodyStyle={{ padding: 8 }}>
+              <Space direction="vertical" style={{ width: '100%' }} size={4}>
+                <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                  <Space>
+                    <Badge color={m.groupColor} />
+                    <Text strong>{m.name}</Text>
+                  </Space>
+                  <Text type="secondary">{m.class || '—'}</Text>
+                </Space>
+                
+                {/* Трекеры заражения только для игроков */}
+                {m.isPlayerGroup && (
+                  <Space direction="vertical" style={{ width: '100%' }} size={2}>
+                    <Space style={{ width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Text style={{ fontSize: 11, color: '#8c8c8c' }}>Споры:</Text>
+                      <Space size={4}>
+                        <Button 
+                          size="small" 
+                          type="text" 
+                          style={{ minWidth: 20, height: 20, padding: 0, fontSize: 10 }}
+                          onClick={() => {
+                            const prev = stages.sporesStage;
+                            decCharacterStage(characterId, 'sporesStage');
+                            const newVal = Math.max(0, prev - 1);
+                            if (newVal !== prev) {
+                              pushHistory(`${m.name}: Споры ${prev} → ${newVal}`);
+                            }
+                          }}
+                        >-</Button>
+                        <Tag 
+                          color={stages.sporesStage > 2 ? 'red' : 'blue'} 
+                          style={{ margin: 0, fontSize: 10, padding: '0 4px' }}
+                        >
+                          {stages.sporesStage}
+                        </Tag>
+                        <Button 
+                          size="small" 
+                          type="text" 
+                          style={{ minWidth: 20, height: 20, padding: 0, fontSize: 10 }}
+                          onClick={() => {
+                            const prev = stages.sporesStage;
+                            incCharacterStage(characterId, 'sporesStage');
+                            const newVal = Math.min(4, prev + 1);
+                            if (newVal !== prev) {
+                              pushHistory(`${m.name}: Споры ${prev} → ${newVal}`);
+                            }
+                          }}
+                        >+</Button>
+                      </Space>
+                    </Space>
+                    
+                    <Space style={{ width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Text style={{ fontSize: 11, color: '#8c8c8c' }}>Тень:</Text>
+                      <Space size={4}>
+                        <Button 
+                          size="small" 
+                          type="text" 
+                          style={{ minWidth: 20, height: 20, padding: 0, fontSize: 10 }}
+                          onClick={() => {
+                            const prev = stages.shadowStage;
+                            decCharacterStage(characterId, 'shadowStage');
+                            const newVal = Math.max(0, prev - 1);
+                            if (newVal !== prev) {
+                              pushHistory(`${m.name}: Тень ${prev} → ${newVal}`);
+                            }
+                          }}
+                        >-</Button>
+                        <Tag 
+                          color={stages.shadowStage > 2 ? 'red' : 'purple'} 
+                          style={{ margin: 0, fontSize: 10, padding: '0 4px' }}
+                        >
+                          {stages.shadowStage}
+                        </Tag>
+                        <Button 
+                          size="small" 
+                          type="text" 
+                          style={{ minWidth: 20, height: 20, padding: 0, fontSize: 10 }}
+                          onClick={() => {
+                            const prev = stages.shadowStage;
+                            incCharacterStage(characterId, 'shadowStage');
+                            const newVal = Math.min(4, prev + 1);
+                            if (newVal !== prev) {
+                              pushHistory(`${m.name}: Тень ${prev} → ${newVal}`);
+                            }
+                          }}
+                        >+</Button>
+                      </Space>
+                    </Space>
+                  </Space>
+                )}
               </Space>
-              <Text type="secondary">{m.class || '—'}</Text>
-            </Space>
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
         {members.length === 0 && <Empty description="Нет игроков" />}
       </Space>
     );
@@ -482,173 +694,166 @@ export const GameModeView: React.FC = () => {
     if (mode === 'exploration') {
       // Состояние мира
       if (showWorldTrackers) {
+        const worldTrackersContent = (
+          <Space direction="vertical" style={{ width: '100%' }}>
+            <Text strong>Узнаваемость</Text>
+            <Slider
+              min={0}
+              max={4}
+              step={1}
+              value={trackers.recognizability}
+              onChange={(v) => {
+                const oldVal = trackers.recognizability;
+                const newVal = Number(v);
+                if (newVal !== oldVal) {
+                  setTrackerValue('recognizability', newVal);
+                  const labels = ['Враждебно','Недружелюбно','Нейтрально','Доброжелательно','Дружелюбно'];
+                  pushHistory(`Узнаваемость: ${labels[oldVal]} → ${labels[newVal]}`);
+                }
+              }}
+            />
+            <div style={{ fontWeight: 500 }}>{['Враждебно','Недружелюбно','Нейтрально','Доброжелательно','Дружелюбно'][trackers.recognizability]}</div>
+            <Divider style={{ margin: '8px 0' }} />
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                <Text>Городская паника</Text>
+                <Space>
+                  <Button size="small" onClick={() => {
+                    const prev = trackers.cityPanic;
+                    const next = Math.max(0, Math.min(4, prev - 1));
+                    if (next !== prev) {
+                      setTrackerValue('cityPanic', next);
+                      pushHistory(`Городская паника: ${prev} → ${next}`);
+                    }
+                  }}>-</Button>
+                  <Tag color="blue">{trackers.cityPanic}</Tag>
+                  <Button size="small" onClick={() => {
+                    const prev = trackers.cityPanic;
+                    const next = Math.max(0, Math.min(4, prev + 1));
+                    if (next !== prev) {
+                      setTrackerValue('cityPanic', next);
+                      pushHistory(`Городская паника: ${prev} → ${next}`);
+                    }
+                  }}>+</Button>
+                </Space>
+              </Space>
+              <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                <Text>Экосистема</Text>
+                <Space>
+                  <Button size="small" onClick={() => {
+                    const prev = trackers.ecosystem;
+                    const next = Math.max(0, Math.min(4, prev - 1));
+                    if (next !== prev) {
+                      setTrackerValue('ecosystem', next);
+                      pushHistory(`Экосистема: ${prev} → ${next}`);
+                    }
+                  }}>-</Button>
+                  <Tag color="green">{trackers.ecosystem}</Tag>
+                  <Button size="small" onClick={() => {
+                    const prev = trackers.ecosystem;
+                    const next = Math.max(0, Math.min(4, prev + 1));
+                    if (next !== prev) {
+                      setTrackerValue('ecosystem', next);
+                      pushHistory(`Экосистема: ${prev} → ${next}`);
+                    }
+                  }}>+</Button>
+                </Space>
+              </Space>
+              <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                <Text>Рой</Text>
+                <Space>
+                  <Button size="small" onClick={() => {
+                    const prev = trackers.swarm;
+                    const next = Math.max(0, Math.min(4, prev - 1));
+                    if (next !== prev) {
+                      setTrackerValue('swarm', next);
+                      pushHistory(`Рой: ${prev} → ${next}`);
+                    }
+                  }}>-</Button>
+                  <Tag color="magenta">{trackers.swarm}</Tag>
+                  <Button size="small" onClick={() => {
+                    const prev = trackers.swarm;
+                    const next = Math.max(0, Math.min(4, prev + 1));
+                    if (next !== prev) {
+                      setTrackerValue('swarm', next);
+                      pushHistory(`Рой: ${prev} → ${next}`);
+                    }
+                  }}>+</Button>
+                </Space>
+              </Space>
+            </Space>
+          </Space>
+        );
+
         widgets.push({
           id: 'world-trackers',
           order: 4,
           side: 'left',
           className: 'gm-widget-compact',
-          content: (
-            <Card size="small" title={<Space><GlobalOutlined /> Состояние мира (T)</Space>}>
-              <Space direction="vertical" style={{ width: '100%' }}>
-                <Text strong>Узнаваемость</Text>
-                <Slider
-                  min={0}
-                  max={4}
-                  step={1}
-                  value={trackers.recognizability}
-                  onChange={(v) => {
-                    const oldVal = trackers.recognizability;
-                    const newVal = Number(v);
-                    if (newVal !== oldVal) {
-                      setTrackerValue('recognizability', newVal);
-                      const labels = ['Враждебно','Недружелюбно','Нейтрально','Доброжелательно','Дружелюбно'];
-                      pushHistory(`Узнаваемость: ${labels[oldVal]} → ${labels[newVal]}`);
-                    }
-                  }}
-                />
-                <div style={{ fontWeight: 500 }}>{['Враждебно','Недружелюбно','Нейтрально','Доброжелательно','Дружелюбно'][trackers.recognizability]}</div>
-                <Divider style={{ margin: '8px 0' }} />
-                <Space direction="vertical" style={{ width: '100%' }}>
-                  <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-                    <Text>Городская паника</Text>
-                    <Space>
-                      <Button size="small" onClick={() => {
-                        const prev = trackers.cityPanic;
-                        const next = Math.max(0, Math.min(4, prev - 1));
-                        if (next !== prev) {
-                          setTrackerValue('cityPanic', next);
-                          pushHistory(`Городская паника: ${prev} → ${next}`);
-                        }
-                      }}>-</Button>
-                      <Tag color="blue">{trackers.cityPanic}</Tag>
-                      <Button size="small" onClick={() => {
-                        const prev = trackers.cityPanic;
-                        const next = Math.max(0, Math.min(4, prev + 1));
-                        if (next !== prev) {
-                          setTrackerValue('cityPanic', next);
-                          pushHistory(`Городская паника: ${prev} → ${next}`);
-                        }
-                      }}>+</Button>
-                    </Space>
-                  </Space>
-                  <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-                    <Text>Экосистема</Text>
-                    <Space>
-                      <Button size="small" onClick={() => {
-                        const prev = trackers.ecosystem;
-                        const next = Math.max(0, Math.min(4, prev - 1));
-                        if (next !== prev) {
-                          setTrackerValue('ecosystem', next);
-                          pushHistory(`Экосистема: ${prev} → ${next}`);
-                        }
-                      }}>-</Button>
-                      <Tag color="green">{trackers.ecosystem}</Tag>
-                      <Button size="small" onClick={() => {
-                        const prev = trackers.ecosystem;
-                        const next = Math.max(0, Math.min(4, prev + 1));
-                        if (next !== prev) {
-                          setTrackerValue('ecosystem', next);
-                          pushHistory(`Экосистема: ${prev} → ${next}`);
-                        }
-                      }}>+</Button>
-                    </Space>
-                  </Space>
-                  <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-                    <Text>Рой</Text>
-                    <Space>
-                      <Button size="small" onClick={() => {
-                        const prev = trackers.swarm;
-                        const next = Math.max(0, Math.min(4, prev - 1));
-                        if (next !== prev) {
-                          setTrackerValue('swarm', next);
-                          pushHistory(`Рой: ${prev} → ${next}`);
-                        }
-                      }}>-</Button>
-                      <Tag color="magenta">{trackers.swarm}</Tag>
-                      <Button size="small" onClick={() => {
-                        const prev = trackers.swarm;
-                        const next = Math.max(0, Math.min(4, prev + 1));
-                        if (next !== prev) {
-                          setTrackerValue('swarm', next);
-                          pushHistory(`Рой: ${prev} → ${next}`);
-                        }
-                      }}>+</Button>
-                    </Space>
-                  </Space>
-                </Space>
-              </Space>
-            </Card>
+          content: renderCollapsibleCard(
+            <Space><GlobalOutlined /> Состояние мира (T)</Space>,
+            worldTrackersContent,
+            isWorldTrackersCollapsed
           )
         });
       }
 
       // Карта — центральная колонка. Для columns layout она будет тяготеть к центру при большем размере.
       if (showMap) {
+        const mapContent = (
+          <CurrentLocationGraph
+            pointsData={pointsData as PointsData}
+            pathsData={pathsData as PathsData}
+            currentLocationId={audio.getCurrentLocationInfo?.()?.id}
+          />
+        );
+
         widgets.push({
           id: 'map',
           order: 5,
           side: 'center',
           className: 'gm-widget-tall',
-          content: (
-            <Card size="small" title={<Space><AimOutlined /> Карта мира (E)</Space>}>
-              {currentView === 'mindmap' ? (
-                <GroupedMindMap
-                  nodes={nodes}
-                  edges={edges}
-                  pointsData={pointsData as PointsData}
-                  pathsData={pathsData as PathsData}
-                  onNodeClick={() => {}}
-                  onRegionClick={(area) => setFocusedRegion(area)}
-                  enableDragging={false}
-                />
-              ) : (
-                focusedRegion && (
-                  <RegionFocusedMap
-                    areaName={focusedRegion}
-                    pointsData={pointsData as PointsData}
-                    pathsData={pathsData as PathsData}
-                    onBack={() => { setFocusedRegion(null); setCurrentView('mindmap'); }}
-                    onNodeClick={() => {}}
-                    enableDragging={false}
-                  />
-                )
-              )}
-            </Card>
+          content: renderCollapsibleCard(
+            <Space><AimOutlined /> Текущая локация и соседние (E/M)</Space>,
+            mapContent,
+            isMapCollapsed
           )
         });
       }
 
       // Квесты
       if (showQuests) {
+        const questsContent = questList.length === 0 ? (
+          <Empty description="Нет активных квестов" />
+        ) : (
+          <List
+            size="small"
+            dataSource={questList}
+            renderItem={(q) => (
+              <List.Item onClick={() => navigate(`/quests/${q.id}`)} style={{ cursor: 'pointer' }}>
+                <Space direction="vertical" size={0} style={{ width: '100%' }}>
+    <Space>
+                    <Text strong>{q.title}</Text>
+                    <Tag>{q.status}</Tag>
+                  </Space>
+                  <Typography.Paragraph type="secondary" ellipsis={{ rows: 2 }} style={{ margin: 0 }}>
+                    {q.summary}
+                  </Typography.Paragraph>
+    </Space>
+              </List.Item>
+            )}
+          />
+        );
+
         widgets.push({
           id: 'quests',
           order: 1,
           side: 'right',
           className: 'gm-widget-compact',
-          content: (
-            <Card size="small" title={<Space><ReadOutlined /> Активные задания (R)</Space>}>
-              {questList.length === 0 ? (
-                <Empty description="Нет активных квестов" />
-              ) : (
-                <List
-                  size="small"
-                  dataSource={questList}
-                  renderItem={(q) => (
-                    <List.Item onClick={() => navigate(`/quests/${q.id}`)} style={{ cursor: 'pointer' }}>
-                      <Space direction="vertical" size={0} style={{ width: '100%' }}>
-          <Space>
-                          <Text strong>{q.title}</Text>
-                          <Tag>{q.status}</Tag>
-                        </Space>
-                        <Typography.Paragraph type="secondary" ellipsis={{ rows: 2 }} style={{ margin: 0 }}>
-                          {q.summary}
-                        </Typography.Paragraph>
-          </Space>
-                    </List.Item>
-                  )}
-                />
-              )}
-            </Card>
+          content: renderCollapsibleCard(
+            <Space><ReadOutlined /> Активные задания (R)</Space>,
+            questsContent,
+            isQuestsCollapsed
           )
         });
       }
@@ -806,7 +1011,7 @@ export const GameModeView: React.FC = () => {
 
     // Сортируем по порядку
     return widgets.sort((a, b) => a.order - b.order);
-  }, [mode, showWorldTrackers, showMap, showQuests, showNotes, questList, notes, history, showInitiative, currentView, focusedRegion, nodes, edges, renderPlayerCards, trackers.recognizability, setTrackerValue, npcLoading, npcError, generatedNpcs]);
+  }, [mode, showWorldTrackers, showMap, showQuests, showNotes, questList, notes, history, showInitiative, currentView, focusedRegion, nodes, edges, renderPlayerCards, trackers.recognizability, setTrackerValue, npcLoading, npcError, generatedNpcs, isWorldTrackersCollapsed, isMapCollapsed, isQuestsCollapsed, renderCollapsibleCard, getCharacterStages, incCharacterStage, decCharacterStage, pushHistory]);
 
     return (
     <div style={{ padding: 12 }}>
@@ -836,6 +1041,71 @@ export const GameModeView: React.FC = () => {
           ))}
         </div>
       </div>
+      
+      {/* Оверлей с информацией о персонажах игроков */}
+      <PlayersOverlay
+        visible={showPlayersOverlay}
+        onClose={() => setShowPlayersOverlay(false)}
+      />
+      
+      {/* Полноэкранный режим карты */}
+      {showMapFullscreen && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: 9998,
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            flexDirection: 'column'
+          }}
+          onClick={() => setShowMapFullscreen(false)}
+        >
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            padding: '8px 16px',
+            backgroundColor: 'white',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            flexShrink: 0
+          }}>
+            <Space>
+              <Text strong style={{ fontSize: 18 }}>
+                🗺️ Полноэкранный режим карты
+              </Text>
+              <Tag color="blue">Нажмите M или кликните для выхода</Tag>
+            </Space>
+            <Button 
+              type="primary" 
+              danger 
+              onClick={() => setShowMapFullscreen(false)}
+            >
+              ✕ Закрыть
+            </Button>
+          </div>
+          
+          <div 
+            style={{ 
+              flex: 1, 
+              backgroundColor: 'white',
+              overflow: 'hidden',
+              height: '100%'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <CurrentLocationGraph
+              pointsData={pointsData as PointsData}
+              pathsData={pathsData as PathsData}
+              currentLocationId={audio.getCurrentLocationInfo?.()?.id}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

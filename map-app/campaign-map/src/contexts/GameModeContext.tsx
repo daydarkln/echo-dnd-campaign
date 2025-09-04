@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useCallback, ReactNode } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 export type GameMode = 'planning' | 'game';
 
@@ -25,28 +26,19 @@ interface GameModeProviderProps {
 }
 
 export const GameModeProvider: React.FC<GameModeProviderProps> = ({ children }) => {
-  const [gameMode, setGameModeState] = useState<GameMode>('planning');
+  const location = useLocation();
+  const navigate = useNavigate();
+  const gameMode: GameMode = location.pathname.startsWith('/game') ? 'game' : 'planning';
 
   const setGameMode = useCallback((mode: GameMode) => {
-    setGameModeState(mode);
-    // Сохраняем режим в localStorage
-    localStorage.setItem('dnd_gameMode', mode);
-    console.log(`Game mode changed to: ${mode}`);
-  }, []);
+    if (mode === 'game') navigate('/game');
+    else navigate('/');
+  }, [navigate]);
 
   const toggleGameMode = useCallback(() => {
-    const newMode = gameMode === 'planning' ? 'game' : 'planning';
-    setGameMode(newMode);
-  }, [gameMode, setGameMode]);
-
-  // Загружаем сохраненный режим при инициализации
-  React.useEffect(() => {
-    const savedMode = localStorage.getItem('dnd_gameMode') as GameMode;
-    if (savedMode && (savedMode === 'planning' || savedMode === 'game')) {
-      setGameModeState(savedMode);
-      console.log(`Loaded saved game mode: ${savedMode}`);
-    }
-  }, []);
+    if (gameMode === 'planning') navigate('/game');
+    else navigate('/');
+  }, [gameMode, navigate]);
 
   const value: GameModeContextType = {
     gameMode,

@@ -149,25 +149,7 @@ function AppContent() {
     );
   }
 
-  // Если включен режим игры, показываем упрощенный интерфейс
-  if (isGameMode) {
-    return (
-      <AudioContext.Provider value={audioManager}>
-        <ConfigProvider componentSize='small'>
-          <AntdApp>
-            <Layout style={{ minHeight: '100vh', backgroundColor: '#f0f2f5' }}>
-              <GameModeToggle />
-              <Content>
-                <GameModeView />
-              </Content>
-            </Layout>
-            
-            {/* Громкость и погода/время управляются из виджетов GameModeView */}
-          </AntdApp>
-        </ConfigProvider>
-      </AudioContext.Provider>
-    );
-  }
+  // Отдельный роут для режима игры, основной UI ниже
 
   const renderMapView = () => {
     if (currentView === 'mindmap') {
@@ -224,6 +206,7 @@ function AppContent() {
         <Layout style={{ minHeight: '100vh', backgroundColor: '#f0f2f5' }}>
           <GameModeToggle />
           <Content style={{ padding: 24 }}>
+            {!location.pathname.startsWith('/game') && (
             <Tabs
               activeKey={
                 location.pathname.startsWith('/groups') ? 'groups'
@@ -297,6 +280,7 @@ function AppContent() {
                 },
               ]}
             />
+            )}
 
             <Routes>
               <Route
@@ -304,6 +288,14 @@ function AppContent() {
                 element={
                   <>
                     {renderMapView()}
+                  </>
+                }
+              />
+              <Route
+                path="/game"
+                element={
+                  <>
+                    <GameModeView />
                   </>
                 }
               />
@@ -384,7 +376,7 @@ function AppContent() {
           <VolumeControlPanel />
           
           {/* Контроллер погоды и времени суток - доступен на всех страницах */}
-          <WeatherTimeController />
+          {location.pathname !== '/game' && <WeatherTimeController />}
       
         </ConfigProvider>
       </AntdApp>

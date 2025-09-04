@@ -158,6 +158,19 @@ const LocationNode: React.FC<NodeProps<LocationNodeData>> = ({ id, data, selecte
       
       message.success(`Группа "${group.name}" перемещена в "${data.label}" ${effectText}`);
       
+      // Если это группа игроков, отправляем событие о смене локации
+      if (group.isPlayers) {
+        try { 
+          window.dispatchEvent(new CustomEvent('gm:locationSelected', { 
+            detail: { 
+              id: id, 
+              name: data.label, 
+              area: data.area 
+            } 
+          })); 
+        } catch {}
+      }
+      
       // Автоматически запускаем атмосферу локации после перемещения
       // Используем небольшую задержку, чтобы эффект перехода успел завершиться
       setTimeout(() => {
