@@ -1,7 +1,7 @@
 # Table of contents
 
-* [Синопсис кампании](sinopsis-kampanii.md)
-* [Глоссарий](README.md)
+* [Синопсис кампании](README.md)
+* [Глоссарий](<README (1).md>)
   * [Мир](glossarii/mir/README.md)
     * [Великие Дома](glossarii/mir/velikie-doma.md)
     * [Фракции](glossarii/mir/frakcii/README.md)
