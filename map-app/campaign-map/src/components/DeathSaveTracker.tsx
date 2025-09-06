@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button, Space, Typography, Divider, Row, Col } from 'antd';
-import { CheckOutlined, CloseOutlined, ThunderboltOutlined, FireOutlined } from '@ant-design/icons';
+import { Button, Typography } from 'antd';
+import { CheckOutlined, CloseOutlined, ThunderboltOutlined, FireOutlined, RedoOutlined } from '@ant-design/icons';
 import { DEATH_SAVE_MAX, DeathSaveType } from '../types/initiative';
 
 const { Text } = Typography;
@@ -10,7 +10,7 @@ interface DeathSaveTrackerProps {
   failures: number;
   onDeathSave: (saveType: DeathSaveType) => void;
   onReset: () => void;
-  isCurrentTurn: boolean; // Новый проп для проверки, является ли это ходом текущего персонажа
+  isCurrentTurn: boolean;
 }
 
 const DeathSaveTracker: React.FC<DeathSaveTrackerProps> = ({
@@ -25,129 +25,123 @@ const DeathSaveTracker: React.FC<DeathSaveTrackerProps> = ({
       <div
         key={index}
         style={{
-          width: 12,
-          height: 12,
+          width: 6,
+          height: 6,
           borderRadius: '50%',
           backgroundColor: index < count ? color : '#f0f0f0',
-          border: `2px solid ${color}`,
+          border: `1px solid ${color}`,
           display: 'inline-block',
-          marginRight: 4
+          marginRight: 2
         }}
       />
     ));
   };
 
   return (
-    <div style={{ padding: 8, backgroundColor: '#fff2f0', borderRadius: 4, border: '1px solid #ffccc7' }}>
-      <div style={{ textAlign: 'center', marginBottom: 8 }}>
-        <Text strong style={{ fontSize: 12, color: '#cf1322' }}>Спасброски от смерти</Text>
-      </div>
-      
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
-          <Text style={{ fontSize: 11, marginRight: 8, minWidth: 60 }}>Успехи:</Text>
+    <div style={{ 
+      padding: '6px 8px', 
+      backgroundColor: '#fff1f0', 
+      borderRadius: 4, 
+      border: '1px solid #ffccc7',
+      width: '80px',
+      fontSize: '10px'
+    }}>
+      {/* Счетчики */}
+      <div style={{ marginBottom: 6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 2, marginBottom: 2 }}>
+          <Text style={{ fontSize: 9, color: '#52c41a' }}>✓</Text>
           {renderDots(successes, DEATH_SAVE_MAX, '#52c41a')}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <Text style={{ fontSize: 11, marginRight: 8, minWidth: 60 }}>Провалы:</Text>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Text style={{ fontSize: 9, color: '#ff4d4f' }}>✗</Text>
           {renderDots(failures, DEATH_SAVE_MAX, '#ff4d4f')}
         </div>
       </div>
 
-      <Divider style={{ margin: '8px 0' }} />
-
-      <Space direction="vertical" size={4} style={{ width: '100%' }}>
-        <Text style={{ fontSize: 11, textAlign: 'center', display: 'block' }}>
-          Обычные броски:
-        </Text>
-        <Row gutter={[4, 4]}>
-          <Col span={12}>
-            <Button
-              size="small"
-              type="primary"
-              icon={<CheckOutlined />}
-              onClick={() => onDeathSave('success')}
-              disabled={successes >= DEATH_SAVE_MAX || !isCurrentTurn}
-              style={{ 
-                backgroundColor: '#52c41a', 
-                borderColor: '#52c41a',
-                width: '100%',
-                fontSize: 11,
-                opacity: !isCurrentTurn ? 0.5 : 1
-              }}
-            >
-              Успех
-            </Button>
-          </Col>
-          <Col span={12}>
-            <Button
-              size="small"
-              danger
-              icon={<CloseOutlined />}
-              onClick={() => onDeathSave('failure')}
-              disabled={failures >= DEATH_SAVE_MAX || !isCurrentTurn}
-              style={{ 
-                width: '100%', 
-                fontSize: 11,
-                opacity: !isCurrentTurn ? 0.5 : 1
-              }}
-            >
-              Провал
-            </Button>
-          </Col>
-        </Row>
-
-        <Text style={{ fontSize: 11, textAlign: 'center', display: 'block', marginTop: 8 }}>
-          Критические броски:
-        </Text>
-        <Row gutter={[4, 4]}>
-          <Col span={12}>
-            <Button
-              size="small"
-              icon={<ThunderboltOutlined />}
-              onClick={() => onDeathSave('critical-success')}
-              disabled={!isCurrentTurn}
-              style={{ 
-                backgroundColor: '#fadb14', 
-                borderColor: '#fadb14',
-                color: '#000',
-                width: '100%',
-                fontSize: 10,
-                opacity: !isCurrentTurn ? 0.5 : 1
-              }}
-            >
-              20 (встать)
-            </Button>
-          </Col>
-          <Col span={12}>
-            <Button
-              size="small"
-              icon={<FireOutlined />}
-              onClick={() => onDeathSave('critical-failure')}
-              disabled={!isCurrentTurn}
-              style={{ 
-                backgroundColor: '#722ed1', 
-                borderColor: '#722ed1',
-                color: '#fff',
-                width: '100%',
-                fontSize: 10,
-                opacity: !isCurrentTurn ? 0.5 : 1
-              }}
-            >
-              1 (x2 провал)
-            </Button>
-          </Col>
-        </Row>
-
-        <Button
-          size="small"
-          type="text"
-          onClick={onReset}
-          style={{ width: '100%', fontSize: 11, marginTop: 8 }}
-        >
-          Сбросить
-        </Button>
-      </Space>
+      {/* Кнопки действий */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {/* Успешные броски */}
+        <div style={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+          <Button
+            size="small"
+            type="primary"
+            icon={<CheckOutlined />}
+            onClick={() => onDeathSave('success')}
+            disabled={!isCurrentTurn}
+            style={{ 
+              backgroundColor: '#52c41a', 
+              borderColor: '#52c41a',
+              fontSize: 9,
+              height: 18,
+              padding: '0 4px',
+              minWidth: 24
+            }}
+          />
+          <Button
+            size="small"
+            icon={<ThunderboltOutlined />}
+            onClick={() => onDeathSave('critical-success')}
+            disabled={!isCurrentTurn}
+            style={{ 
+              backgroundColor: '#fadb14', 
+              borderColor: '#fadb14',
+              color: '#000',
+              fontSize: 9,
+              height: 18,
+              padding: '0 4px',
+              minWidth: 24
+            }}
+          />
+        </div>
+        
+        {/* Неудачные броски */}
+        <div style={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+          <Button
+            size="small"
+            danger
+            icon={<CloseOutlined />}
+            onClick={() => onDeathSave('failure')}
+            disabled={!isCurrentTurn}
+            style={{ 
+              fontSize: 9,
+              height: 18,
+              padding: '0 4px',
+              minWidth: 24
+            }}
+          />
+          <Button
+            size="small"
+            icon={<FireOutlined />}
+            onClick={() => onDeathSave('critical-failure')}
+            disabled={!isCurrentTurn}
+            style={{ 
+              backgroundColor: '#722ed1', 
+              borderColor: '#722ed1',
+              color: '#fff',
+              fontSize: 9,
+              height: 18,
+              padding: '0 4px',
+              minWidth: 24
+            }}
+          />
+        </div>
+        
+        {/* Сброс */}
+        <div style={{ display: 'flex', justifyContent: 'center', borderTop: '1px solid #f0f0f0', paddingTop: 4 }}>
+          <Button
+            size="small"
+            type="text"
+            icon={<RedoOutlined />}
+            onClick={onReset}
+            style={{ 
+              fontSize: 9,
+              height: 20,
+              padding: '0 4px',
+              color: '#999'
+            }}
+          />
+        </div>
+      </div>
     </div>
   );
 };

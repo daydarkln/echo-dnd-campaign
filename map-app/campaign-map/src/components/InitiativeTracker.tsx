@@ -498,151 +498,171 @@ const InitiativeTracker: React.FC = () => {
         key={character.id}
         size="small"
         style={{
-          height: '100%',
-          minHeight: 120,
+          width: '100%',
           border: isCurrentTurn ? '2px solid #1890ff' : '1px solid #d9d9d9',
-          backgroundColor: isCurrentTurn ? '#f0f8ff' : 'white'
+          backgroundColor: isCurrentTurn ? '#f0f8ff' : 'white',
+          boxShadow: isCurrentTurn ? '0 4px 8px rgba(24, 144, 255, 0.2)' : '0 1px 3px rgba(0, 0, 0, 0.1)'
         }}
-        bodyStyle={{ padding: 8 }}
+        bodyStyle={{ padding: '12px 16px' }}
       >
-        <Space direction="vertical" size={4} style={{ width: '100%' }}>
-          {/* Заголовок с именем и текущим ходом */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Badge
-              color={character.groupColor}
-              text={
-                <Text strong style={{ fontSize: 13 }}>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '16px', 
+          width: '100%',
+          flexWrap: 'wrap'
+        }}>
+          {/* Основная информация о персонаже */}
+          <div style={{ 
+            flex: 1, 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '12px',
+            minWidth: '300px',
+            flexWrap: 'wrap'
+          }}>
+            {/* Имя и группа */}
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                <Badge color={character.groupColor} />
+                <Text strong style={{ fontSize: 14 }}>
                   {character.name}
                 </Text>
-              }
-            />
-            {isCurrentTurn && <Tag color="blue" style={{ fontSize: 10, padding: '0 4px' }}>ХОД</Tag>}
-          </div>
-
-          {/* Группа и инициатива */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text type="secondary" style={{ fontSize: 11 }}>
-              {character.groupName}
-            </Text>
-            {!currentEncounter?.isActive ? (
-              <InputNumber
-                size="small"
-                placeholder="Инц."
-                value={character.initiative}
-                onChange={(value) => handleInitiativeChange(character.id, value)}
-                style={{ width: 60 }}
-                min={1}
-                max={30}
-              />
-            ) : (
-              <Tag color="geekblue" style={{ fontSize: 11, minWidth: 40, textAlign: 'center' }}>
-                {character.initiative}
-              </Tag>
-            )}
-          </div>
-
-          {/* Статус и действия */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Tag color={statusInfo.color} style={{ margin: 0, fontSize: 10 }}>
-              {statusInfo.icon}
-            </Tag>
-            <Dropdown
-              menu={{ items: getCharacterActions(character) }}
-              trigger={['click']}
-              placement="bottomRight"
-            >
-              <Button size="small" icon={<MoreOutlined />} />
-            </Dropdown>
-          </div>
-
-          {/* Информация о персонаже (если есть лист) */}
-          {hasCharacter(character.id) && (
-            <div style={{ marginTop: 4 }}>
-              <Text type="secondary" style={{ fontSize: 9, display: 'block', marginBottom: 2 }}>
-                КД: {getCharacterData(character.id)?.vitality?.ac?.value || '—'} | 
-                ХП: {(getCharacterData(character.id)?.vitality as any)?.['hp-current']?.value || '—'}/{(getCharacterData(character.id)?.vitality as any)?.['hp-max']?.value || '—'}
-              </Text>
-              <Text type="secondary" style={{ fontSize: 9, display: 'block' }}>
-                {[
-                  { key: 'str', label: 'СИЛ' },
-                  { key: 'dex', label: 'ЛОВ' },
-                  { key: 'con', label: 'ТЕЛ' },
-                  { key: 'int', label: 'ИНТ' },
-                  { key: 'wis', label: 'МДР' },
-                  { key: 'cha', label: 'ХАР' }
-                ].map(({ key, label }) => {
-                  const cd = getCharacterData(character.id);
-                  if (!cd?.stats) return null;
-                  
-                  // Безопасный доступ к характеристикам
-                  const statData = (cd.stats as any)[key];
-                  if (!statData) return null;
-                  
-                  const modifier = statData.modifier || 0;
-                  const hasSave = (cd.saves as any)?.[key]?.isProf;
-                  
-                  return (
-                    <span key={key} style={{ marginRight: 8 }}>
-                      {label}: {modifier >= 0 ? '+' : ''}{modifier}{hasSave ? '*' : ''}
-                    </span>
-                  );
-                }).filter(Boolean)}
+                {isCurrentTurn && <Tag color="blue" style={{ fontSize: 10, padding: '0 4px' }}>ХОД</Tag>}
+              </div>
+              <Text type="secondary" style={{ fontSize: 11 }}>
+                {character.groupName}
               </Text>
             </div>
-          )}
-        </Space>
 
-        {character.status === 'death-saving' && (
-          <div style={{ marginTop: 8 }}>
-            <DeathSaveTracker
-              successes={character.deathSaves.successes}
-              failures={character.deathSaves.failures}
-              onDeathSave={(saveType: DeathSaveType) => handleDeathSave(character.id, saveType)}
-              onReset={() => resetDeathSaves(currentEncounter!.id, character.id)}
-              isCurrentTurn={isCurrentTurn || false}
-            />
+            {/* Статус */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Tag color={statusInfo.color} style={{ margin: 0, fontSize: 11 }}>
+                {statusInfo.icon} {statusInfo.label}
+              </Tag>
+              {/* Компонент спасбросков от смерти встроен рядом со статусом */}
+              {character.status === 'death-saving' && (
+                <DeathSaveTracker
+                  successes={character.deathSaves.successes}
+                  failures={character.deathSaves.failures}
+                  onDeathSave={(saveType: DeathSaveType) => handleDeathSave(character.id, saveType)}
+                  onReset={() => resetDeathSaves(currentEncounter!.id, character.id)}
+                  isCurrentTurn={isCurrentTurn || false}
+                />
+              )}
+            </div>
+
+            {/* Инициатива */}
+            <div style={{ minWidth: '80px', textAlign: 'center' }}>
+              <Text type="secondary" style={{ fontSize: 10, display: 'block' }}>Инициатива</Text>
+              {!currentEncounter?.isActive ? (
+                <InputNumber
+                  size="small"
+                  placeholder="Инц."
+                  value={character.initiative}
+                  onChange={(value) => handleInitiativeChange(character.id, value)}
+                  style={{ width: 70 }}
+                  min={1}
+                  max={30}
+                />
+              ) : (
+                <Tag color="geekblue" style={{ fontSize: 12, minWidth: 40, textAlign: 'center' }}>
+                  {character.initiative}
+                </Tag>
+              )}
+            </div>
+
+            {/* Действия */}
+            <div>
+              <Dropdown
+                menu={{ items: getCharacterActions(character) }}
+                trigger={['click']}
+                placement="bottomRight"
+              >
+                <Button size="small" icon={<MoreOutlined />} />
+              </Dropdown>
+            </div>
+          </div>
+        </div>
+
+        {/* Информация о персонаже (если есть лист) */}
+        {hasCharacter(character.id) && (
+          <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #f0f0f0' }}>
+            <Text type="secondary" style={{ fontSize: 10, display: 'block', marginBottom: 4 }}>
+              КД: {getCharacterData(character.id)?.vitality?.ac?.value || '—'} | 
+              ХП: {(getCharacterData(character.id)?.vitality as any)?.['hp-current']?.value || '—'}/{(getCharacterData(character.id)?.vitality as any)?.['hp-max']?.value || '—'}
+            </Text>
+            <Text type="secondary" style={{ fontSize: 10, display: 'block' }}>
+              {[
+                { key: 'str', label: 'СИЛ' },
+                { key: 'dex', label: 'ЛОВ' },
+                { key: 'con', label: 'ТЕЛ' },
+                { key: 'int', label: 'ИНТ' },
+                { key: 'wis', label: 'МДР' },
+                { key: 'cha', label: 'ХАР' }
+              ].map(({ key, label }) => {
+                const cd = getCharacterData(character.id);
+                if (!cd?.stats) return null;
+                
+                // Безопасный доступ к характеристикам
+                const statData = (cd.stats as any)[key];
+                if (!statData) return null;
+                
+                const modifier = statData.modifier || 0;
+                const hasSave = (cd.saves as any)?.[key]?.isProf;
+                
+                return (
+                  <span key={key} style={{ marginRight: 12 }}>
+                    {label}: {modifier >= 0 ? '+' : ''}{modifier}{hasSave ? '*' : ''}
+                  </span>
+                );
+              }).filter(Boolean)}
+            </Text>
           </div>
         )}
         
         {/* Показываем прогресс спасбросков для персонажей в статусе "без сознания" */}
         {(character.deathSaves.successes > 0 || character.deathSaves.failures > 0) && 
          character.status === 'unconscious' && (
-          <div style={{ marginTop: 4, padding: 4, backgroundColor: '#f6ffed', borderRadius: 4, border: '1px solid #b7eb8f' }}>
-            <Text style={{ fontSize: 10, color: '#52c41a', display: 'block', textAlign: 'center', marginBottom: 2 }}>
+          <div style={{ 
+            marginTop: 6, 
+            padding: '4px 8px', 
+            backgroundColor: '#f6ffed', 
+            borderRadius: 4, 
+            border: '1px solid #b7eb8f',
+            display: 'inline-block'
+          }}>
+            <Text style={{ fontSize: 10, color: '#52c41a', marginRight: 8 }}>
               📊 Спасброски:
             </Text>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 4 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Text style={{ fontSize: 9, color: '#52c41a' }}>✓</Text>
-                {Array.from({ length: DEATH_SAVE_MAX }).map((_, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: '50%',
-                      backgroundColor: index < character.deathSaves.successes ? '#52c41a' : '#f0f0f0',
-                      border: `1px solid #52c41a`
-                    }}
-                  />
-                ))}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Text style={{ fontSize: 9, color: '#ff4d4f' }}>✗</Text>
-                {Array.from({ length: DEATH_SAVE_MAX }).map((_, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: '50%',
-                      backgroundColor: index < character.deathSaves.failures ? '#ff4d4f' : '#f0f0f0',
-                      border: `1px solid #ff4d4f`
-                    }}
-                  />
-                  ))}
-              </div>
-            </div>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <Text style={{ fontSize: 9, color: '#52c41a' }}>✓</Text>
+              {Array.from({ length: DEATH_SAVE_MAX }).map((_, index) => (
+                <div
+                  key={index}
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: '50%',
+                    backgroundColor: index < character.deathSaves.successes ? '#52c41a' : '#f0f0f0',
+                    border: `1px solid #52c41a`
+                  }}
+                />
+              ))}
+              <Text style={{ fontSize: 9, color: '#ff4d4f', marginLeft: 8 }}>✗</Text>
+              {Array.from({ length: DEATH_SAVE_MAX }).map((_, index) => (
+                <div
+                  key={index}
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: '50%',
+                    backgroundColor: index < character.deathSaves.failures ? '#ff4d4f' : '#f0f0f0',
+                    border: `1px solid #ff4d4f`
+                  }}
+                />
+              ))}
+            </span>
           </div>
         )}
       </Card>
@@ -797,13 +817,11 @@ const InitiativeTracker: React.FC = () => {
                     showIcon
                   />
                 )}
-                <Row gutter={[8, 8]}>
-                  {currentEncounter.characters.map((character, index) => (
-                    <Col key={character.id} xs={24} sm={12} md={8} lg={6} xl={4.8} xxl={4.8}>
-                      {renderCharacterCard(character, index)}
-                    </Col>
-                  ))}
-                </Row>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {currentEncounter.characters.map((character, index) => 
+                    renderCharacterCard(character, index)
+                  )}
+                </div>
               </div>
             )}
           </div>
