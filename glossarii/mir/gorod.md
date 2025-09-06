@@ -4,6 +4,8 @@
 
 **Скайлхольм** (_Skylholm_)
 
+[https://watabou.github.io/city-generator?size=65\&seed=1519988657\&name=Скайхольм\&citadel=1\&urban\_castle=1\&plaza=1\&temple=1\&walls=1\&shantytown=1\&coast=1\&river=1\&greens=1\&hub=1\&sea=1.5](https://watabou.github.io/city-generator?size=65\&seed=1519988657\&name=%D0%A1%D0%BA%D0%B0%D0%B9%D1%85%D0%BE%D0%BB%D1%8C%D0%BC\&citadel=1\&urban_castle=1\&plaza=1\&temple=1\&walls=1\&shantytown=1\&coast=1\&river=1\&greens=1\&hub=1\&sea=1.5)
+
 ***
 
 #### История
