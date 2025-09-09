@@ -35,6 +35,8 @@ export function useQuests() {
       content: input.content,
       tags: input.tags || [],
       relatedLocations: input.relatedLocations || [],
+      solutionPaths: input.solutionPaths || [],
+      relatedNPCs: input.relatedNPCs || [],
       createdAt: now,
       updatedAt: now
     } as Quest);

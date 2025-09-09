@@ -1,0 +1,24 @@
+{
+  "kind": "collectionType",
+  "collectionName": "world_areas",
+  "info": {
+    "singularName": "world-area",
+    "pluralName": "world-areas",
+    "displayName": "World Area"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "area": {
+      "type": "json"
+    },
+    "locations": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::location.location",
+      "mappedBy": "world_area"
+    }
+  }
+}

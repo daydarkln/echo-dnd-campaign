@@ -1,0 +1,45 @@
+{
+  "kind": "collectionType",
+  "collectionName": "locations",
+  "info": {
+    "singularName": "location",
+    "pluralName": "locations",
+    "displayName": "Location"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "tags": {
+      "type": "json"
+    },
+    "amplifiers": {
+      "type": "json"
+    },
+    "dampeners": {
+      "type": "json"
+    },
+    "encounters": {
+      "type": "json"
+    },
+    "loot": {
+      "type": "json"
+    },
+    "clues": {
+      "type": "json"
+    },
+    "quests": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::quest.quest",
+      "inversedBy": "locations"
+    },
+    "world_area": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::world-area.world-area",
+      "inversedBy": "locations"
+    }
+  }
+}

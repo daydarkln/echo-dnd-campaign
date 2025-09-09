@@ -54,7 +54,9 @@ _Споровая свеча памяти_: мягкий свет, помеха 
     summary: 'Мистический квест о светящихся телах на кладбище и голосе мицелия.',
     status: 'planned',
     content: md,
-    tags: ['мистика', 'кладбище', 'мицелий']
+    tags: ['мистика', 'кладбище', 'мицелий'],
+    solutionPaths: ['Расследование', 'Ночное наблюдение', 'Ритуалы', 'Инженерия'],
+    relatedNPCs: []
   };
 }
 
@@ -109,7 +111,9 @@ export default function QuestsPage() {
         status: draft.status,
         content: draft.content,
         tags: draft.tags,
-        relatedLocations: draft.relatedLocations
+        relatedLocations: draft.relatedLocations,
+        solutionPaths: draft.solutionPaths,
+        relatedNPCs: draft.relatedNPCs
       });
       message.success('Сохранено');
     } catch (e) {

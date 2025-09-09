@@ -8,6 +8,8 @@ export interface Quest {
   content: string; // HTML из WYSIWYG
   tags?: string[];
   relatedLocations?: string[];
+  solutionPaths?: string[]; // Крючки/пути решения
+  relatedNPCs?: string[]; // ID персонажей, связанных с квестом
   createdAt: string; // ISO
   updatedAt: string; // ISO
 }
@@ -19,6 +21,8 @@ export interface CreateQuestInput {
   content: string;
   tags?: string[];
   relatedLocations?: string[];
+  solutionPaths?: string[];
+  relatedNPCs?: string[];
 }
 
 export interface UpdateQuestInput {
@@ -28,6 +32,8 @@ export interface UpdateQuestInput {
   content?: string;
   tags?: string[];
   relatedLocations?: string[];
+  solutionPaths?: string[];
+  relatedNPCs?: string[];
   updatedAt?: string;
 }
 

@@ -20,12 +20,15 @@ import {
   FileTextOutlined,
   ArrowLeftOutlined,
   ClockCircleOutlined,
-  AudioOutlined
+  AudioOutlined,
+  QrcodeOutlined
 } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import { PointOfInterest } from '../types';
 import { LocationFieldVisibility } from '../types/visibility';
 import { LocationEffectButtons } from './LocationEffectButtons';
 import { useAudio } from '../App';
+import { useQuests } from '../hooks/useQuests';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -55,6 +58,8 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
   isLocationItemVisible
 }) => {
   const { bindings, changeLocation } = useAudio();
+  const { data: quests } = useQuests();
+  const navigate = useNavigate();
 
   // Получаем настройки видимости полей
   const visibility = fieldVisibility || getLocationFieldVisibility?.(location.id) || {
@@ -93,6 +98,16 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
       changeLocation(location.id);
     }
   }, [location.id, bindings, changeLocation]);
+
+  // Находим квесты, связанные с данной локацией
+  const relatedQuests = quests.filter(quest => 
+    quest.relatedLocations?.includes(location.id)
+  );
+
+  // Обработчик клика на квест
+  const handleQuestClick = (questId: string) => {
+    navigate(`/quests/${questId}`);
+  };
 
   return (
     <div>
@@ -260,6 +275,57 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
             </Card>
           )}
 
+          {/* Участвует в квестах */}
+          {relatedQuests.length > 0 && (
+            <Card 
+              size="small" 
+              title={
+                <Space>
+                  <QrcodeOutlined />
+                  Участвует в квестах
+                </Space>
+              }
+              style={{ marginBottom: 16 }}
+            >
+              <List
+                size="small"
+                dataSource={relatedQuests}
+                renderItem={(quest) => (
+                  <List.Item
+                    style={{ cursor: 'pointer', padding: '8px 0' }}
+                    onClick={() => handleQuestClick(quest.id)}
+                  >
+                    <Space direction="vertical" size={0} style={{ width: '100%' }}>
+                      <Space>
+                        <Typography.Text strong style={{ color: '#1890ff' }}>
+                          {quest.title}
+                        </Typography.Text>
+                        <Tag color={
+                          quest.status === 'active' ? 'green' :
+                          quest.status === 'completed' ? 'blue' :
+                          quest.status === 'idea' ? 'orange' :
+                          quest.status === 'planned' ? 'cyan' :
+                          'default'
+                        }>
+                          {quest.status === 'idea' ? 'Идея' :
+                           quest.status === 'planned' ? 'Запланирован' :
+                           quest.status === 'active' ? 'Активен' :
+                           quest.status === 'completed' ? 'Завершён' :
+                           'В архиве'}
+                        </Tag>
+                      </Space>
+                      {quest.summary && (
+                        <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                          {quest.summary}
+                        </Typography.Text>
+                      )}
+                    </Space>
+                  </List.Item>
+                )}
+              />
+            </Card>
+          )}
+
           {/* Статистика */}
           <Card size="small" title="Статистика">
             <Descriptions size="small" column={1}>
@@ -274,6 +340,9 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
               </Descriptions.Item>
               <Descriptions.Item label="Подсказки">
                 {location.clues?.length || 0}
+              </Descriptions.Item>
+              <Descriptions.Item label="Квесты">
+                {relatedQuests.length}
               </Descriptions.Item>
             </Descriptions>
           </Card>

@@ -1,0 +1,36 @@
+{
+  "kind": "collectionType",
+  "collectionName": "quests",
+  "info": {
+    "singularName": "quest",
+    "pluralName": "quests",
+    "displayName": "Quest"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "text"
+    },
+    "questStatus": {
+      "type": "string"
+    },
+    "content": {
+      "type": "richtext"
+    },
+    "tags": {
+      "type": "json"
+    },
+    "locations": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::location.location",
+      "mappedBy": "quests"
+    }
+  }
+}

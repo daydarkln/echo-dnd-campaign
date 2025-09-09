@@ -1,0 +1,39 @@
+{
+  "kind": "collectionType",
+  "collectionName": "world_paths",
+  "info": {
+    "singularName": "world-path",
+    "pluralName": "world-paths",
+    "displayName": "World Path"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "from": {
+      "type": "json"
+    },
+    "to": {
+      "type": "json"
+    },
+    "pathType": {
+      "type": "json"
+    },
+    "description": {
+      "type": "json"
+    },
+    "travelTime": {
+      "type": "json"
+    },
+    "obstacles": {
+      "type": "json"
+    },
+    "requirements": {
+      "type": "json"
+    },
+    "notes": {
+      "type": "json"
+    }
+  }
+}
