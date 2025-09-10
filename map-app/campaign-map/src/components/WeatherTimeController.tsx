@@ -56,7 +56,7 @@ export const WeatherTimeController: React.FC<{ embedded?: boolean }> = ({ embedd
   }));
 
   return (
-    <div className={`control-section ${embedded ? '' : 'floating'}`}>
+    <div className={`control-section ${embedded ? '' : 'floating'}`} style={{zIndex: 100}}>
       <div style={{ marginBottom: '8px', fontSize: '12px', color: isMuted ? '#ff4d4f' : '#52c41a' }}>
         {isMuted ? '🔇 Звук отключен' : '🔊 Звук включен'}
       </div>

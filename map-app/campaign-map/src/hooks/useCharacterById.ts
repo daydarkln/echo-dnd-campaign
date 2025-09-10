@@ -1,86 +1,146 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Character, CharacterData, calculateModifier, Spell, Tag, createTag, migrateCharacterData } from '../types/character';
-import { useCharacters } from './useCharacters';
+import { Character, CharacterData, calculateModifier, Spell, migrateCharacterData, createTag, Tag } from '../types/character';
 
-export const useCharacterById = (characterId: string | null) => {
-  const { getCharacter, getCharacterData, updateCharacter } = useCharacters();
+const STORAGE_KEY = 'dnd-characters-collection';
+
+export const useCharacterById = (characterId?: string) => {
   const [character, setCharacter] = useState<Character | null>(null);
   const [characterData, setCharacterData] = useState<CharacterData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Загрузка персонажа при изменении ID
+  // Загрузка персонажа из localStorage или JSON server
   useEffect(() => {
     if (!characterId) {
-      setCharacter(null);
-      setCharacterData(null);
       setIsLoading(false);
       return;
     }
 
-    const loadedCharacter = getCharacter(characterId);
-    const loadedCharacterData = getCharacterData(characterId);
+    const loadCharacter = async () => {
+      try {
+        let loadedCharacter: Character | null = null;
 
-    setCharacter(loadedCharacter);
-    setCharacterData(loadedCharacterData);
-    setIsLoading(false);
-  }, [characterId, getCharacter, getCharacterData]);
+        // Сначала пытаемся загрузить из localStorage
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const collection = JSON.parse(stored);
+          if (collection[characterId]) {
+            loadedCharacter = collection[characterId];
+          }
+        }
+
+        // Если не найдено в localStorage, пытаемся загрузить с JSON server
+        if (!loadedCharacter) {
+          try {
+            const response = await fetch(`http://localhost:3001/characters/${characterId}`);
+            if (response.ok) {
+              loadedCharacter = await response.json();
+            }
+          } catch (error) {
+            console.warn('JSON server недоступен:', error);
+          }
+        }
+
+        if (loadedCharacter) {
+          const rawCharacterData = JSON.parse(loadedCharacter.data);
+          const migratedCharacterData = migrateCharacterData(rawCharacterData);
+          
+          // Обновляем данные персонажа, если была выполнена миграция
+          const updatedCharacter = {
+            ...loadedCharacter,
+            data: JSON.stringify(migratedCharacterData)
+          };
+          
+          setCharacter(updatedCharacter);
+          setCharacterData(migratedCharacterData);
+          
+          // Сохраняем обновленные данные обратно в localStorage
+          if (JSON.stringify(rawCharacterData) !== JSON.stringify(migratedCharacterData)) {
+            const collection = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            collection[characterId] = updatedCharacter;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(collection));
+          }
+        }
+      } catch (error) {
+        console.error('Ошибка при загрузке персонажа:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadCharacter();
+  }, [characterId]);
 
   // Сохранение персонажа
-  const saveCharacter = useCallback((updatedCharacterData: CharacterData) => {
-    if (!characterId) return;
+  const saveCharacter = useCallback(async (updatedCharacterData: CharacterData) => {
+    if (!character || !characterId) return;
 
-    updateCharacter(characterId, updatedCharacterData);
+    const updatedCharacter = {
+      ...character,
+      data: JSON.stringify(updatedCharacterData)
+    };
+
+    setCharacter(updatedCharacter);
     setCharacterData(updatedCharacterData);
-  }, [characterId, updateCharacter]);
 
-  // Обновление базовой информации
+    // Сохраняем в localStorage
+    const collection = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    collection[characterId] = updatedCharacter;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(collection));
+
+    // Пытаемся сохранить на JSON server
+    try {
+      await fetch(`http://localhost:3001/characters/${characterId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedCharacter),
+      });
+    } catch (error) {
+      console.warn('Не удалось сохранить на JSON server:', error);
+    }
+  }, [character, characterId]);
+
+  // Обновление информации о персонаже
   const updateInfo = useCallback((field: string, value: any) => {
     if (!characterData) return;
-
-    const updated = {
+    
+    const updatedData = {
       ...characterData,
       info: {
         ...characterData.info,
         [field]: {
           ...characterData.info[field as keyof typeof characterData.info],
-          value
+          value: value
         }
       }
     };
-
-    // Также обновляем name.value если изменяется info.name
-    if (field === 'name') {
-      updated.name.value = value;
-    }
-
-    saveCharacter(updated);
+    saveCharacter(updatedData);
   }, [characterData, saveCharacter]);
 
   // Обновление дополнительной информации
-  const updateSubInfo = useCallback((field: string, value: string) => {
+  const updateSubInfo = useCallback((field: string, value: any) => {
     if (!characterData) return;
-
-    const updated = {
+    
+    const updatedData = {
       ...characterData,
       subInfo: {
         ...characterData.subInfo,
         [field]: {
           ...characterData.subInfo[field as keyof typeof characterData.subInfo],
-          value
+          value: value
         }
       }
     };
-
-    saveCharacter(updated);
+    saveCharacter(updatedData);
   }, [characterData, saveCharacter]);
 
   // Обновление характеристик
   const updateStat = useCallback((statName: string, score: number) => {
     if (!characterData) return;
-
-    const modifier = calculateModifier(score);
     
-    const updated = {
+    const modifier = calculateModifier(score);
+    const updatedData = {
       ...characterData,
       stats: {
         ...characterData.stats,
@@ -91,15 +151,14 @@ export const useCharacterById = (characterId: string | null) => {
         }
       }
     };
-
-    saveCharacter(updated);
+    saveCharacter(updatedData);
   }, [characterData, saveCharacter]);
 
   // Обновление спасбросков
   const updateSave = useCallback((saveName: string, isProf: boolean) => {
     if (!characterData) return;
-
-    const updated = {
+    
+    const updatedData = {
       ...characterData,
       saves: {
         ...characterData.saves,
@@ -109,64 +168,58 @@ export const useCharacterById = (characterId: string | null) => {
         }
       }
     };
-
-    saveCharacter(updated);
+    saveCharacter(updatedData);
   }, [characterData, saveCharacter]);
 
   // Обновление навыков
-  const updateSkill = useCallback((skillName: string, profLevel: 0 | 1 | 2) => {
+  const updateSkill = useCallback((skillName: string, proficiency: 0 | 1 | 2) => {
     if (!characterData) return;
-
-    const updated = {
+    
+    const updatedData = {
       ...characterData,
       skills: {
         ...characterData.skills,
         [skillName]: {
           ...characterData.skills[skillName],
-          isProf: profLevel
+          isProf: proficiency
         }
       }
     };
-
-    saveCharacter(updated);
+    saveCharacter(updatedData);
   }, [characterData, saveCharacter]);
 
-  // Обновление жизненности
-  const updateVitality = useCallback((field: string, value: number | string) => {
+  // Обновление жизнеспособности
+  const updateVitality = useCallback((field: string, value: any) => {
     if (!characterData) return;
-
-    const updated = {
+    
+    const updatedData = {
       ...characterData,
       vitality: {
         ...characterData.vitality,
-        [field]: { value }
+        [field]: {
+          ...characterData.vitality[field as keyof typeof characterData.vitality],
+          value: value
+        }
       }
     };
-
-    saveCharacter(updated);
+    saveCharacter(updatedData);
   }, [characterData, saveCharacter]);
 
   // Обновление оружия
-  const updateWeapon = useCallback((weaponId: string, weaponData: Partial<{ name: string; mod: string; dmg: string }>) => {
+  const updateWeapon = useCallback((weaponId: string, field: string, value: any) => {
     if (!characterData) return;
 
-    const weaponIndex = characterData.weaponsList.findIndex(w => w.id === weaponId);
-    if (weaponIndex === -1) return;
+    const updatedWeapons = characterData.weaponsList.map(weapon => 
+      weapon.id === weaponId 
+        ? { ...weapon, [field]: { ...(weapon[field as keyof typeof weapon] as any), value } }
+        : weapon
+    );
 
-    const updatedWeapons = [...characterData.weaponsList];
-    updatedWeapons[weaponIndex] = {
-      ...updatedWeapons[weaponIndex],
-      ...(weaponData.name && { name: { value: weaponData.name } }),
-      ...(weaponData.mod && { mod: { value: weaponData.mod } }),
-      ...(weaponData.dmg && { dmg: { value: weaponData.dmg } })
-    };
-
-    const updated = {
+    const updatedData = {
       ...characterData,
       weaponsList: updatedWeapons
     };
-
-    saveCharacter(updated);
+    saveCharacter(updatedData);
   }, [characterData, saveCharacter]);
 
   // Добавление оружия
@@ -180,39 +233,64 @@ export const useCharacterById = (characterId: string | null) => {
       dmg: { value: '1d4' }
     };
 
-    const updated = {
+    const updatedData = {
       ...characterData,
       weaponsList: [...characterData.weaponsList, newWeapon]
     };
-
-    saveCharacter(updated);
+    saveCharacter(updatedData);
   }, [characterData, saveCharacter]);
 
   // Удаление оружия
   const removeWeapon = useCallback((weaponId: string) => {
     if (!characterData) return;
 
-    const updated = {
+    const updatedData = {
       ...characterData,
       weaponsList: characterData.weaponsList.filter(w => w.id !== weaponId)
     };
+    saveCharacter(updatedData);
+  }, [characterData, saveCharacter]);
 
-    saveCharacter(updated);
+  // Обновление заклинаний
+  const updateSpellsByLevel = useCallback((level: number, spells: Spell[]) => {
+    if (!characterData) return;
+
+    const updatedData = {
+      ...characterData,
+      spellsByLevel: {
+        ...characterData.spellsByLevel,
+        [level]: { spells }
+      }
+    };
+    saveCharacter(updatedData);
+  }, [characterData, saveCharacter]);
+
+  // Обновление текстовых полей
+  const updateTextField = useCallback((field: string, value: any) => {
+    if (!characterData) return;
+    
+    const updatedData = {
+      ...characterData,
+      text: {
+        ...characterData.text,
+        [field]: { value }
+      }
+    };
+    saveCharacter(updatedData);
   }, [characterData, saveCharacter]);
 
   // Обновление монет
   const updateCoins = useCallback((coinType: string, value: number) => {
     if (!characterData) return;
-
-    const updated = {
+    
+    const updatedData = {
       ...characterData,
       coins: {
         ...characterData.coins,
         [coinType]: { value }
       }
     };
-
-    saveCharacter(updated);
+    saveCharacter(updatedData);
   }, [characterData, saveCharacter]);
 
   // Обновление текстовых полей (упрощенная версия)
@@ -231,7 +309,7 @@ export const useCharacterById = (characterId: string | null) => {
       }
     };
 
-    const updated = {
+    const updatedData = {
       ...characterData,
       text: {
         ...characterData.text,
@@ -239,14 +317,14 @@ export const useCharacterById = (characterId: string | null) => {
       }
     };
 
-    saveCharacter(updated);
+    saveCharacter(updatedData);
   }, [characterData, saveCharacter]);
 
   // Добавление заклинания
   const addSpell = useCallback((level: number, spell: Spell) => {
     if (!characterData) return;
 
-    const updated = {
+    const updatedData = {
       ...characterData,
       spellsByLevel: {
         ...characterData.spellsByLevel,
@@ -256,14 +334,14 @@ export const useCharacterById = (characterId: string | null) => {
       }
     };
 
-    saveCharacter(updated);
+    saveCharacter(updatedData);
   }, [characterData, saveCharacter]);
 
   // Удаление заклинания
   const removeSpell = useCallback((level: number, spellId: string) => {
     if (!characterData) return;
 
-    const updated = {
+    const updatedData = {
       ...characterData,
       spellsByLevel: {
         ...characterData.spellsByLevel,
@@ -273,126 +351,110 @@ export const useCharacterById = (characterId: string | null) => {
       }
     };
 
-    saveCharacter(updated);
+    saveCharacter(updatedData);
   }, [characterData, saveCharacter]);
 
   // Получение заклинаний по уровню
-  const getSpellsByLevel = useCallback((level: number): Spell[] => {
-    if (!characterData || !characterData.spellsByLevel) return [];
-    const spellLevel = characterData.spellsByLevel[level as keyof typeof characterData.spellsByLevel];
-    return spellLevel?.spells || [];
+  const getSpellsByLevel = useCallback((level: number) => {
+    if (!characterData) return [];
+    return characterData.spellsByLevel[level as keyof typeof characterData.spellsByLevel]?.spells || [];
   }, [characterData]);
 
-  // Добавление тега
-  const addTag = useCallback((text: string) => {
-    if (!characterData || !characterId) return;
-    
-    const newTag = createTag(text);
-    const updated = {
-      ...characterData,
-      tags: [...(characterData.tags || []), newTag]
-    };
-
-    setCharacterData(updated);
-    saveCharacter(updated);
-  }, [characterData, characterId, saveCharacter]);
-
-  // Удаление тега
-  const removeTag = useCallback((tagId: string) => {
-    if (!characterData || !characterId) return;
-
-    const updated = {
-      ...characterData,
-      tags: characterData.tags?.filter(tag => tag.id !== tagId) || []
-    };
-
-    setCharacterData(updated);
-    saveCharacter(updated);
-  }, [characterData, characterId, saveCharacter]);
-
-  // Получение всех тегов
-  const getTags = useCallback((): Tag[] => {
-    return characterData?.tags || [];
-  }, [characterData]);
-
-  // Получение текста из текстового поля
+  // Получение содержимого текстового поля
   const getTextContent = useCallback((field: string): string => {
-    if (!characterData?.text[field as keyof typeof characterData.text]) return '';
+    if (!characterData?.text?.[field as keyof typeof characterData.text]?.value?.data?.content) return '';
     
-    const textData = characterData.text[field as keyof typeof characterData.text].value.data;
-    if (!textData.content || textData.content.length === 0) return '';
-    
-    const paragraph = textData.content.find((item: any) => item.type === 'paragraph');
-    if (!paragraph?.content || paragraph.content.length === 0) return '';
-    
-    const textItem = paragraph.content.find((item: any) => item.type === 'text');
-    return textItem?.text || '';
+    const content = characterData.text[field as keyof typeof characterData.text].value.data.content;
+    return content.map((paragraph: any) => 
+      paragraph.content?.map((text: any) => text.text || '').join('') || ''
+    ).join('\n');
   }, [characterData]);
 
-  // Вычисление бонуса мастерства на основе уровня
-  const getProficiencyBonus = useCallback((): number => {
-    if (!characterData) return 2;
-    const level = characterData.info.level.value;
-    return Math.floor((level - 1) / 4) + 2;
-  }, [characterData]);
-
-  // Вычисление итогового модификатора навыка
+  // Получение модификатора навыка
   const getSkillModifier = useCallback((skillName: string): number => {
     if (!characterData) return 0;
-
+    
     const skill = characterData.skills[skillName];
     if (!skill) return 0;
-
+    
     const baseStat = characterData.stats[skill.baseStat as keyof typeof characterData.stats];
-    const baseModifier = baseStat.modifier;
-    const proficiencyBonus = skill.isProf ? getProficiencyBonus() * (skill.isProf === 2 ? 2 : 1) : 0;
+    let modifier = baseStat?.modifier || 0;
+    
+    // Добавляем бонус мастерства
+    const proficiency = skill.isProf || 0;
+    if (proficiency > 0) {
+      modifier += characterData.proficiency * proficiency;
+    }
+    
+    return modifier;
+  }, [characterData]);
 
-    return baseModifier + proficiencyBonus;
-  }, [characterData, getProficiencyBonus]);
-
-  // Вычисление итогового модификатора спасброска
+  // Получение модификатора спасброска
   const getSaveModifier = useCallback((saveName: string): number => {
     if (!characterData) return 0;
-
-    const save = characterData.saves[saveName as keyof typeof characterData.saves];
-    const stat = characterData.stats[saveName as keyof typeof characterData.stats];
     
-    if (!save || !stat) return 0;
+    const save = characterData.saves[saveName as keyof typeof characterData.saves];
+    const baseStat = characterData.stats[saveName as keyof typeof characterData.stats];
+    
+    let modifier = baseStat?.modifier || 0;
+    
+    if (save?.isProf) {
+      modifier += characterData.proficiency;
+    }
+    
+    return modifier;
+  }, [characterData]);
 
-    const baseModifier = stat.modifier;
-    const proficiencyBonus = save.isProf ? getProficiencyBonus() : 0;
+  const getProficiencyBonus = useCallback(() => {
+    return characterData?.proficiency || 0;
+  }, [characterData]);
 
-    return baseModifier + proficiencyBonus;
-  }, [characterData, getProficiencyBonus]);
+  // Сброс персонажа (только для дефолтного hook)
+  const resetCharacter = useCallback(() => {
+    // Для персонажей по ID сброс не имеет смысла
+    console.warn('resetCharacter не поддерживается для персонажей по ID');
+  }, []);
 
   // Экспорт персонажа
   const exportCharacter = useCallback(() => {
-    if (!character) return null;
+    if (!character) return '';
     return JSON.stringify(character, null, 2);
   }, [character]);
 
-  // Импорт персонажа
-  const importCharacter = useCallback((jsonData: string) => {
-    if (!characterId) return false;
+  // Импорт персонажа (только для дефолтного hook)
+  const importCharacter = useCallback((data: string): boolean => {
+    // Для персонажей по ID импорт не имеет смысла
+    console.warn('importCharacter не поддерживается для персонажей по ID');
+    return false;
+  }, []);
+
+  // Управление тегами
+  const addTag = useCallback((text: string) => {
+    if (!characterData) return;
     
-    try {
-      const importedCharacter: Character = JSON.parse(jsonData);
-      const importedCharacterData: CharacterData = migrateCharacterData(JSON.parse(importedCharacter.data));
-      
-      const updatedCharacter = {
-        ...importedCharacter,
-        data: JSON.stringify(importedCharacterData)
-      };
-      
-      setCharacter(updatedCharacter);
-      setCharacterData(importedCharacterData);
-      updateCharacter(characterId, importedCharacterData);
-      return true;
-    } catch (error) {
-      console.error('Ошибка при импорте персонажа:', error);
-      return false;
-    }
-  }, [character, characterId, updateCharacter]);
+    const newTag = createTag(text);
+    const updatedCharacterData = {
+      ...characterData,
+      tags: [...characterData.tags, newTag]
+    };
+    setCharacterData(updatedCharacterData);
+    saveCharacter(updatedCharacterData);
+  }, [characterData, saveCharacter]);
+
+  const removeTag = useCallback((tagId: string) => {
+    if (!characterData) return;
+    
+    const updatedCharacterData = {
+      ...characterData,
+      tags: characterData.tags.filter((tag: Tag) => tag.id !== tagId)
+    };
+    setCharacterData(updatedCharacterData);
+    saveCharacter(updatedCharacterData);
+  }, [characterData, saveCharacter]);
+
+  const getTags = useCallback(() => {
+    return characterData?.tags || [];
+  }, [characterData]);
 
   return {
     character,
@@ -409,27 +471,23 @@ export const useCharacterById = (characterId: string | null) => {
     updateWeapon,
     addWeapon,
     removeWeapon,
+    updateSpellsByLevel,
+    updateTextField,
     updateCoins,
     updateTextfield,
-    
-    // Методы работы с заклинаниями
     addSpell,
     removeSpell,
     getSpellsByLevel,
-    
-    // Методы работы с тегами
     addTag,
     removeTag,
     getTags,
-    
-    // Вспомогательные методы
     getTextContent,
     getSkillModifier,
     getSaveModifier,
     getProficiencyBonus,
-    
-    // Утилиты
+    resetCharacter,
     exportCharacter,
-    importCharacter
+    importCharacter,
+    saveCharacter
   };
 };

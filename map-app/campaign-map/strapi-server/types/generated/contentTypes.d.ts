@@ -398,6 +398,7 @@ export interface ApiLocationLocation extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     loot: Schema.Attribute.JSON;
+    name: Schema.Attribute.JSON;
     publishedAt: Schema.Attribute.DateTime;
     quests: Schema.Attribute.Relation<'manyToMany', 'api::quest.quest'>;
     tags: Schema.Attribute.JSON;

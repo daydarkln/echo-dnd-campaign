@@ -5,26 +5,19 @@ import {
   Col,
   Input,
   InputNumber,
-  Select,
-  Switch,
   Button,
   List,
   Typography,
-  Divider,
   Space,
   Tag,
   Popconfirm,
   Modal,
-  Form,
   message,
-  Tooltip,
   Checkbox,
   Spin,
-  Upload,
   Tabs
 } from 'antd';
 import {
-  EditOutlined,
   DeleteOutlined,
   PlusOutlined,
   DownloadOutlined,
@@ -33,13 +26,11 @@ import {
   UserOutlined
 } from '@ant-design/icons';
 import { useCharacter } from '../hooks/useCharacter';
+import { useCharacterById } from '../hooks/useCharacterById';
 import { SPELL_LEVELS } from '../types/character';
 import { SpellLevelManager } from './SpellLevelManager';
-import type { UploadFile } from 'antd/es/upload/interface';
-
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 const { TextArea } = Input;
-const { Option } = Select;
 const { TabPane } = Tabs;
 
 // Компонент для отображения характеристик
@@ -144,7 +135,18 @@ const SavingThrowItem: React.FC<{
   );
 };
 
-export const CharacterSheet: React.FC = () => {
+interface CharacterSheetProps {
+  characterId?: string;
+}
+
+export const CharacterSheet: React.FC<CharacterSheetProps> = ({ characterId }) => {
+  // Используем разные hooks в зависимости от того, передан ли characterId
+  const defaultCharacterHook = useCharacter();
+  const characterByIdHook = useCharacterById(characterId);
+  
+  // Выбираем нужный hook
+  const characterHook = characterId ? characterByIdHook : defaultCharacterHook;
+  
   const {
     characterData,
     isLoading,
@@ -168,7 +170,7 @@ export const CharacterSheet: React.FC = () => {
     resetCharacter,
     exportCharacter,
     importCharacter
-  } = useCharacter();
+  } = characterHook;
 
   const [showImportModal, setShowImportModal] = useState(false);
   const [importData, setImportData] = useState('');
@@ -490,7 +492,7 @@ export const CharacterSheet: React.FC = () => {
                       <div style={{ width: '100%' }}>
                         <Input
                           value={weapon.name.value}
-                          onChange={(e) => updateWeapon(weapon.id, { name: e.target.value })}
+                          onChange={(e) => updateWeapon(weapon.id, 'name', e.target.value)}
                           placeholder="Название оружия"
                           
                           style={{ marginBottom: 4 }}
@@ -499,7 +501,7 @@ export const CharacterSheet: React.FC = () => {
                           <Col span={12}>
                             <Input
                               value={weapon.mod.value}
-                              onChange={(e) => updateWeapon(weapon.id, { mod: e.target.value })}
+                              onChange={(e) => updateWeapon(weapon.id, 'mod', e.target.value)}
                               placeholder="Бонус"
                               
                             />
@@ -507,7 +509,7 @@ export const CharacterSheet: React.FC = () => {
                           <Col span={12}>
                             <Input
                               value={weapon.dmg.value}
-                              onChange={(e) => updateWeapon(weapon.id, { dmg: e.target.value })}
+                              onChange={(e) => updateWeapon(weapon.id, 'dmg', e.target.value)}
                               placeholder="Урон"
                               
                             />

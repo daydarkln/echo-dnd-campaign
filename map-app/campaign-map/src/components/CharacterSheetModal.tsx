@@ -6,22 +6,18 @@ import {
   Col,
   Input,
   InputNumber,
-  Switch,
   Button,
   List,
   Typography,
-  Divider,
   Space,
   Tag,
   Popconfirm,
-  Tooltip,
   Checkbox,
   Spin,
   Tabs,
   message
 } from 'antd';
 import {
-  EditOutlined,
   DeleteOutlined,
   PlusOutlined,
   UserOutlined,
@@ -29,25 +25,18 @@ import {
   UploadOutlined,
   HeartOutlined,
   ThunderboltOutlined,
-  EyeOutlined,
   AimOutlined,
-  CrownOutlined,
-  TrophyOutlined,
   StarOutlined,
-  FireOutlined,
   SafetyOutlined,
-  RocketOutlined,
-  BookOutlined,
   RadiusSettingOutlined,
-  TagsOutlined,
-  InfoCircleOutlined
+  TagsOutlined
 } from '@ant-design/icons';
 import { useCharacterById } from '../hooks/useCharacterById';
 import { SPELL_LEVELS, Tag as CharacterTag } from '../types/character';
 import { useTrackers } from '../hooks/useTrackers';
 import { SpellLevelManager } from './SpellLevelManager';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 const { TextArea } = Input;
 const { TabPane } = Tabs;
 
@@ -399,7 +388,7 @@ export const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
     getProficiencyBonus,
     exportCharacter,
     importCharacter
-  } = useCharacterById(characterId);
+  } = useCharacterById(characterId || undefined);
 
   const [activeTab, setActiveTab] = useState('summary');
   const [showImportModal, setShowImportModal] = useState(false);
@@ -1246,7 +1235,7 @@ export const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
                       <div style={{ width: '100%' }}>
                         <Input
                           value={weapon.name.value}
-                          onChange={(e) => updateWeapon(weapon.id, { name: e.target.value })}
+                          onChange={(e) => updateWeapon(weapon.id, 'name', e.target.value)}
                           placeholder="Название оружия"
                           
                           style={{ marginBottom: 4 }}
@@ -1255,7 +1244,7 @@ export const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
                           <Col span={12}>
                             <Input
                               value={weapon.mod.value}
-                              onChange={(e) => updateWeapon(weapon.id, { mod: e.target.value })}
+                              onChange={(e) => updateWeapon(weapon.id, 'mod', e.target.value)}
                               placeholder="Бонус"
                               
                             />
@@ -1263,7 +1252,7 @@ export const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
                           <Col span={12}>
                             <Input
                               value={weapon.dmg.value}
-                              onChange={(e) => updateWeapon(weapon.id, { dmg: e.target.value })}
+                              onChange={(e) => updateWeapon(weapon.id, 'dmg', e.target.value)}
                               placeholder="Урон"
                               
                             />

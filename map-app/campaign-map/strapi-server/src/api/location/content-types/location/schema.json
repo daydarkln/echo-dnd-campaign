@@ -11,6 +11,9 @@
   },
   "pluginOptions": {},
   "attributes": {
+    "name": {
+      "type": "json"
+    },
     "tags": {
       "type": "json"
     },

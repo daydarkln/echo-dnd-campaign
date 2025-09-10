@@ -4,7 +4,6 @@ import {
   Button, 
   Form, 
   Input, 
-  Select, 
   Space, 
   Card, 
   Avatar, 
@@ -18,7 +17,6 @@ import {
   Col,
   Empty,
   Checkbox,
-  Switch,
   message,
   Tooltip,
   Dropdown
@@ -44,10 +42,10 @@ import { useCharacters } from '../hooks/useCharacters';
 import { Character } from '../types/groups';
 import { getLocationName } from '../utils/locationUtils';
 import { CharacterSheetModal } from './CharacterSheetModal';
+import { CharacterSelector } from './CharacterSelector';
 import { useTrackers } from '../hooks/useTrackers';
 
-const { Title, Text } = Typography;
-const { Option } = Select;
+const { Text } = Typography;
 
 interface GroupManagerProps {
   visible: boolean;
@@ -84,6 +82,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ visible, onClose, as
   const [selectedMembersForSplit, setSelectedMembersForSplit] = useState<string[]>([]);
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
   const [showCharacterSheet, setShowCharacterSheet] = useState<{ characterId: string; characterName: string } | null>(null);
+  const [showCharacterSelector, setShowCharacterSelector] = useState<string | null>(null);
   
   const [groupForm] = Form.useForm();
   const [characterForm] = Form.useForm();
@@ -190,6 +189,109 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ visible, onClose, as
       
       message.success(`Персонаж "${character.name}" добавлен в группу`);
     });
+  };
+
+  // Обработчик выбора существующего персонажа
+  const handleSelectExistingCharacter = async (character: { id: string; name: string; class?: string; level?: number }) => {
+    if (!showCharacterSelector) return;
+
+    try {
+      // Добавляем персонажа в группу
+      const groupCharacter: Omit<Character, 'id'> = {
+        name: character.name,
+        class: character.class,
+        level: character.level
+      };
+      
+      const addedCharacter = addCharacterToGroup(showCharacterSelector, groupCharacter);
+      
+      // Сохраняем связь между персонажем из системы персонажей и персонажем в группе
+      // Это позволит синхронизировать данные в будущем
+      const metadata = {
+        originalCharacterId: character.id,
+        groupId: showCharacterSelector,
+        groupCharacterId: addedCharacter.id
+      };
+      
+      // Сохраняем метаданные в localStorage для возможной синхронизации
+      const existingMappings = JSON.parse(localStorage.getItem('character-group-mappings') || '{}');
+      existingMappings[addedCharacter.id] = metadata;
+      localStorage.setItem('character-group-mappings', JSON.stringify(existingMappings));
+      
+      setShowCharacterSelector(null);
+      message.success(`Персонаж "${character.name}" добавлен в группу`);
+    } catch (error) {
+      console.error('Ошибка при добавлении персонажа:', error);
+      message.error('Ошибка при добавлении персонажа в группу');
+    }
+  };
+
+  // Обработчик создания нового персонажа
+  const handleCreateNewCharacter = async (character: { name: string; class?: string; level?: number }) => {
+    if (!showCharacterSelector) return;
+
+    try {
+      // Создаем персонажа в системе персонажей
+      const characterId = `char-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const characterData = {
+        id: characterId,
+        name: character.name,
+        level: character.level || 1,
+        hasCharacterSheet: false,
+        createdAt: new Date().toISOString(),
+        data: JSON.stringify({
+          name: { value: character.name },
+          info: {
+            level: { value: character.level || 1 },
+            charClass: { value: character.class || '' }
+          },
+          hasCharacterSheet: false
+        })
+      };
+
+      // Сохраняем в localStorage
+      const stored = localStorage.getItem('dnd-characters-collection') || '{}';
+      const collection = JSON.parse(stored);
+      collection[characterId] = characterData;
+      localStorage.setItem('dnd-characters-collection', JSON.stringify(collection));
+
+      // Пытаемся сохранить на JSON server
+      try {
+        await fetch('http://localhost:3001/characters', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(characterData)
+        });
+      } catch (error) {
+        console.warn('JSON server недоступен:', error);
+      }
+
+      // Добавляем персонажа в группу
+      const groupCharacter: Omit<Character, 'id'> = {
+        name: character.name,
+        class: character.class,
+        level: character.level
+      };
+      
+      const addedCharacter = addCharacterToGroup(showCharacterSelector, groupCharacter);
+      
+      // Сохраняем связь
+      const metadata = {
+        originalCharacterId: characterId,
+        groupId: showCharacterSelector,
+        groupCharacterId: addedCharacter.id
+      };
+      
+      const existingMappings = JSON.parse(localStorage.getItem('character-group-mappings') || '{}');
+      existingMappings[addedCharacter.id] = metadata;
+      localStorage.setItem('character-group-mappings', JSON.stringify(existingMappings));
+      
+      setShowCharacterSelector(null);
+      message.success(`Персонаж "${character.name}" создан и добавлен в группу`);
+    } catch (error) {
+      console.error('Ошибка при создании персонажа:', error);
+      message.error('Ошибка при создании персонажа');
+    }
   };
 
   const handleEditCharacter = (groupId: string, characterId: string) => {
@@ -646,7 +748,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ visible, onClose, as
                 <Button
                   type="dashed"
                   icon={<UserAddOutlined />}
-                  onClick={() => setShowCharacterForm(group.id)}
+                  onClick={() => setShowCharacterSelector(group.id)}
                   style={{ width: '100%' }}
                 >
                   Добавить участника
@@ -930,6 +1032,14 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ visible, onClose, as
         onClose={() => setShowCharacterSheet(null)}
         characterId={showCharacterSheet?.characterId || null}
         characterName={showCharacterSheet?.characterName}
+      />
+
+      <CharacterSelector
+        visible={showCharacterSelector !== null}
+        onClose={() => setShowCharacterSelector(null)}
+        onSelectCharacter={handleSelectExistingCharacter}
+        onCreateCharacter={handleCreateNewCharacter}
+        title="Добавить персонажа в группу"
       />
     </>
   );

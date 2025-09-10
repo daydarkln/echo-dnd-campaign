@@ -170,6 +170,7 @@ export interface CharacterData {
     webp?: string;
   };
   casterClass?: { value: string };
+  hasCharacterSheet?: boolean;
 }
 
 export interface Character {
@@ -432,7 +433,8 @@ export const createEmptyCharacter = (): Character => {
     conditions: [],
     tags: [],
     createdAt: new Date().toISOString(),
-    inspiration: false
+    inspiration: false,
+    hasCharacterSheet: true
   };
 
   return {

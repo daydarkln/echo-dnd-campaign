@@ -7,6 +7,8 @@ import { CharacterPage } from './pages/CharacterPage';
 import InitiativeTrackerPage from './pages/InitiativeTrackerPage';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import QuestsPage from './pages/QuestsPage';
+import { CharacterCreationPage } from './pages/CharacterCreationPage';
+import { CharacterEditPage } from './pages/CharacterEditPage';
 import GroupedMindMap from './components/GroupedMindMap';
 import RegionFocusedMap from './components/RegionFocusedMap';
 import LocationDetail from './components/LocationDetail';
@@ -213,21 +215,14 @@ function AppContent() {
                 : location.pathname.startsWith('/trackers') ? 'trackers'
                 : location.pathname.startsWith('/initiative') ? 'initiative'
                 : location.pathname.startsWith('/player-map') ? 'player-map'
-                : location.pathname.startsWith('/character') ? 'character'
+                : location.pathname.startsWith('/character') ? 'character' 
                 : location.pathname.startsWith('/quests') ? 'quests'
                 : 'map'
               }
+              style={{position: 'sticky', top: 0, zIndex: 10, backgroundColor: '#f0f2f5'}}
               onChange={(key) => {
                 setActiveTab(key);
-                navigate(
-                  key === 'groups' ? '/groups'
-                  : key === 'trackers' ? '/trackers'
-                  : key === 'initiative' ? '/initiative'
-                  : key === 'player-map' ? '/player-map'
-                  : key === 'character' ? '/character'
-                  : key === 'quests' ? '/quests'
-                  : '/'
-                );
+                navigate(`/${key}`);
               }}
               items={[
                 {
@@ -243,6 +238,14 @@ function AppContent() {
                   label: (
                     <span>
                       <TeamOutlined /> Группы
+                    </span>
+                  ),
+                },
+                {
+                  key: 'character',
+                  label: (
+                    <span>
+                      <FileTextOutlined /> Персонажи
                     </span>
                   ),
                 },
@@ -318,6 +321,18 @@ function AppContent() {
               <Route
                 path="/player-map"
                 element={<PlayerMapPage />}
+              />
+              <Route
+                path="/character"
+                element={<CharacterPage />}
+              />
+              <Route
+                path="/character/create"
+                element={<CharacterCreationPage />}
+              />
+              <Route
+                path="/character/edit/:id"
+                element={<CharacterEditPage />}
               />
               <Route
                 path="/quests"

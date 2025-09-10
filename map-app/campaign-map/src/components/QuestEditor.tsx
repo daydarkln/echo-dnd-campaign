@@ -1,9 +1,12 @@
-import React, { useMemo, useState } from 'react';
-import { Button, Card, Form, Input, Select, Space, Tag, List, Typography, Modal, message } from 'antd';
-import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import React, { useState, useCallback } from 'react';
+import { Button, Card, Form, Input, Select, Space, Tag, List, Typography, message } from 'antd';
+import { PlusOutlined, DeleteOutlined, EnvironmentOutlined } from '@ant-design/icons';
 import MarkdownEditor from './MarkdownEditor';
 import { Quest, QuestStatus } from '../types/quests';
-import { useGroups } from '../hooks/useGroups';
+import { CharacterSelector } from './CharacterSelector';
+import { LocationSelector } from './LocationSelector';
+import { createEmptyCharacter, CharacterData } from '../types/character';
+import { useDataSource } from '../hooks/useDataSource';
 
 interface QuestEditorProps {
   value: Quest | null;
@@ -21,12 +24,23 @@ const statusOptions: { label: string; value: QuestStatus }[] = [
 ];
 
 export default function QuestEditor({ value, onChange, onSave, saving }: QuestEditorProps) {
-  const { groups, createGroup, addCharacterToGroup } = useGroups();
   const [newSolutionPath, setNewSolutionPath] = useState('');
-  const [newNPCName, setNewNPCName] = useState('');
-  const [newNPCClass, setNewNPCClass] = useState('');
-  const [newNPCLevel, setNewNPCLevel] = useState<number>(1);
-  const [isNPCModalVisible, setIsNPCModalVisible] = useState(false);
+  const [showCharacterSelector, setShowCharacterSelector] = useState(false);
+  const [showLocationSelector, setShowLocationSelector] = useState(false);
+  const { pointsData } = useDataSource();
+  // Получение информации о локации по ID
+  const getLocationById = useCallback((locationId: string) => {
+    if (!pointsData) return null;
+    
+    for (const area of pointsData.areas) {
+      const location = area.pointsOfInterest.find(poi => poi.id === locationId);
+      if (location) {
+        return { location, area: area.area };
+      }
+    }
+    
+    return null;
+  }, [pointsData]);
 
   if (!value) {
     return (
@@ -53,41 +67,151 @@ export default function QuestEditor({ value, onChange, onSave, saving }: QuestEd
     });
   };
 
-  // Добавление нового NPC
-  const handleAddNPC = () => {
-    if (!newNPCName.trim()) {
-      message.error('Введите имя NPC');
+
+  // Создание нового персонажа для главной системы
+  const createCharacterInMainSystem = async (characterData: { name: string; class?: string; level?: number }) => {
+    const characterId = `character-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Создаем полный лист персонажа если указан класс
+    const hasFullSheet = Boolean(characterData.class);
+    let fullCharacterData: CharacterData;
+    
+    if (hasFullSheet) {
+      const emptyCharacter = createEmptyCharacter();
+      fullCharacterData = JSON.parse(emptyCharacter.data);
+      fullCharacterData.name.value = characterData.name;
+      fullCharacterData.info.charClass.value = characterData.class || '';
+      fullCharacterData.info.level.value = characterData.level || 1;
+      fullCharacterData.hasCharacterSheet = true;
+    } else {
+      // Создаем базовые данные, используя пустой персонаж как шаблон
+      const emptyCharacter = createEmptyCharacter();
+      fullCharacterData = JSON.parse(emptyCharacter.data);
+      fullCharacterData.name.value = characterData.name;
+      fullCharacterData.info.charClass.value = characterData.class || '';
+      fullCharacterData.info.level.value = characterData.level || 1;
+      fullCharacterData.hasCharacterSheet = false;
+    }
+
+    const character = {
+      id: characterId,
+      data: JSON.stringify(fullCharacterData),
+      createdAt: new Date().toISOString()
+    };
+
+    // Сохраняем в localStorage
+    const collection = JSON.parse(localStorage.getItem('dnd-characters-collection') || '{}');
+    collection[characterId] = character;
+    localStorage.setItem('dnd-characters-collection', JSON.stringify(collection));
+
+    // Пытаемся сохранить на JSON server
+    try {
+      await fetch('http://localhost:3001/characters', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(character),
+      });
+    } catch (error) {
+      console.warn('Не удалось сохранить на JSON server:', error);
+    }
+
+    return characterId;
+  };
+
+  // Обработка выбора существующих персонажей (множественный выбор)
+  const handleSelectMultipleCharacters = async (characters: { id: string; name: string; class?: string; level?: number }[]) => {
+    let addedCount = 0;
+    let skippedCount = 0;
+    const newNPCIds: string[] = [];
+
+    for (const character of characters) {
+      // Проверяем, есть ли персонаж уже в квесте
+      const currentNPCs = value.relatedNPCs || [];
+      if (currentNPCs.includes(character.id)) {
+        skippedCount++;
+        continue;
+      }
+
+      // Просто добавляем ID персонажа из главной системы
+      newNPCIds.push(character.id);
+      addedCount++;
+    }
+
+    // Обновляем квест одним вызовом, добавляя всех новых персонажей
+    if (newNPCIds.length > 0) {
+      const currentNPCs = value.relatedNPCs || [];
+      const updatedNPCs = [...currentNPCs, ...newNPCIds];
+      
+      onChange({ 
+        relatedNPCs: updatedNPCs 
+      });
+    }
+    
+    setShowCharacterSelector(false);
+    
+    if (addedCount > 0 && skippedCount > 0) {
+      message.success(`Добавлено ${addedCount} персонажей в квест. ${skippedCount} персонажей уже в квесте.`);
+    } else if (addedCount > 0) {
+      message.success(`Добавлено ${addedCount} персонаж${addedCount < 5 ? (addedCount === 1 ? '' : 'а') : 'ей'} в квест`);
+    } else {
+      message.warning('Все выбранные персонажи уже находятся в квесте');
+    }
+  };
+
+  // Обработка выбора одного существующего персонажа
+  const handleSelectExistingCharacter = async (character: { id: string; name: string; class?: string; level?: number }) => {
+    // Проверяем, есть ли персонаж уже в квесте
+    const currentNPCs = value.relatedNPCs || [];
+    if (currentNPCs.includes(character.id)) {
+      message.warning(`Персонаж "${character.name}" уже добавлен в квест`);
+      setShowCharacterSelector(false);
       return;
     }
 
-    // Находим или создаем группу для квеста
-    const questGroupName = `Квест "${value.title}"`;
-    let questGroup = groups.find(g => g.name === questGroupName);
+    // Просто добавляем ID персонажа из главной системы
+    onChange({ 
+      relatedNPCs: [...currentNPCs, character.id] 
+    });
     
-    if (!questGroup) {
-      questGroup = createGroup(questGroupName, '#9254de', false);
+    setShowCharacterSelector(false);
+    message.success(`Персонаж "${character.name}" добавлен в квест`);
+  };
+
+  // Обработка создания нового персонажа
+  const handleCreateNewCharacter = async (character: { name: string; class?: string; level?: number }) => {
+    // Проверяем, нет ли персонажа с таким именем уже в квесте
+    const currentNPCs = value.relatedNPCs || [];
+    
+    // Проверяем имена существующих персонажей в квесте
+    let duplicateName = false;
+    for (const npcId of currentNPCs) {
+      const npcInfo = getNPCById(npcId);
+      if (npcInfo && npcInfo.character.name === character.name) {
+        duplicateName = true;
+        break;
+      }
+    }
+    
+    if (duplicateName) {
+      message.warning(`Персонаж с именем "${character.name}" уже существует в квесте`);
+      return;
     }
 
-    // Добавляем персонажа в группу
-    const newCharacter = addCharacterToGroup(questGroup.id, {
-      name: newNPCName.trim(),
-      class: newNPCClass.trim() || undefined,
-      level: newNPCLevel
-    });
+    try {
+      // Создаем персонажа в главной системе
+      const mainCharacterId = await createCharacterInMainSystem(character);
 
-    // Добавляем ID персонажа в квест
-    const currentNPCs = value.relatedNPCs || [];
-    onChange({ 
-      relatedNPCs: [...currentNPCs, newCharacter.id] 
-    });
-
-    // Очищаем форму
-    setNewNPCName('');
-    setNewNPCClass('');
-    setNewNPCLevel(1);
-    setIsNPCModalVisible(false);
-    
-    message.success(`NPC "${newCharacter.name}" добавлен в группу "${questGroupName}"`);
+      // Добавляем ID персонажа в квест
+      onChange({ 
+        relatedNPCs: [...currentNPCs, mainCharacterId] 
+      });
+      
+      setShowCharacterSelector(false);
+      message.success(`Персонаж "${character.name}" создан и добавлен в квест`);
+    } catch (error) {
+      console.error('Ошибка при создании персонажа:', error);
+      message.error('Ошибка при создании персонажа');
+    }
   };
 
   // Удаление NPC из квеста
@@ -98,14 +222,96 @@ export default function QuestEditor({ value, onChange, onSave, saving }: QuestEd
     });
   };
 
-  // Получение информации о NPC по ID
-  const getNPCById = (npcId: string) => {
-    for (const group of groups) {
-      const character = group.members.find(member => member.id === npcId);
-      if (character) {
-        return { character, groupName: group.name };
-      }
+  // Обработка выбора одной локации
+  const handleSelectLocation = (location: { id: string; name: string; area: string }) => {
+    const currentLocations = value.relatedLocations || [];
+    if (currentLocations.includes(location.id)) {
+      message.warning(`Локация "${location.name}" уже добавлена в квест`);
+      setShowLocationSelector(false);
+      return;
     }
+
+    onChange({ 
+      relatedLocations: [...currentLocations, location.id] 
+    });
+    
+    setShowLocationSelector(false);
+    message.success(`Локация "${location.name}" добавлена в квест`);
+  };
+
+  // Обработка выбора нескольких локаций
+  const handleSelectMultipleLocations = (locations: { id: string; name: string; area: string }[]) => {
+    let addedCount = 0;
+    let skippedCount = 0;
+    const newLocationIds: string[] = [];
+
+    for (const location of locations) {
+      const currentLocations = value.relatedLocations || [];
+      if (currentLocations.includes(location.id)) {
+        skippedCount++;
+        continue;
+      }
+
+      newLocationIds.push(location.id);
+      addedCount++;
+    }
+
+    if (newLocationIds.length > 0) {
+      const currentLocations = value.relatedLocations || [];
+      const updatedLocations = [...currentLocations, ...newLocationIds];
+      
+      onChange({ 
+        relatedLocations: updatedLocations 
+      });
+    }
+    
+    setShowLocationSelector(false);
+    
+    if (addedCount > 0 && skippedCount > 0) {
+      message.success(`Добавлено ${addedCount} локаций в квест. ${skippedCount} локаций уже в квесте.`);
+    } else if (addedCount > 0) {
+      message.success(`Добавлено ${addedCount} локаци${addedCount < 5 ? (addedCount === 1 ? 'я' : 'и') : 'й'} в квест`);
+    } else {
+      message.warning('Все выбранные локации уже находятся в квесте');
+    }
+  };
+
+  // Удаление локации из квеста
+  const handleRemoveLocation = (locationId: string) => {
+    const currentLocations = value.relatedLocations || [];
+    onChange({ 
+      relatedLocations: currentLocations.filter(id => id !== locationId) 
+    });
+  };
+
+  // Получение информации о NPC по ID из главной системы персонажей
+  const getNPCById = (npcId: string) => {
+    try {
+      // Ищем персонажа в главной системе персонажей
+      const stored = localStorage.getItem('dnd-characters-collection');
+      if (stored) {
+        const collection = JSON.parse(stored);
+        const characterData = collection[npcId];
+        
+        if (characterData && typeof characterData === 'object') {
+          const parsedData = typeof characterData.data === 'string' ? JSON.parse(characterData.data) : characterData.data;
+          
+          const character = {
+            id: npcId,
+            name: parsedData.name?.value || parsedData.info?.name?.value || 'Безымянный',
+            class: parsedData.info?.charClass?.value || '',
+            level: parsedData.info?.level?.value || 1,
+            playerName: parsedData.info?.playerName?.value || ''
+          };
+          
+          return { character, groupName: 'Главная система персонажей' };
+        }
+      }
+      
+    } catch (error) {
+      console.error('Ошибка при поиске персонажа:', error);
+    }
+    
     return null;
   };
 
@@ -195,10 +401,10 @@ export default function QuestEditor({ value, onChange, onSave, saving }: QuestEd
               <Button 
                 type="dashed" 
                 icon={<PlusOutlined />}
-                onClick={() => setIsNPCModalVisible(true)}
+                onClick={() => setShowCharacterSelector(true)}
                 style={{ width: '100%' }}
               >
-                Добавить NPC
+                Добавить персонажей
               </Button>
               
               {value.relatedNPCs && value.relatedNPCs.length > 0 && (
@@ -246,8 +452,81 @@ export default function QuestEditor({ value, onChange, onSave, saving }: QuestEd
                             {npcInfo.character.class && npcInfo.character.level 
                               ? `${npcInfo.character.class} ${npcInfo.character.level} ур.`
                               : npcInfo.character.class || ''
-                            } · {npcInfo.groupName}
+                            }
                           </Typography.Text>
+                        </Space>
+                      </List.Item>
+                    );
+                  }}
+                />
+              )}
+            </Space>
+          </Form.Item>
+
+          {/* Связанные локации */}
+          <Form.Item label="Связанные локации">
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Button 
+                type="dashed" 
+                icon={<EnvironmentOutlined />}
+                onClick={() => setShowLocationSelector(true)}
+                style={{ width: '100%' }}
+              >
+                Добавить локации
+              </Button>
+              
+              {value.relatedLocations && value.relatedLocations.length > 0 && (
+                <List
+                  size="small"
+                  bordered
+                  dataSource={value.relatedLocations}
+                  renderItem={(locationId) => {
+                    const locationInfo = getLocationById(locationId);
+                    if (!locationInfo) {
+                      return (
+                        <List.Item
+                          actions={[
+                            <Button 
+                              key="delete"
+                              type="text" 
+                              danger 
+                              size="small"
+                              icon={<DeleteOutlined />}
+                              onClick={() => handleRemoveLocation(locationId)}
+                            />
+                          ]}
+                        >
+                          <Typography.Text type="secondary">Локация не найдена (ID: {locationId})</Typography.Text>
+                        </List.Item>
+                      );
+                    }
+
+                    return (
+                      <List.Item
+                        actions={[
+                          <Button 
+                            key="delete"
+                            type="text" 
+                            danger 
+                            size="small"
+                            icon={<DeleteOutlined />}
+                            onClick={() => handleRemoveLocation(locationId)}
+                          />
+                        ]}
+                      >
+                        <Space direction="vertical" size={0}>
+                          <Typography.Text strong>{locationInfo.location.name}</Typography.Text>
+                          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                            Регион: {locationInfo.area}
+                          </Typography.Text>
+                          <Space size={0} wrap>
+                            {locationInfo.location.tags.slice(0, 3).map(tag => (
+                              <Tag key={tag} color="geekblue" style={{ fontSize: '11px' }}>{tag}</Tag>
+                            ))}
+                            {locationInfo.location.tags.length > 3 && (
+                              <Tag color="default" style={{ fontSize: '11px' }}>+{locationInfo.location.tags.length - 3}</Tag>
+                            )}
+                          </Space>
                         </Space>
                       </List.Item>
                     );
@@ -270,51 +549,26 @@ export default function QuestEditor({ value, onChange, onSave, saving }: QuestEd
         </Space>
       </Space>
 
-      {/* Модальное окно для добавления NPC */}
-      <Modal
-        title="Добавить NPC"
-        open={isNPCModalVisible}
-        onOk={handleAddNPC}
-        onCancel={() => {
-          setIsNPCModalVisible(false);
-          setNewNPCName('');
-          setNewNPCClass('');
-          setNewNPCLevel(1);
-        }}
-        okText="Добавить"
-        cancelText="Отмена"
-      >
-        <Space direction="vertical" style={{ width: '100%' }}>
-          <Form layout="vertical">
-            <Form.Item label="Имя NPC" required>
-              <Input
-                placeholder="Введите имя персонажа"
-                value={newNPCName}
-                onChange={(e) => setNewNPCName(e.target.value)}
-              />
-            </Form.Item>
-            <Form.Item label="Класс">
-              <Input
-                placeholder="Класс персонажа (необязательно)"
-                value={newNPCClass}
-                onChange={(e) => setNewNPCClass(e.target.value)}
-              />
-            </Form.Item>
-            <Form.Item label="Уровень">
-              <Input
-                type="number"
-                min={1}
-                max={20}
-                value={newNPCLevel}
-                onChange={(e) => setNewNPCLevel(parseInt(e.target.value) || 1)}
-              />
-            </Form.Item>
-          </Form>
-          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-            NPC будет добавлен в группу "Квест \"{value.title}\""
-          </Typography.Text>
-        </Space>
-      </Modal>
+      {/* Селектор персонажей */}
+      <CharacterSelector
+        visible={showCharacterSelector}
+        onClose={() => setShowCharacterSelector(false)}
+        onSelectCharacter={handleSelectExistingCharacter}
+        onSelectMultipleCharacters={handleSelectMultipleCharacters}
+        onCreateCharacter={handleCreateNewCharacter}
+        title={`Добавить персонажей в квест "${value.title}"`}
+        allowMultipleSelection={true}
+      />
+
+      {/* Селектор локаций */}
+      <LocationSelector
+        visible={showLocationSelector}
+        onClose={() => setShowLocationSelector(false)}
+        onSelectLocation={handleSelectLocation}
+        onSelectMultipleLocations={handleSelectMultipleLocations}
+        title={`Добавить локации в квест "${value.title}"`}
+        allowMultipleSelection={true}
+      />
     </Card>
   );
 }
