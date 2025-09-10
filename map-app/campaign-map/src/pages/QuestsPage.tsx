@@ -152,17 +152,17 @@ export default function QuestsPage() {
   const renderRightPanel = () => {
     if (!selected) {
       return (
-        <Card size="small">Выберите квест из списка или создайте новый.</Card>
+        <Card >Выберите квест из списка или создайте новый.</Card>
       );
     }
 
     if (viewMode === 'view') {
       return (
         <Space direction="vertical" style={{ width: '100%' }} size="middle">
-          <Card size="small" title="Просмотр квеста" extra={
+          <Card  title="Просмотр квеста" extra={
             <Space>
               <Tag color="blue">{selected.status}</Tag>
-              <Button size="small" icon={<EditOutlined />} onClick={() => setViewMode('edit')}>
+              <Button  icon={<EditOutlined />} onClick={() => setViewMode('edit')}>
                 Редактировать
               </Button>
             </Space>

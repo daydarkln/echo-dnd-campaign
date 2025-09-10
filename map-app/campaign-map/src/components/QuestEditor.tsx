@@ -44,7 +44,7 @@ export default function QuestEditor({ value, onChange, onSave, saving }: QuestEd
 
   if (!value) {
     return (
-      <Card size="small">Выберите квест из списка или создайте новый.</Card>
+      <Card >Выберите квест из списка или создайте новый.</Card>
     );
   }
 
@@ -316,7 +316,7 @@ export default function QuestEditor({ value, onChange, onSave, saving }: QuestEd
   };
 
   return (
-    <Card size="small" title="Редактор квеста" extra={<Tag color="blue">{value.id ? 'Редактирование' : 'Новый'}</Tag>}>
+    <Card  title="Редактор квеста" extra={<Tag color="blue">{value.id ? 'Редактирование' : 'Новый'}</Tag>}>
       <Space direction="vertical" style={{ width: '100%' }} size="middle">
         <Form layout="vertical">
           <Form.Item label="Название">
@@ -371,7 +371,7 @@ export default function QuestEditor({ value, onChange, onSave, saving }: QuestEd
               
               {value.solutionPaths && value.solutionPaths.length > 0 && (
                 <List
-                  size="small"
+                  
                   bordered
                   dataSource={value.solutionPaths}
                   renderItem={(path, index) => (
@@ -381,7 +381,7 @@ export default function QuestEditor({ value, onChange, onSave, saving }: QuestEd
                           key="delete"
                           type="text" 
                           danger 
-                          size="small"
+                          
                           icon={<DeleteOutlined />}
                           onClick={() => handleRemoveSolutionPath(index)}
                         />
@@ -409,7 +409,7 @@ export default function QuestEditor({ value, onChange, onSave, saving }: QuestEd
               
               {value.relatedNPCs && value.relatedNPCs.length > 0 && (
                 <List
-                  size="small"
+                  
                   bordered
                   dataSource={value.relatedNPCs}
                   renderItem={(npcId) => {
@@ -422,7 +422,7 @@ export default function QuestEditor({ value, onChange, onSave, saving }: QuestEd
                               key="delete"
                               type="text" 
                               danger 
-                              size="small"
+                              
                               icon={<DeleteOutlined />}
                               onClick={() => handleRemoveNPC(npcId)}
                             />
@@ -440,7 +440,7 @@ export default function QuestEditor({ value, onChange, onSave, saving }: QuestEd
                             key="delete"
                             type="text" 
                             danger 
-                            size="small"
+                            
                             icon={<DeleteOutlined />}
                             onClick={() => handleRemoveNPC(npcId)}
                           />
@@ -477,7 +477,7 @@ export default function QuestEditor({ value, onChange, onSave, saving }: QuestEd
               
               {value.relatedLocations && value.relatedLocations.length > 0 && (
                 <List
-                  size="small"
+                  
                   bordered
                   dataSource={value.relatedLocations}
                   renderItem={(locationId) => {
@@ -490,7 +490,7 @@ export default function QuestEditor({ value, onChange, onSave, saving }: QuestEd
                               key="delete"
                               type="text" 
                               danger 
-                              size="small"
+                              
                               icon={<DeleteOutlined />}
                               onClick={() => handleRemoveLocation(locationId)}
                             />
@@ -508,7 +508,7 @@ export default function QuestEditor({ value, onChange, onSave, saving }: QuestEd
                             key="delete"
                             type="text" 
                             danger 
-                            size="small"
+                            
                             icon={<DeleteOutlined />}
                             onClick={() => handleRemoveLocation(locationId)}
                           />

@@ -154,7 +154,7 @@ export const LocationEffectButtons: React.FC<LocationEffectButtonsProps> = ({
             <Button
               icon={effect.icon}
               onClick={() => handleEffectClick(effect.key)}
-              size="small"
+              
             >
               {effect.title}
             </Button>

@@ -69,7 +69,7 @@ export const WeatherTimeController: React.FC<{ embedded?: boolean }> = ({ embedd
         }}
         disabled={!!(locationInfo && !locationInfo.weatherEnabled)}
         className="weather-time-segmented"
-        size="small"
+        
       />
     </div>
   );

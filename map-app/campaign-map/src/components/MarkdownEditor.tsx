@@ -68,14 +68,14 @@ export default function MarkdownEditor({ value, onChange, placeholder, style }: 
   return (
     <div>
       <Space size={8} style={{ marginBottom: 8 }}>
-        <Tooltip title="Заголовок H1"><Button size="small" onClick={() => applyLinePrefix('# ')}>H1</Button></Tooltip>
-        <Tooltip title="Заголовок H2"><Button size="small" onClick={() => applyLinePrefix('## ')}>H2</Button></Tooltip>
-        <Tooltip title="Полужирный"><Button size="small" icon={<BoldOutlined />} onClick={() => applyInline('**')} /></Tooltip>
-        <Tooltip title="Курсив"><Button size="small" icon={<ItalicOutlined />} onClick={() => applyInline('*')} /></Tooltip>
-        <Tooltip title="Маркированный список"><Button size="small" icon={<UnorderedListOutlined />} onClick={() => applyLinePrefix('- ')} /></Tooltip>
-        <Tooltip title="Нумерованный список"><Button size="small" icon={<OrderedListOutlined />} onClick={() => applyLinePrefix('1. ')} /></Tooltip>
-        <Tooltip title="Цитата"><Button size="small" onClick={() => applyLinePrefix('> ')}>&#10077;</Button></Tooltip>
-        <Tooltip title="Код"><Button size="small" onClick={() => applyInline('`')}><FieldNumberOutlined /></Button></Tooltip>
+        <Tooltip title="Заголовок H1"><Button  onClick={() => applyLinePrefix('# ')}>H1</Button></Tooltip>
+        <Tooltip title="Заголовок H2"><Button  onClick={() => applyLinePrefix('## ')}>H2</Button></Tooltip>
+        <Tooltip title="Полужирный"><Button  icon={<BoldOutlined />} onClick={() => applyInline('**')} /></Tooltip>
+        <Tooltip title="Курсив"><Button  icon={<ItalicOutlined />} onClick={() => applyInline('*')} /></Tooltip>
+        <Tooltip title="Маркированный список"><Button  icon={<UnorderedListOutlined />} onClick={() => applyLinePrefix('- ')} /></Tooltip>
+        <Tooltip title="Нумерованный список"><Button  icon={<OrderedListOutlined />} onClick={() => applyLinePrefix('1. ')} /></Tooltip>
+        <Tooltip title="Цитата"><Button  onClick={() => applyLinePrefix('> ')}>&#10077;</Button></Tooltip>
+        <Tooltip title="Код"><Button  onClick={() => applyInline('`')}><FieldNumberOutlined /></Button></Tooltip>
       </Space>
       <textarea
         ref={ref}

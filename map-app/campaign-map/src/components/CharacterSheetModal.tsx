@@ -168,7 +168,7 @@ const CharacterTrackers: React.FC<{
           alignItems: 'center'
         }}>
           <Button 
-            size="small" 
+             
             onClick={() => decCharacterStage(characterId, 'sporesStage')}
             disabled={stages.sporesStage === 0}
             style={{ width: 24, height: 24, padding: 0, minWidth: 24 }}
@@ -179,7 +179,7 @@ const CharacterTrackers: React.FC<{
             {stages.sporesStage}
           </span>
           <Button 
-            size="small" 
+             
             onClick={() => incCharacterStage(characterId, 'sporesStage')}
             disabled={stages.sporesStage === 4}
             style={{ width: 24, height: 24, padding: 0, minWidth: 24 }}
@@ -187,7 +187,7 @@ const CharacterTrackers: React.FC<{
             +
           </Button>
           <Button 
-            size="small" 
+             
             type="text" 
             onClick={() => resetCharacterStage(characterId, 'sporesStage')}
             style={{ fontSize: '11px', padding: '0 4px', height: 24 }}
@@ -243,7 +243,7 @@ const CharacterTrackers: React.FC<{
           alignItems: 'center'
         }}>
           <Button 
-            size="small" 
+             
             onClick={() => decCharacterStage(characterId, 'shadowStage')}
             disabled={stages.shadowStage === 0}
             style={{ width: 24, height: 24, padding: 0, minWidth: 24 }}
@@ -254,7 +254,7 @@ const CharacterTrackers: React.FC<{
             {stages.shadowStage}
           </span>
           <Button 
-            size="small" 
+             
             onClick={() => incCharacterStage(characterId, 'shadowStage')}
             disabled={stages.shadowStage === 4}
             style={{ width: 24, height: 24, padding: 0, minWidth: 24 }}
@@ -262,7 +262,7 @@ const CharacterTrackers: React.FC<{
             +
           </Button>
           <Button 
-            size="small" 
+             
             type="text" 
             onClick={() => resetCharacterStage(characterId, 'shadowStage')}
             style={{ fontSize: '11px', padding: '0 4px', height: 24 }}
@@ -474,9 +474,9 @@ export const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
               </Space>
             </Col>
             <Col flex="none">
-              <Space size="small">
+              <Space >
                 <Button 
-                  size="small" 
+                   
                   icon={<DownloadOutlined />} 
                   onClick={handleExport}
                   title="Экспорт персонажа"
@@ -484,7 +484,7 @@ export const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
                   Экспорт
                 </Button>
                 <Button 
-                  size="small" 
+                   
                   icon={<UploadOutlined />} 
                   onClick={() => setShowImportModal(true)}
                   title="Импорт персонажа"

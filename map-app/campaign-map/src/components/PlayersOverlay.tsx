@@ -116,7 +116,7 @@ const PlayersOverlay: React.FC<PlayersOverlayProps> = ({ visible, onClose }) => 
               return (
                 <Card
                   key={player.id}
-                  size="small"
+                  
                   style={{
                     border: `2px solid ${player.groupColor}`,
                     borderRadius: 8

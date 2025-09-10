@@ -488,7 +488,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ visible, onClose, as
                                   <Text style={{ fontSize: 11, color: '#8c8c8c' }}>Споры:</Text>
                                   <Space size={4}>
                                     <Button 
-                                      size="small" 
+                                       
                                       type="text" 
                                       style={{ minWidth: 18, height: 18, padding: 0, fontSize: 10 }}
                                       onClick={(e) => {
@@ -503,7 +503,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ visible, onClose, as
                                       {st.sporesStage}
                                     </Tag>
                                     <Button 
-                                      size="small" 
+                                       
                                       type="text" 
                                       style={{ minWidth: 18, height: 18, padding: 0, fontSize: 10 }}
                                       onClick={(e) => {
@@ -517,7 +517,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ visible, onClose, as
                                   <Text style={{ fontSize: 11, color: '#8c8c8c' }}>Тень:</Text>
                                   <Space size={4}>
                                     <Button 
-                                      size="small" 
+                                       
                                       type="text" 
                                       style={{ minWidth: 18, height: 18, padding: 0, fontSize: 10 }}
                                       onClick={(e) => {
@@ -532,7 +532,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ visible, onClose, as
                                       {st.shadowStage}
                                     </Tag>
                                     <Button 
-                                      size="small" 
+                                       
                                       type="text" 
                                       style={{ minWidth: 18, height: 18, padding: 0, fontSize: 10 }}
                                       onClick={(e) => {

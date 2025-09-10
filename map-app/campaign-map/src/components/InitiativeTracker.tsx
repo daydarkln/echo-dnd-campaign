@@ -496,7 +496,7 @@ const InitiativeTracker: React.FC = () => {
     return (
       <Card
         key={character.id}
-        size="small"
+        
         style={{
           width: '100%',
           border: isCurrentTurn ? '2px solid #1890ff' : '1px solid #d9d9d9',
@@ -557,7 +557,7 @@ const InitiativeTracker: React.FC = () => {
               <Text type="secondary" style={{ fontSize: 10, display: 'block' }}>Инициатива</Text>
               {!currentEncounter?.isActive ? (
                 <InputNumber
-                  size="small"
+                  
                   placeholder="Инц."
                   value={character.initiative}
                   onChange={(value) => handleInitiativeChange(character.id, value)}
@@ -579,7 +579,7 @@ const InitiativeTracker: React.FC = () => {
                 trigger={['click']}
                 placement="bottomRight"
               >
-                <Button size="small" icon={<MoreOutlined />} />
+                <Button  icon={<MoreOutlined />} />
               </Dropdown>
             </div>
           </div>
@@ -730,7 +730,7 @@ const InitiativeTracker: React.FC = () => {
 
         {/* Контролы боя */}
         {currentEncounter ? (
-          <Card size="small" style={{ marginBottom: 24 }}>
+          <Card  style={{ marginBottom: 24 }}>
             <Row justify="space-between" align="middle">
               <Col>
                 <Space>
@@ -744,19 +744,19 @@ const InitiativeTracker: React.FC = () => {
                   {currentEncounter.characters.some(c => hasCharacter(c.id)) && (
                     <Space size={4}>
                       <Dropdown trigger={["hover"]} menu={{ items: getEncounterTrackerItems() }} placement="bottomRight">
-                        <Button size="small" type="text" icon={<FundOutlined />} />
+                        <Button  type="text" icon={<FundOutlined />} />
                       </Dropdown>
                       <Dropdown trigger={["hover"]} menu={{ items: getEncounterSkillsItems() }} placement="bottomRight">
-                        <Button size="small" type="text" icon={<BarsOutlined />} />
+                        <Button  type="text" icon={<BarsOutlined />} />
                       </Dropdown>
                       <Dropdown trigger={["hover"]} menu={{ items: getEncounterSavesItems() }} placement="bottomRight">
-                        <Button size="small" type="text" icon={<DashboardOutlined />} />
+                        <Button  type="text" icon={<DashboardOutlined />} />
                       </Dropdown>
                       <Dropdown trigger={["hover"]} menu={{ items: getEncounterAcItems() }} placement="bottomRight">
-                        <Button size="small" type="text" icon={<SafetyOutlined />} />
+                        <Button  type="text" icon={<SafetyOutlined />} />
                       </Dropdown>
                       <Dropdown trigger={["hover"]} menu={{ items: getEncounterPpItems() }} placement="bottomRight">
-                        <Button size="small" type="text" icon={<EyeOutlined />} />
+                        <Button  type="text" icon={<EyeOutlined />} />
                       </Dropdown>
                     </Space>
                   )}

@@ -114,14 +114,14 @@ export const CurrentLocationGraph: React.FC<CurrentLocationGraphProps> = ({ poin
 
   if (!currentLocationId || graphNodes.length === 0) {
     return (
-      <Card size="small" style={{ marginBottom: 12 }}>
+      <Card  style={{ marginBottom: 12 }}>
         <Empty description="Текущая локация не выбрана" />
       </Card>
     );
   }
 
   return (
-    <Card size="small" style={{ marginBottom: 12 }}>
+    <Card  style={{ marginBottom: 12 }}>
       <div style={{ height: '100vh' }}>
         <ReactFlow
           nodes={graphNodes}

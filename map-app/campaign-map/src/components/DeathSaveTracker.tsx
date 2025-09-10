@@ -63,7 +63,7 @@ const DeathSaveTracker: React.FC<DeathSaveTrackerProps> = ({
         {/* Успешные броски */}
         <div style={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
           <Button
-            size="small"
+            
             type="primary"
             icon={<CheckOutlined />}
             onClick={() => onDeathSave('success')}
@@ -78,7 +78,7 @@ const DeathSaveTracker: React.FC<DeathSaveTrackerProps> = ({
             }}
           />
           <Button
-            size="small"
+            
             icon={<ThunderboltOutlined />}
             onClick={() => onDeathSave('critical-success')}
             disabled={!isCurrentTurn}
@@ -97,7 +97,7 @@ const DeathSaveTracker: React.FC<DeathSaveTrackerProps> = ({
         {/* Неудачные броски */}
         <div style={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
           <Button
-            size="small"
+            
             danger
             icon={<CloseOutlined />}
             onClick={() => onDeathSave('failure')}
@@ -110,7 +110,7 @@ const DeathSaveTracker: React.FC<DeathSaveTrackerProps> = ({
             }}
           />
           <Button
-            size="small"
+            
             icon={<FireOutlined />}
             onClick={() => onDeathSave('critical-failure')}
             disabled={!isCurrentTurn}
@@ -129,7 +129,7 @@ const DeathSaveTracker: React.FC<DeathSaveTrackerProps> = ({
         {/* Сброс */}
         <div style={{ display: 'flex', justifyContent: 'center', borderTop: '1px solid #f0f0f0', paddingTop: 4 }}>
           <Button
-            size="small"
+            
             type="text"
             icon={<RedoOutlined />}
             onClick={onReset}

@@ -122,7 +122,7 @@ export const RouteEffectButtons: React.FC<RouteEffectButtonsProps> = ({
             <Button
               icon={effect.icon}
               onClick={() => handleEffectClick(effect.key)}
-              size="small"
+              
             >
               {effect.title}
             </Button>

@@ -300,7 +300,7 @@ export const CharacterPage: React.FC = () => {
                             </Space>
                           }
                           description={
-                            <Space direction="vertical" size="small">
+                            <Space direction="vertical" >
                               <div>
                                 <Text strong>Уровень:</Text> {character.level}
                                 {character.playerName && (

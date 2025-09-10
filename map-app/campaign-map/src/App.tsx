@@ -1,6 +1,6 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { Layout, Spin, Alert, FloatButton, Modal, Tabs, App as AntdApp, ConfigProvider } from 'antd';
-import { TeamOutlined, PartitionOutlined, DashboardOutlined, UserOutlined, FileTextOutlined, ThunderboltOutlined, ReadOutlined } from '@ant-design/icons';
+import { TeamOutlined, PartitionOutlined, DashboardOutlined, UserOutlined, FileTextOutlined, ThunderboltOutlined, ReadOutlined, BugOutlined } from '@ant-design/icons';
 import TrackersPage from './pages/TrackersPage';
 import PlayerMapPage from './pages/PlayerMapPage';
 import { CharacterPage } from './pages/CharacterPage';
@@ -9,6 +9,7 @@ import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-
 import QuestsPage from './pages/QuestsPage';
 import { CharacterCreationPage } from './pages/CharacterCreationPage';
 import { CharacterEditPage } from './pages/CharacterEditPage';
+import { BestiaryPage } from './pages/BestiaryPage';
 import GroupedMindMap from './components/GroupedMindMap';
 import RegionFocusedMap from './components/RegionFocusedMap';
 import LocationDetail from './components/LocationDetail';
@@ -217,6 +218,7 @@ function AppContent() {
                 : location.pathname.startsWith('/player-map') ? 'player-map'
                 : location.pathname.startsWith('/character') ? 'character' 
                 : location.pathname.startsWith('/quests') ? 'quests'
+                : location.pathname.startsWith('/bestiary') ? 'bestiary'
                 : 'map'
               }
               style={{position: 'sticky', top: 0, zIndex: 10, backgroundColor: '#f0f2f5'}}
@@ -281,6 +283,14 @@ function AppContent() {
                     </span>
                   ),
                 },
+                {
+                  key: 'bestiary',
+                  label: (
+                    <span>
+                      <BugOutlined /> Бестиарий
+                    </span>
+                  ),
+                },
               ]}
             />
             )}
@@ -341,6 +351,10 @@ function AppContent() {
               <Route
                 path="/quests/:id"
                 element={<QuestsPage />}
+              />
+              <Route
+                path="/bestiary"
+                element={<BestiaryPage />}
               />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

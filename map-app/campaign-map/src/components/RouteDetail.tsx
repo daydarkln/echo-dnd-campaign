@@ -110,7 +110,7 @@ const RouteDetail: React.FC<RouteDetailProps> = ({
           <Button 
             icon={<ArrowLeftOutlined />} 
             onClick={onBack}
-            size="small"
+            
           >
             Назад
           </Button>
@@ -124,8 +124,8 @@ const RouteDetail: React.FC<RouteDetailProps> = ({
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={16}>
           {/* Описание пути */}
-          <Card size="small" style={{ marginBottom: 16 }}>
-            <Descriptions size="small" column={1}>
+          <Card  style={{ marginBottom: 16 }}>
+            <Descriptions  column={1}>
               <Descriptions.Item label="Тип пути">
                 <Tag color="blue">{route.pathType}</Tag>
               </Descriptions.Item>
@@ -142,9 +142,9 @@ const RouteDetail: React.FC<RouteDetailProps> = ({
 
           {/* Препятствия */}
           {shouldShowSection('obstacles') && (
-            <Card size="small" title="Препятствия" style={{ marginBottom: 16 }}>
+            <Card  title="Препятствия" style={{ marginBottom: 16 }}>
               <List
-                size="small"
+                
                 dataSource={route.obstacles}
                 renderItem={(obstacle, index) => {
                   if (!shouldShowItem('obstacles', index)) return null;
@@ -164,9 +164,9 @@ const RouteDetail: React.FC<RouteDetailProps> = ({
 
           {/* Требования */}
           {shouldShowSection('requirements') && (
-            <Card size="small" title="Требования" style={{ marginBottom: 16 }}>
+            <Card  title="Требования" style={{ marginBottom: 16 }}>
               <List
-                size="small"
+                
                 dataSource={route.requirements}
                 renderItem={(requirement, index) => {
                   if (!shouldShowItem('requirements', index)) return null;
@@ -186,7 +186,7 @@ const RouteDetail: React.FC<RouteDetailProps> = ({
 
           {/* Заметки */}
           {shouldShowNotes() && route.notes && (
-            <Card size="small" title="Заметки" style={{ marginBottom: 16 }}>
+            <Card  title="Заметки" style={{ marginBottom: 16 }}>
               <Paragraph>{route.notes}</Paragraph>
             </Card>
           )}
@@ -196,7 +196,7 @@ const RouteDetail: React.FC<RouteDetailProps> = ({
           {/* Аудио эффекты */}
           {bindings?.routes && bindings.routes[route.id] && (
             <Card 
-              size="small" 
+               
               title={
                 <Space>
                   <AudioOutlined />
@@ -214,8 +214,8 @@ const RouteDetail: React.FC<RouteDetailProps> = ({
           )}
 
           {/* Статистика */}
-          <Card size="small" title="Статистика">
-            <Descriptions size="small" column={1}>
+          <Card  title="Статистика">
+            <Descriptions  column={1}>
               <Descriptions.Item label="Препятствия">
                 {route.obstacles?.length || 0}
               </Descriptions.Item>

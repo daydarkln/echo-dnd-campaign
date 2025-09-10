@@ -117,7 +117,7 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
           <Button 
             icon={<ArrowLeftOutlined />} 
             onClick={onBack}
-            size="small"
+            
           >
             Назад
           </Button>
@@ -133,7 +133,7 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
         <Col xs={24} lg={16}>
           {/* Теги */}
           {location.tags && location.tags.length > 0 && (
-            <Card size="small" style={{ marginBottom: 16 }}>
+            <Card  style={{ marginBottom: 16 }}>
               <Space wrap>
                 {location.tags.map((tag, index) => (
                   <Tag key={index} color="green">{tag}</Tag>
@@ -144,9 +144,9 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
 
           {/* Усилители */}
           {location.amplifiers && location.amplifiers.length > 0 && (
-            <Card size="small" title="Усилители" style={{ marginBottom: 16 }}>
+            <Card  title="Усилители" style={{ marginBottom: 16 }}>
               <List
-                size="small"
+                
                 dataSource={location.amplifiers}
                 renderItem={(amplifier, index) => (
                   <List.Item>
@@ -166,9 +166,9 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
 
           {/* Ослабители */}
           {location.dampeners && location.dampeners.length > 0 && (
-            <Card size="small" title="Ослабители" style={{ marginBottom: 16 }}>
+            <Card  title="Ослабители" style={{ marginBottom: 16 }}>
               <List
-                size="small"
+                
                 dataSource={location.dampeners}
                 renderItem={(dampener, index) => (
                   <List.Item>
@@ -188,9 +188,9 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
 
           {/* Энкаунтеры */}
           {shouldShowSection('encounters') && (
-            <Card size="small" title="Энкаунтеры" style={{ marginBottom: 16 }}>
+            <Card  title="Энкаунтеры" style={{ marginBottom: 16 }}>
               <List
-                size="small"
+                
                 dataSource={location.encounters}
                 renderItem={(encounter, index) => {
                   if (!shouldShowItem('encounters', index)) return null;
@@ -217,9 +217,9 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
 
           {/* Лут */}
           {shouldShowSection('loot') && (
-            <Card size="small" title="Лут" style={{ marginBottom: 16 }}>
+            <Card  title="Лут" style={{ marginBottom: 16 }}>
               <List
-                size="small"
+                
                 dataSource={location.loot}
                 renderItem={(item, index) => {
                   if (!shouldShowItem('loot', index)) return null;
@@ -236,9 +236,9 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
 
           {/* Подсказки */}
           {shouldShowSection('clues') && (
-            <Card size="small" title="Подсказки" style={{ marginBottom: 16 }}>
+            <Card  title="Подсказки" style={{ marginBottom: 16 }}>
               <List
-                size="small"
+                
                 dataSource={location.clues}
                 renderItem={(clue, index) => {
                   if (!shouldShowItem('clues', index)) return null;
@@ -258,7 +258,7 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
           {/* Аудио эффекты */}
           {bindings?.locations[location.id] && (
             <Card 
-              size="small" 
+               
               title={
                 <Space>
                   <AudioOutlined />
@@ -278,7 +278,7 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
           {/* Участвует в квестах */}
           {relatedQuests.length > 0 && (
             <Card 
-              size="small" 
+               
               title={
                 <Space>
                   <QrcodeOutlined />
@@ -288,7 +288,7 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
               style={{ marginBottom: 16 }}
             >
               <List
-                size="small"
+                
                 dataSource={relatedQuests}
                 renderItem={(quest) => (
                   <List.Item
@@ -327,8 +327,8 @@ const LocationDetail: React.FC<LocationDetailProps> = ({
           )}
 
           {/* Статистика */}
-          <Card size="small" title="Статистика">
-            <Descriptions size="small" column={1}>
+          <Card  title="Статистика">
+            <Descriptions  column={1}>
               <Descriptions.Item label="Теги">
                 {location.tags?.length || 0}
               </Descriptions.Item>

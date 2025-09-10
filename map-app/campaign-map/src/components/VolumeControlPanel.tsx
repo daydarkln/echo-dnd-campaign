@@ -109,8 +109,8 @@ export const VolumeControlPanel: React.FC<TrackVolumeControlProps & { asWidget?:
     <div>
       {/* Информация о текущей локации */}
       {locationInfo && (
-        <Card size="small" style={{ marginBottom: '16px', backgroundColor: '#f6f8fa' }}>
-          <Space direction="vertical" size="small" style={{ width: '100%' }}>
+        <Card  style={{ marginBottom: '16px', backgroundColor: '#f6f8fa' }}>
+          <Space direction="vertical"  style={{ width: '100%' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Badge color="blue" />
               <Text strong>Текущая локация: {locationName}</Text>
@@ -189,7 +189,7 @@ export const VolumeControlPanel: React.FC<TrackVolumeControlProps & { asWidget?:
         alignItems: 'center' 
       }}>
         <Button
-          size="small"
+          
           onClick={resetToDefaults}
           type="default"
           style={{ fontSize: '12px' }}
@@ -257,7 +257,7 @@ export const VolumeControlPanel: React.FC<TrackVolumeControlProps & { asWidget?:
           value={currentTimeOfDay}
           onChange={setTimeOfDay}
           style={{ width: '100%', marginTop: 8 }}
-          size="small"
+          
           disabled={!timeOfDayEnabled}
         >
           {Object.entries(audioConfig.timeOfDay).map(([time, config]) => (
@@ -297,7 +297,7 @@ export const VolumeControlPanel: React.FC<TrackVolumeControlProps & { asWidget?:
           value={currentWeather}
           onChange={setWeather}
           style={{ width: '100%', marginTop: 8 }}
-          size="small"
+          
           disabled={!weatherEnabled}
         >
           {Object.entries(audioConfig.weatherEffects).map(([weather, config]) => (
@@ -329,7 +329,7 @@ export const VolumeControlPanel: React.FC<TrackVolumeControlProps & { asWidget?:
         type={isMuted ? 'primary' : 'default'}
         icon={isMuted ? <MutedOutlined /> : <SoundOutlined />}
         onClick={() => setIsMuted(!isMuted)}
-        size="small"
+        
         style={{ width: '100%' }}
       >
         {isMuted ? 'Включить звук' : 'Отключить звук'}
@@ -381,7 +381,7 @@ export const VolumeControlPanel: React.FC<TrackVolumeControlProps & { asWidget?:
         style={{ top: 20 }}
         bodyStyle={{ padding: '16px', maxHeight: '70vh', overflowY: 'auto' }}
       >
-        <Tabs defaultActiveKey="channels" size="small">
+        <Tabs defaultActiveKey="channels" >
           <TabPane 
             tab={
               <span>

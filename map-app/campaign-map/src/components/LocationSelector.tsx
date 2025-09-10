@@ -240,7 +240,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
                 }
               >
                 <List
-                  size="small"
+                  
                   dataSource={area.pointsOfInterest}
                   renderItem={(location) => (
                     <List.Item

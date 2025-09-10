@@ -49,7 +49,7 @@ const STORAGE_NPCS_KEY = 'gm-generated-npcs';
 const NotesPanel: React.FC<{ value: string; onChange: (v: string) => void }>
   = ({ value, onChange }) => {
   return (
-    <Card size="small" title={<Space><FileTextOutlined /> <span>Заметки мастера</span></Space>}>
+    <Card  title={<Space><FileTextOutlined /> <span>Заметки мастера</span></Space>}>
       <Input.TextArea id="gm-notes-input" rows={6} value={value} onChange={(e) => onChange(e.target.value)} placeholder="Быстрые заметки... (Z — добавить)" />
     </Card>
   );
@@ -418,7 +418,7 @@ export const GameModeView: React.FC = () => {
     hotkey?: string
   ) => {
     return (
-      <Card size="small" title={title} bodyStyle={isCollapsed ? { display: 'none' } : { padding: 8 }}>
+      <Card  title={title} bodyStyle={isCollapsed ? { display: 'none' } : { padding: 8 }}>
         {!isCollapsed && content}
       </Card>
     );
@@ -439,7 +439,7 @@ export const GameModeView: React.FC = () => {
             const isPlayerCharacter = groups.some(g => g.isPlayers && g.members.some(m => m.id === c.id));
             
             return (
-              <Card key={c.id} size="small" bodyStyle={{ padding: 8 }}>
+              <Card key={c.id}  bodyStyle={{ padding: 8 }}>
                 <Space direction="vertical" style={{ width: '100%' }} size={4}>
                   <Space style={{ width: '100%', justifyContent: 'space-between' }}>
                     <Space>
@@ -459,7 +459,7 @@ export const GameModeView: React.FC = () => {
                         <Text style={{ fontSize: 11, color: '#8c8c8c' }}>Споры:</Text>
                         <Space size={4}>
                           <Button 
-                            size="small" 
+                             
                             type="text" 
                             style={{ minWidth: 20, height: 20, padding: 0, fontSize: 10 }}
                             onClick={() => {
@@ -478,7 +478,7 @@ export const GameModeView: React.FC = () => {
                             {stages.sporesStage}
                           </Tag>
                           <Button 
-                            size="small" 
+                             
                             type="text" 
                             style={{ minWidth: 20, height: 20, padding: 0, fontSize: 10 }}
                             onClick={() => {
@@ -497,7 +497,7 @@ export const GameModeView: React.FC = () => {
                         <Text style={{ fontSize: 11, color: '#8c8c8c' }}>Тень:</Text>
                         <Space size={4}>
                           <Button 
-                            size="small" 
+                             
                             type="text" 
                             style={{ minWidth: 20, height: 20, padding: 0, fontSize: 10 }}
                             onClick={() => {
@@ -516,7 +516,7 @@ export const GameModeView: React.FC = () => {
                             {stages.shadowStage}
                           </Tag>
                           <Button 
-                            size="small" 
+                             
                             type="text" 
                             style={{ minWidth: 20, height: 20, padding: 0, fontSize: 10 }}
                             onClick={() => {
@@ -547,7 +547,7 @@ export const GameModeView: React.FC = () => {
           const characterId = `${m.groupId}-${m.id}`;
           const stages = getCharacterStages(characterId);
           return (
-            <Card key={m.id} size="small" bodyStyle={{ padding: 8 }}>
+            <Card key={m.id}  bodyStyle={{ padding: 8 }}>
               <Space direction="vertical" style={{ width: '100%' }} size={4}>
                 <Space style={{ width: '100%', justifyContent: 'space-between' }}>
                   <Space>
@@ -564,7 +564,7 @@ export const GameModeView: React.FC = () => {
                       <Text style={{ fontSize: 11, color: '#8c8c8c' }}>Споры:</Text>
                       <Space size={4}>
                         <Button 
-                          size="small" 
+                           
                           type="text" 
                           style={{ minWidth: 20, height: 20, padding: 0, fontSize: 10 }}
                           onClick={() => {
@@ -583,7 +583,7 @@ export const GameModeView: React.FC = () => {
                           {stages.sporesStage}
                         </Tag>
                         <Button 
-                          size="small" 
+                           
                           type="text" 
                           style={{ minWidth: 20, height: 20, padding: 0, fontSize: 10 }}
                           onClick={() => {
@@ -602,7 +602,7 @@ export const GameModeView: React.FC = () => {
                       <Text style={{ fontSize: 11, color: '#8c8c8c' }}>Тень:</Text>
                       <Space size={4}>
                         <Button 
-                          size="small" 
+                           
                           type="text" 
                           style={{ minWidth: 20, height: 20, padding: 0, fontSize: 10 }}
                           onClick={() => {
@@ -621,7 +621,7 @@ export const GameModeView: React.FC = () => {
                           {stages.shadowStage}
                         </Tag>
                         <Button 
-                          size="small" 
+                           
                           type="text" 
                           style={{ minWidth: 20, height: 20, padding: 0, fontSize: 10 }}
                           onClick={() => {
@@ -685,7 +685,7 @@ export const GameModeView: React.FC = () => {
       side: 'right',
       className: 'gm-widget-compact',
       content: (
-        <Card size="small" title={<Space><UserOutlined /> Карточки игроков (F)</Space>}>
+        <Card  title={<Space><UserOutlined /> Карточки игроков (F)</Space>}>
           {renderPlayerCards()}
         </Card>
       )
@@ -718,7 +718,7 @@ export const GameModeView: React.FC = () => {
               <Space style={{ width: '100%', justifyContent: 'space-between' }}>
                 <Text>Городская паника</Text>
                 <Space>
-                  <Button size="small" onClick={() => {
+                  <Button  onClick={() => {
                     const prev = trackers.cityPanic;
                     const next = Math.max(0, Math.min(4, prev - 1));
                     if (next !== prev) {
@@ -727,7 +727,7 @@ export const GameModeView: React.FC = () => {
                     }
                   }}>-</Button>
                   <Tag color="blue">{trackers.cityPanic}</Tag>
-                  <Button size="small" onClick={() => {
+                  <Button  onClick={() => {
                     const prev = trackers.cityPanic;
                     const next = Math.max(0, Math.min(4, prev + 1));
                     if (next !== prev) {
@@ -740,7 +740,7 @@ export const GameModeView: React.FC = () => {
               <Space style={{ width: '100%', justifyContent: 'space-between' }}>
                 <Text>Экосистема</Text>
                 <Space>
-                  <Button size="small" onClick={() => {
+                  <Button  onClick={() => {
                     const prev = trackers.ecosystem;
                     const next = Math.max(0, Math.min(4, prev - 1));
                     if (next !== prev) {
@@ -749,7 +749,7 @@ export const GameModeView: React.FC = () => {
                     }
                   }}>-</Button>
                   <Tag color="green">{trackers.ecosystem}</Tag>
-                  <Button size="small" onClick={() => {
+                  <Button  onClick={() => {
                     const prev = trackers.ecosystem;
                     const next = Math.max(0, Math.min(4, prev + 1));
                     if (next !== prev) {
@@ -762,7 +762,7 @@ export const GameModeView: React.FC = () => {
               <Space style={{ width: '100%', justifyContent: 'space-between' }}>
                 <Text>Рой</Text>
                 <Space>
-                  <Button size="small" onClick={() => {
+                  <Button  onClick={() => {
                     const prev = trackers.swarm;
                     const next = Math.max(0, Math.min(4, prev - 1));
                     if (next !== prev) {
@@ -771,7 +771,7 @@ export const GameModeView: React.FC = () => {
                     }
                   }}>-</Button>
                   <Tag color="magenta">{trackers.swarm}</Tag>
-                  <Button size="small" onClick={() => {
+                  <Button  onClick={() => {
                     const prev = trackers.swarm;
                     const next = Math.max(0, Math.min(4, prev + 1));
                     if (next !== prev) {
@@ -827,7 +827,7 @@ export const GameModeView: React.FC = () => {
           <Empty description="Нет активных квестов" />
         ) : (
           <List
-            size="small"
+            
             dataSource={questList}
             renderItem={(q) => (
               <List.Item onClick={() => navigate(`/quests/${q.id}`)} style={{ cursor: 'pointer' }}>
@@ -876,12 +876,12 @@ export const GameModeView: React.FC = () => {
         side: 'left',
         className: 'gm-widget-compact',
         content: (
-          <Card size="small" title={
+          <Card  title={
             <Space>
               <HistoryOutlined /> История действий
               <Tag color="geekblue">{history.length}</Tag>
               {isHistoryOpen && history.length > 0 && (
-                <Button size="small" type="primary" icon={<SaveOutlined />} onClick={() => {
+                <Button  type="primary" icon={<SaveOutlined />} onClick={() => {
                   try {
                     const payload = {
                       generatedAt: new Date().toISOString(),
@@ -910,7 +910,7 @@ export const GameModeView: React.FC = () => {
                 {history.length === 0 ? (
                   <Empty description="Пока пусто" />
                 ) : (
-                  <List size="small" dataSource={history} renderItem={(i) => <List.Item>{i}</List.Item>} />
+                  <List  dataSource={history} renderItem={(i) => <List.Item>{i}</List.Item>} />
                 )}
               </div>
             </details>
@@ -923,7 +923,7 @@ export const GameModeView: React.FC = () => {
         side: 'right',
         className: 'gm-widget-compact',
         content: (
-          <Card size="small" title={<Space><TeamOutlined /> Генератор NPC (S)</Space>}>
+          <Card  title={<Space><TeamOutlined /> Генератор NPC (S)</Space>}>
             <Space direction="vertical" style={{ width: '100%' }}>
               <Space>
                 <Button type="primary" onClick={generateNpc} loading={npcLoading}>Сгенерировать</Button>
@@ -931,7 +931,7 @@ export const GameModeView: React.FC = () => {
               </Space>
               {npcError && <Text type="danger">{npcError}</Text>}
               <List
-                size="small"
+                
                 locale={{ emptyText: 'Пока нет NPC' }}
                 dataSource={generatedNpcs}
                 renderItem={(n) => (
@@ -959,7 +959,7 @@ export const GameModeView: React.FC = () => {
         side: 'right',
         className: 'gm-widget-compact',
         content: (
-          <Card size="small" title={<Space><ThunderboltOutlined /> Генератор лута (D)</Space>}>
+          <Card  title={<Space><ThunderboltOutlined /> Генератор лута (D)</Space>}>
             <Text type="secondary">Пока заглушка. Нажмите D для быстрого доступа.</Text>
           </Card>
         )
@@ -970,7 +970,7 @@ export const GameModeView: React.FC = () => {
         side: 'left',
         className: 'gm-widget-compact',
         content: (
-          <Card size="small" title={<Space><SoundOutlined /> Управление музыкой</Space>}>
+          <Card  title={<Space><SoundOutlined /> Управление музыкой</Space>}>
             <div>
               <details>
                 <summary style={{ cursor: 'pointer', userSelect: 'none' }}>Громкость и каналы</summary>
