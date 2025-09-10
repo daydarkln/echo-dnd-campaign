@@ -8,6 +8,8 @@ import {
   DeathSaveType
 } from '../types/initiative';
 import { Character, Group } from '../types/groups';
+import { Encounter, EncounterCreature } from '../types/encounter';
+import { Creature, parseCreatureData } from '../types/creature';
 
 const STORAGE_KEY = 'campaign-map-initiative-tracker';
 
@@ -79,6 +81,94 @@ export const useInitiativeTracker = () => {
       createdAt: new Date(),
       updatedAt: new Date()
     };
+
+    setState(prev => {
+      const nextState: InitiativeTrackerState = {
+        ...prev,
+        encounters: [...prev.encounters, newEncounter],
+        currentEncounterId: newEncounter.id
+      };
+      saveToStorage(nextState);
+      return nextState;
+    });
+    return newEncounter;
+  }, [saveToStorage]);
+
+  // Создание боевого энкаунтера из энкаунтера бестиария
+  const createEncounterFromBestiary = useCallback((
+    bestiaryEncounter: Encounter, 
+    creatures: Creature[], 
+    playerGroup?: Group
+  ) => {
+    console.log('Создаём боевой энкаунтер из бестиария:', bestiaryEncounter);
+    console.log('Доступные существа:', creatures);
+    console.log('Группа игроков:', playerGroup);
+
+    const initiativeCharacters: InitiativeCharacter[] = [];
+
+    // Добавляем персонажей игроков, если группа выбрана
+    if (playerGroup) {
+      const playerCharacters = playerGroup.members.map(character => ({
+        id: `player-${character.id}`,
+        name: character.name,
+        groupId: playerGroup.id,
+        groupName: playerGroup.name,
+        groupColor: playerGroup.color,
+        initiative: null,
+        status: 'active' as CharacterStatus,
+        deathSaves: {
+          successes: 0,
+          failures: 0
+        }
+      }));
+      initiativeCharacters.push(...playerCharacters);
+    }
+
+    // Добавляем существ из энкаунтера
+    bestiaryEncounter.creatures.forEach(encounterCreature => {
+      const creature = creatures.find(c => c.id === encounterCreature.creatureId);
+      if (!creature) {
+        console.warn(`Существо не найдено: ${encounterCreature.creatureId}`);
+        return;
+      }
+
+      const creatureData = parseCreatureData(creature);
+      
+      // Создаем несколько экземпляров существа
+      for (let i = 1; i <= encounterCreature.count; i++) {
+        const instanceName = encounterCreature.count > 1 
+          ? `${creatureData.name} ${i}`
+          : creatureData.name;
+
+        initiativeCharacters.push({
+          id: `creature-${encounterCreature.creatureId}-${i}-${Date.now()}`,
+          name: instanceName,
+          groupId: 'enemies',
+          groupName: 'Враги',
+          groupColor: '#ff4d4f',
+          initiative: null,
+          status: 'active' as CharacterStatus,
+          deathSaves: {
+            successes: 0,
+            failures: 0
+          }
+        });
+      }
+    });
+
+    const newEncounter: EncounterState = {
+      id: `encounter-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: bestiaryEncounter.name,
+      characters: initiativeCharacters,
+      currentTurnIndex: -1,
+      round: 0,
+      isActive: false,
+      selectedGroupIds: playerGroup ? [playerGroup.id, 'enemies'] : ['enemies'],
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    console.log('Создан боевой энкаунтер:', newEncounter);
 
     setState(prev => {
       const nextState: InitiativeTrackerState = {
@@ -389,6 +479,7 @@ export const useInitiativeTracker = () => {
     encounters: state.encounters,
     currentEncounter: getCurrentEncounter(),
     createEncounter,
+    createEncounterFromBestiary,
     deleteEncounter,
     updateEncounter,
     setCharacterInitiative,

@@ -79,6 +79,11 @@ export interface CreatureSpellcasting {
   };
 }
 
+export interface CreatureLegendaryActions {
+  perTurn: number;
+  actions: CreatureAction[];
+}
+
 export interface CreatureData {
   // Основная информация
   name: string;
@@ -119,10 +124,7 @@ export interface CreatureData {
   actions?: CreatureAction[];
   bonusActions?: CreatureAction[];
   reactions?: CreatureAction[];
-  legendaryActions?: {
-    perTurn: number;
-    actions: CreatureAction[];
-  };
+  legendaryActions?: CreatureLegendaryActions;
   lairActions?: CreatureAction[];
   
   // Заклинания (если есть)
@@ -169,17 +171,18 @@ export interface CreatureImportData {
   subtype?: string;
   alignment: string;
   
-  armor_class: number | string;
-  hit_points: number | string;
+  // Старый формат (D&D API)
+  armor_class?: number | string;
+  hit_points?: number | string;
   hit_dice?: string;
-  speed: string | CreatureSpeed;
+  speed?: string | CreatureSpeed;
   
-  strength: number;
-  dexterity: number;
-  constitution: number;
-  intelligence: number;
-  wisdom: number;
-  charisma: number;
+  strength?: number;
+  dexterity?: number;
+  constitution?: number;
+  intelligence?: number;
+  wisdom?: number;
+  charisma?: number;
   
   saving_throws?: string | CreatureSavingThrows;
   skills?: string | CreatureSkills;
@@ -192,13 +195,40 @@ export interface CreatureImportData {
   senses?: string | CreatureSenses;
   languages?: string | string[];
   
-  challenge_rating: string | number;
+  challenge_rating?: string | number;
   
   traits?: Array<{name: string; desc: string[]}>;
   actions?: Array<{name: string; desc: string[]}>;
   bonus_actions?: Array<{name: string; desc: string[]}>;
   reactions?: Array<{name: string; desc: string[]}>;
   legendary_actions?: Array<{name: string; desc: string[]}>;
+  
+  // Новый формат (CreatureData совместимый)
+  armorClass?: number;
+  armorType?: string;
+  hitPoints?: number;
+  hitDice?: string;
+  stats?: CreatureStats;
+  challengeRating?: string;
+  proficiencyBonus?: number;
+  experiencePoints?: number;
+  
+  // Дополнительные поля с новым именованием
+  savingThrows?: CreatureSavingThrows;
+  damageVulnerabilities?: DamageType[];
+  damageResistances?: DamageType[];
+  damageImmunities?: DamageType[];
+  conditionImmunities?: ConditionType[];
+  bonusActions?: Array<{name: string; desc?: string[]; description?: string}>;
+  legendaryActions?: Array<{name: string; desc?: string[]; description?: string}>;
+  
+  // Метаданные
+  source?: string;
+  description?: string;
+  lore?: string;
+  tags?: string[];
+  environment?: string[];
+  customData?: Record<string, any>;
   
   // Дополнительные поля для разных источников
   [key: string]: any;

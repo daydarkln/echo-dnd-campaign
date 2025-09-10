@@ -17,7 +17,8 @@ import {
   Statistic,
   Badge,
   Popconfirm,
-  Tooltip
+  Tooltip,
+  Checkbox
 } from 'antd';
 import {
   PlusOutlined,
@@ -27,7 +28,8 @@ import {
   DeleteOutlined,
   EditOutlined,
   EyeOutlined,
-  FileExcelOutlined
+  FileExcelOutlined,
+  ThunderboltOutlined
 } from '@ant-design/icons';
 import { useCreatures } from '../hooks/useCreatures';
 import { 
@@ -43,11 +45,18 @@ import {
 import { CreatureEditor } from '../components/CreatureEditor';
 import { CreatureViewer } from '../components/CreatureViewer';
 import { CreatureImporter } from '../components/CreatureImporter';
+import { EncounterCreator } from '../components/EncounterCreator';
+import { useEncounters } from '../hooks/useEncounters';
+import { useInitiativeTracker } from '../hooks/useInitiativeTracker';
+import { useGroups } from '../hooks/useGroups';
+import { CreateEncounterInput } from '../types/encounter';
+import { useNavigate } from 'react-router-dom';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 
 export const BestiaryPage: React.FC = () => {
+  const navigate = useNavigate();
   const {
     creatures,
     loading,
@@ -61,6 +70,10 @@ export const BestiaryPage: React.FC = () => {
     exportCreatures
   } = useCreatures();
 
+  const { createEncounter } = useEncounters();
+  const { createEncounterFromBestiary } = useInitiativeTracker();
+  const { groups } = useGroups();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<CreatureType | 'all'>('all');
   const [selectedCR, setSelectedCR] = useState<string>('all');
@@ -69,6 +82,10 @@ export const BestiaryPage: React.FC = () => {
   const [showImporter, setShowImporter] = useState(false);
   const [selectedCreature, setSelectedCreature] = useState<Creature | null>(null);
   const [editingCreature, setEditingCreature] = useState<Creature | null>(null);
+  
+  // Состояние для энкаунтеров
+  const [selectedCreatureIds, setSelectedCreatureIds] = useState<string[]>([]);
+  const [showEncounterCreator, setShowEncounterCreator] = useState(false);
 
   // Фильтрация существ
   const filteredCreatures = useMemo(() => {
@@ -195,6 +212,61 @@ export const BestiaryPage: React.FC = () => {
     message.success('Бестиарий экспортирован');
   };
 
+  // Обработчики для энкаунтеров
+  const handleCreatureSelect = (creatureId: string, checked: boolean) => {
+    setSelectedCreatureIds(prev => 
+      checked 
+        ? [...prev, creatureId]
+        : prev.filter(id => id !== creatureId)
+    );
+  };
+
+  const handleSelectAllCreatures = (checked: boolean) => {
+    setSelectedCreatureIds(
+      checked ? filteredCreatures.map(c => c.id) : []
+    );
+  };
+
+  const handleCreateEncounter = () => {
+    setShowEncounterCreator(true);
+  };
+
+  const handleEncounterCreated = async (encounterInput: CreateEncounterInput) => {
+    try {
+      console.log('Создаем энкаунтер:', encounterInput);
+      
+      // Создаем энкаунтер в системе планирования
+      const encounter = await createEncounter(encounterInput);
+      console.log('Энкаунтер создан:', encounter);
+      
+      // Получаем группу игроков, если выбрана
+      const playerGroup = encounterInput.playerGroupId 
+        ? groups.find(g => g.id === encounterInput.playerGroupId)
+        : undefined;
+      
+      console.log('Найдена группа игроков:', playerGroup);
+      
+      // Создаем боевой энкаунтер для трекера инициативы
+      const combatEncounter = createEncounterFromBestiary(
+        encounter, 
+        creatures, 
+        playerGroup
+      );
+      
+      console.log('Боевой энкаунтер создан:', combatEncounter);
+      
+      message.success(`Энкаунтер "${encounter.name}" создан и готов к бою!`);
+      setShowEncounterCreator(false);
+      setSelectedCreatureIds([]);
+      
+      // Переходим на страницу инициативы
+      navigate('/initiative');
+    } catch (error) {
+      console.error('Ошибка при создании энкаунтера:', error);
+      message.error('Ошибка при создании энкаунтера');
+    }
+  };
+
   // Конвертация импортированных данных
   const convertImportDataToCreatureData = (importData: CreatureImportData): CreatureData => {
     console.log('Конвертируем данные:', importData);
@@ -202,23 +274,72 @@ export const BestiaryPage: React.FC = () => {
     // Проверяем, не является ли это уже готовыми данными CreatureData
     if ('armorClass' in importData && 'hitPoints' in importData && 'stats' in importData) {
       console.log('Данные уже в формате CreatureData');
-      // Это уже CreatureData, просто приводим к правильному типу
       const data = importData as any as CreatureData;
       
       console.log('Черты в данных:', data.traits);
       console.log('Действия в данных:', data.actions);
       
+      // Проверяем и приводим числовые поля к правильному типу
+      const armorClass = typeof data.armorClass === 'number' ? data.armorClass : parseInt(String(data.armorClass)) || 10;
+      const hitPoints = typeof data.hitPoints === 'number' ? data.hitPoints : parseInt(String(data.hitPoints)) || 1;
+      const challengeRating = String(data.challengeRating || '0');
+      
+      console.log('Обработанные значения:', { armorClass, hitPoints, challengeRating });
+      console.log('Исходные характеристики data.stats:', data.stats);
+      console.log('Тип data.stats:', typeof data.stats);
+      
       // Дополняем недостающие обязательные поля если их нет
-      const result = {
+      const result: CreatureData = {
         ...data,
-        proficiencyBonus: data.proficiencyBonus || calculateProficiencyBonus(data.challengeRating),
-        experiencePoints: data.experiencePoints || getExperiencePoints(data.challengeRating),
-        senses: data.senses || { passivePerception: 10 },
+        armorClass,
+        hitPoints,
+        challengeRating,
+        hitDice: data.hitDice || '1d8',
+        speed: data.speed || { walk: 30 },
+        stats: {
+          str: Number(data.stats?.str) ?? 10,
+          dex: Number(data.stats?.dex) ?? 10,
+          con: Number(data.stats?.con) ?? 10,
+          int: Number(data.stats?.int) ?? 10,
+          wis: Number(data.stats?.wis) ?? 10,
+          cha: Number(data.stats?.cha) ?? 10,
+        },
+        proficiencyBonus: data.proficiencyBonus || calculateProficiencyBonus(challengeRating),
+        experiencePoints: data.experiencePoints || getExperiencePoints(challengeRating),
+        senses: {
+          ...data.senses,
+          passivePerception: Number(data.senses?.passivePerception) || 10
+        },
         tags: data.tags || [],
-        environment: data.environment || []
+        environment: data.environment || [],
+        // Обрабатываем traits и actions с правильными полями description
+        traits: data.traits?.map(trait => ({
+          name: trait.name,
+          description: trait.description || (trait as any).desc || ''
+        })) || [],
+        actions: data.actions?.map(action => ({
+          name: action.name,
+          description: action.description || (action as any).desc || '',
+          type: action.type || 'action' as const,
+          attackBonus: action.attackBonus,
+          damage: action.damage,
+          savingThrow: action.savingThrow,
+          recharge: action.recharge
+        })) || [],
+        // Обрабатываем legendaryActions если есть
+        legendaryActions: data.legendaryActions ? {
+          perTurn: Number(data.legendaryActions.perTurn) || 3,
+          actions: data.legendaryActions.actions?.map(action => ({
+            name: action.name,
+            description: action.description || (action as any).desc || '',
+            type: action.type || 'legendary_action' as const,
+            damage: action.damage
+          })) || []
+        } : undefined
       };
       
       console.log('Результат конвертации (CreatureData):', result);
+      console.log('Финальные характеристики:', result.stats);
       return result;
     }
     
@@ -230,24 +351,26 @@ export const BestiaryPage: React.FC = () => {
       type: importData.type as any,
       subtype: importData.subtype,
       alignment: importData.alignment as any,
-      armorClass: typeof importData.armor_class === 'number' ? importData.armor_class : parseInt(importData.armor_class.toString()),
-      hitPoints: typeof importData.hit_points === 'number' ? importData.hit_points : parseInt(importData.hit_points.toString()),
+      armorClass: typeof importData.armor_class === 'number' ? importData.armor_class : 
+                  (importData.armor_class ? parseInt(importData.armor_class.toString()) : 10),
+      hitPoints: typeof importData.hit_points === 'number' ? importData.hit_points : 
+                 (importData.hit_points ? parseInt(importData.hit_points.toString()) : 1),
       hitDice: importData.hit_dice || '1d8',
       speed: typeof importData.speed === 'object' ? importData.speed : { walk: 30 },
       stats: {
-        str: importData.strength,
-        dex: importData.dexterity,
-        con: importData.constitution,
-        int: importData.intelligence,
-        wis: importData.wisdom,
-        cha: importData.charisma
+        str: importData.strength || 10,
+        dex: importData.dexterity || 10,
+        con: importData.constitution || 10,
+        int: importData.intelligence || 10,
+        wis: importData.wisdom || 10,
+        cha: importData.charisma || 10
       },
       senses: {
         passivePerception: 10
       },
-      challengeRating: importData.challenge_rating.toString(),
-      proficiencyBonus: calculateProficiencyBonus(importData.challenge_rating.toString()),
-      experiencePoints: getExperiencePoints(importData.challenge_rating.toString()),
+      challengeRating: (importData.challenge_rating || '0').toString(),
+      proficiencyBonus: calculateProficiencyBonus((importData.challenge_rating || '0').toString()),
+      experiencePoints: getExperiencePoints((importData.challenge_rating || '0').toString()),
       traits: importData.traits?.map(trait => ({
         name: trait.name,
         description: Array.isArray(trait.desc) ? trait.desc.join(' ') : 
@@ -360,13 +483,51 @@ export const BestiaryPage: React.FC = () => {
               <Button icon={<DownloadOutlined />} onClick={handleExport}>
                 Экспорт
               </Button>
+              {selectedCreatureIds.length > 0 && (
+                <Button 
+                  type="primary" 
+                  icon={<ThunderboltOutlined />} 
+                  onClick={handleCreateEncounter}
+                  style={{ 
+                    background: 'linear-gradient(135deg, #ff6b6b, #ee5a24)',
+                    border: 'none',
+                    boxShadow: '0 4px 12px rgba(238, 90, 36, 0.3)'
+                  }}
+                >
+                  Создать энкаунтер ({selectedCreatureIds.length})
+                </Button>
+              )}
             </Space>
           </Col>
         </Row>
       </Card>
 
       {/* Список существ */}
-      <Card>
+      <Card 
+        title={
+          <Row justify="space-between" align="middle">
+            <Col>
+              <Space>
+                <Checkbox
+                  checked={selectedCreatureIds.length === filteredCreatures.length && filteredCreatures.length > 0}
+                  indeterminate={selectedCreatureIds.length > 0 && selectedCreatureIds.length < filteredCreatures.length}
+                  onChange={(e) => handleSelectAllCreatures(e.target.checked)}
+                >
+                  Выбрать все
+                </Checkbox>
+                {selectedCreatureIds.length > 0 && (
+                  <Tag color="blue">Выбрано: {selectedCreatureIds.length}</Tag>
+                )}
+              </Space>
+            </Col>
+            <Col>
+              <Text type="secondary">
+                Всего существ: {filteredCreatures.length}
+              </Text>
+            </Col>
+          </Row>
+        }
+      >
         <List
           loading={loading}
           dataSource={filteredCreatures}
@@ -403,6 +564,12 @@ export const BestiaryPage: React.FC = () => {
                 ]}
               >
                 <List.Item.Meta
+                  avatar={
+                    <Checkbox
+                      checked={selectedCreatureIds.includes(creature.id)}
+                      onChange={(e) => handleCreatureSelect(creature.id, e.target.checked)}
+                    />
+                  }
                   title={
                     <Space>
                       <Text strong>{data.name}</Text>
@@ -422,7 +589,7 @@ export const BestiaryPage: React.FC = () => {
                       {data.tags && data.tags.length > 0 && (
                         <Space size={0} wrap>
                           {data.tags.map(tag => (
-                            <Tag key={tag} >{tag}</Tag>
+                            <Tag key={tag} style={{ fontSize: '11px' }}>{tag}</Tag>
                           ))}
                         </Space>
                       )}
@@ -431,6 +598,29 @@ export const BestiaryPage: React.FC = () => {
                 />
               </List.Item>
             );
+          }}
+          locale={{
+            emptyText: (
+              <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                <Text type="secondary" style={{ fontSize: '16px' }}>
+                  {searchTerm || selectedType !== 'all' || selectedCR !== 'all'
+                    ? 'Существа не найдены'
+                    : 'Бестиарий пуст'
+                  }
+                </Text>
+                <br />
+                <br />
+                {!searchTerm && selectedType === 'all' && selectedCR === 'all' && (
+                  <Button 
+                    type="primary" 
+                    icon={<PlusOutlined />} 
+                    onClick={handleCreateCreature}
+                  >
+                    Создать первое существо
+                  </Button>
+                )}
+              </div>
+            )
           }}
           pagination={{
             pageSize: 20,
@@ -466,6 +656,13 @@ export const BestiaryPage: React.FC = () => {
         visible={showImporter}
         onImport={handleImport}
         onCancel={() => setShowImporter(false)}
+      />
+
+      <EncounterCreator
+        visible={showEncounterCreator}
+        selectedCreatures={selectedCreatureIds.map(id => creatures.find(c => c.id === id)!).filter(Boolean)}
+        onCreateEncounter={handleEncounterCreated}
+        onCancel={() => setShowEncounterCreator(false)}
       />
     </div>
   );

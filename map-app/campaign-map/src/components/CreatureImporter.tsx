@@ -151,36 +151,47 @@ export const CreatureImporter: React.FC<CreatureImporterProps> = ({
       subtype: rawData.subtype || rawData.Subtype,
       alignment: rawData.alignment || rawData.Alignment || 'Нейтральный',
       
-      armor_class: rawData.armor_class || rawData.ac || rawData.AC || 10,
-      hit_points: rawData.hit_points || rawData.hp || rawData.HP || 1,
-      hit_dice: rawData.hit_dice || rawData.hitDice,
+      armor_class: rawData.armorClass || rawData.armor_class || rawData.ac || rawData.AC || 10,
+      hit_points: rawData.hitPoints || rawData.hit_points || rawData.hp || rawData.HP || 1,
+      hit_dice: rawData.hitDice || rawData.hit_dice,
       speed: rawData.speed || rawData.Speed || '30 фт',
       
-      strength: rawData.strength || rawData.str || rawData.STR || 10,
-      dexterity: rawData.dexterity || rawData.dex || rawData.DEX || 10,
-      constitution: rawData.constitution || rawData.con || rawData.CON || 10,
-      intelligence: rawData.intelligence || rawData.int || rawData.INT || 10,
-      wisdom: rawData.wisdom || rawData.wis || rawData.WIS || 10,
-      charisma: rawData.charisma || rawData.cha || rawData.CHA || 10,
+      strength: rawData.stats?.str || rawData.strength || rawData.str || rawData.STR || 10,
+      dexterity: rawData.stats?.dex || rawData.dexterity || rawData.dex || rawData.DEX || 10,
+      constitution: rawData.stats?.con || rawData.constitution || rawData.con || rawData.CON || 10,
+      intelligence: rawData.stats?.int || rawData.intelligence || rawData.int || rawData.INT || 10,
+      wisdom: rawData.stats?.wis || rawData.wisdom || rawData.wis || rawData.WIS || 10,
+      charisma: rawData.stats?.cha || rawData.charisma || rawData.cha || rawData.CHA || 10,
       
-      challenge_rating: rawData.challenge_rating || rawData.cr || rawData.CR || '0',
+      challenge_rating: rawData.challengeRating || rawData.challenge_rating || rawData.cr || rawData.CR || '0',
       
       // Дополнительные поля
-      saving_throws: rawData.saving_throws || rawData.saves,
+      saving_throws: rawData.savingThrows || rawData.saving_throws || rawData.saves,
       skills: rawData.skills || rawData.Skills,
-      damage_vulnerabilities: rawData.damage_vulnerabilities || rawData.vulnerabilities,
-      damage_resistances: rawData.damage_resistances || rawData.resistances,
-      damage_immunities: rawData.damage_immunities || rawData.immunities,
-      condition_immunities: rawData.condition_immunities,
+      damage_vulnerabilities: rawData.damageVulnerabilities || rawData.damage_vulnerabilities || rawData.vulnerabilities,
+      damage_resistances: rawData.damageResistances || rawData.damage_resistances || rawData.resistances,
+      damage_immunities: rawData.damageImmunities || rawData.damage_immunities || rawData.immunities,
+      condition_immunities: rawData.conditionImmunities || rawData.condition_immunities,
       senses: rawData.senses || rawData.Senses,
       languages: rawData.languages || rawData.Languages,
       
       // Способности
       traits: rawData.special_abilities || rawData.traits,
       actions: rawData.actions || rawData.Actions,
-      bonus_actions: rawData.bonus_actions,
+      bonus_actions: rawData.bonusActions || rawData.bonus_actions,
       reactions: rawData.reactions || rawData.Reactions,
-      legendary_actions: rawData.legendary_actions
+      legendary_actions: rawData.legendaryActions || rawData.legendary_actions,
+      
+      // Дополнительные поля нового формата
+      proficiency_bonus: rawData.proficiencyBonus || rawData.proficiency_bonus,
+      experience_points: rawData.experiencePoints || rawData.experience_points,
+      armor_type: rawData.armorType || rawData.armor_type,
+      source: rawData.source,
+      description: rawData.description,
+      lore: rawData.lore,
+      tags: rawData.tags,
+      environment: rawData.environment,
+      custom_data: rawData.customData || rawData.custom_data
     };
 
     return normalized;
@@ -267,18 +278,101 @@ export const CreatureImporter: React.FC<CreatureImporterProps> = ({
   const convertImportDataToCreatureData = (importData: CreatureImportData): CreatureData => {
     // Проверяем, не является ли это уже готовыми данными CreatureData
     if ('armorClass' in importData && 'hitPoints' in importData && 'stats' in importData) {
-      // Это уже CreatureData, просто приводим к правильному типу
       const data = importData as any as CreatureData;
       
+      // Проверяем и приводим числовые поля к правильному типу
+      const armorClass = typeof data.armorClass === 'number' ? data.armorClass : parseInt(String(data.armorClass)) || 10;
+      const hitPoints = typeof data.hitPoints === 'number' ? data.hitPoints : parseInt(String(data.hitPoints)) || 1;
+      const challengeRating = String(data.challengeRating || '0');
+      
       // Дополняем недостающие обязательные поля если их нет
-      return {
+      const result: CreatureData = {
         ...data,
-        proficiencyBonus: data.proficiencyBonus || calculateProficiencyBonus(data.challengeRating),
-        experiencePoints: data.experiencePoints || getExperiencePoints(data.challengeRating),
-        senses: data.senses || { passivePerception: 10 },
+        armorClass,
+        hitPoints,
+        challengeRating,
+        hitDice: data.hitDice || '1d8',
+        speed: data.speed || { walk: 30 },
+        stats: {
+          str: Number(data.stats?.str) ?? 10,
+          dex: Number(data.stats?.dex) ?? 10,
+          con: Number(data.stats?.con) ?? 10,
+          int: Number(data.stats?.int) ?? 10,
+          wis: Number(data.stats?.wis) ?? 10,
+          cha: Number(data.stats?.cha) ?? 10,
+        },
+        proficiencyBonus: data.proficiencyBonus || calculateProficiencyBonus(challengeRating),
+        experiencePoints: data.experiencePoints || getExperiencePoints(challengeRating),
+        senses: {
+          ...data.senses,
+          passivePerception: Number(data.senses?.passivePerception) || 10
+        },
         tags: data.tags || [],
-        environment: data.environment || []
+        environment: data.environment || [],
+      // Обрабатываем traits и actions с правильными полями description
+      traits: data.traits?.map(trait => ({
+        name: trait.name,
+        description: trait.description || (trait as any).desc || ''
+      })) || [],
+      actions: data.actions?.map(action => ({
+        name: action.name,
+        description: action.description || (action as any).desc || '',
+        type: action.type || 'action' as const,
+        attackBonus: action.attackBonus,
+        damage: action.damage,
+        savingThrow: action.savingThrow,
+        recharge: action.recharge
+      })) || [],
+      // Добавляем bonusActions если есть
+      bonusActions: data.bonusActions?.map(action => ({
+        name: action.name,
+        description: action.description || (action as any).desc || '',
+        type: action.type || 'bonus_action' as const,
+        attackBonus: action.attackBonus,
+        damage: action.damage,
+        savingThrow: action.savingThrow,
+        recharge: action.recharge
+      })) || [],
+      // Добавляем reactions если есть
+      reactions: data.reactions?.map(action => ({
+        name: action.name,
+        description: action.description || (action as any).desc || '',
+        type: action.type || 'reaction' as const,
+        attackBonus: action.attackBonus,
+        damage: action.damage,
+        savingThrow: action.savingThrow,
+        recharge: action.recharge
+      })) || [],
+        // Обрабатываем legendaryActions если есть
+        legendaryActions: data.legendaryActions ? {
+          perTurn: Number(data.legendaryActions.perTurn) || 3,
+          actions: data.legendaryActions.actions?.map(action => ({
+            name: action.name,
+            description: action.description || (action as any).desc || '',
+            type: action.type || 'legendary_action' as const,
+            damage: action.damage
+          })) || []
+        } : undefined,
+        
+        // Добавляем дополнительные поля
+        armorType: data.armorType,
+        source: data.source,
+        description: data.description,
+        lore: data.lore,
+        customData: data.customData,
+        
+        // Добавляем сопротивления и иммунитеты
+        damageVulnerabilities: data.damageVulnerabilities,
+        damageResistances: data.damageResistances,
+        damageImmunities: data.damageImmunities,
+        conditionImmunities: data.conditionImmunities,
+        
+        // Добавляем saving throws если есть
+        savingThrows: data.savingThrows,
+        skills: data.skills
       };
+      
+      return result;
     }
     
     // Иначе конвертируем старый формат
@@ -319,8 +413,25 @@ export const CreatureImporter: React.FC<CreatureImporterProps> = ({
                     (action.desc || (action as any).description || ''),
         type: 'action' as const
       })),
-      tags: [],
-      environment: []
+      bonusActions: importData.bonus_actions?.map(action => ({
+        name: action.name || 'Безымянное бонусное действие',
+        description: Array.isArray(action.desc) ? action.desc.join(' ') : 
+                    (action.desc || (action as any).description || ''),
+        type: 'bonus_action' as const
+      })),
+      reactions: importData.reactions?.map(action => ({
+        name: action.name || 'Безымянная реакция',
+        description: Array.isArray(action.desc) ? action.desc.join(' ') : 
+                    (action.desc || (action as any).description || ''),
+        type: 'reaction' as const
+      })),
+      tags: (importData as any).tags || [],
+      environment: (importData as any).environment || [],
+      source: (importData as any).source,
+      description: (importData as any).description,
+      lore: (importData as any).lore,
+      armorType: (importData as any).armor_type,
+      customData: (importData as any).custom_data
     };
   };
 
