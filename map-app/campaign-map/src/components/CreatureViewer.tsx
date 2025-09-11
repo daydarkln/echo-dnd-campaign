@@ -38,6 +38,7 @@ export const CreatureViewer: React.FC<CreatureViewerProps> = ({
   const data = parseCreatureData(creature);
 
   console.log('CreatureViewer - распарсенные данные:', data);
+  console.log('CreatureViewer - легендарные действия:', data.legendaryActions);
 
   const formatSpeed = () => {
     const speeds = [];
@@ -281,7 +282,7 @@ export const CreatureViewer: React.FC<CreatureViewerProps> = ({
           )}
 
           {/* Легендарные действия */}
-          {data.legendaryActions && data.legendaryActions.actions.length > 0 && (
+          {data.legendaryActions && data.legendaryActions.actions && data.legendaryActions.actions.length > 0 ? (
             <Card  title={`Легендарные действия (${data.legendaryActions.perTurn} за ход)`}>
               <List
                 dataSource={data.legendaryActions.actions}
@@ -296,6 +297,64 @@ export const CreatureViewer: React.FC<CreatureViewerProps> = ({
                   </List.Item>
                 )}
               />
+            </Card>
+          ) : data.legendaryActions ? (
+            <Card title="Легендарные действия">
+              <Text type="secondary">Легендарные действия загружены, но не найдены или имеют неправильный формат</Text>
+              <br />
+              <Text type="secondary">Debug: {JSON.stringify(data.legendaryActions)}</Text>
+            </Card>
+          ) : null}
+
+          {/* Действия логова */}
+          {data.lairActions && data.lairActions.length > 0 && (
+            <Card  title="Действия логова">
+              <List
+                dataSource={data.lairActions}
+                renderItem={(action) => (
+                  <List.Item>
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                      <Text strong>{action.name}</Text>
+                      <Paragraph style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
+                        {action.description}
+                      </Paragraph>
+                    </Space>
+                  </List.Item>
+                )}
+              />
+            </Card>
+          )}
+
+          {/* Заклинательство */}
+          {data.spellcasting && (
+            <Card title={`Заклинательство (${data.spellcasting.level} уровень)`}>
+              <Descriptions column={1} style={{ marginBottom: '16px' }}>
+                <Descriptions.Item label="Базовая характеристика">
+                  {data.spellcasting.ability.toUpperCase()}
+                </Descriptions.Item>
+                <Descriptions.Item label="Сл спасброска">
+                  {data.spellcasting.saveDc}
+                </Descriptions.Item>
+                <Descriptions.Item label="Бонус атаки заклинанием">
+                  {formatModifier(data.spellcasting.attackBonus)}
+                </Descriptions.Item>
+              </Descriptions>
+              
+              {data.spellcasting.spells && Object.keys(data.spellcasting.spells).length > 0 && (
+                <div>
+                  <Title level={5}>Заклинания:</Title>
+                  {Object.entries(data.spellcasting.spells).map(([level, spellData]) => (
+                    <div key={level} style={{ marginBottom: '8px' }}>
+                      <Text strong>
+                        {level === 'cantrips' ? 'Заговоры' : `${level} уровень`}
+                        {spellData.slots ? ` (${spellData.slots} ячеек)` : ''}:
+                      </Text>
+                      <br />
+                      <Text>{spellData.spells.join(', ')}</Text>
+                    </div>
+                  ))}
+                </div>
+              )}
             </Card>
           )}
 

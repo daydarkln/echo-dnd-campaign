@@ -202,6 +202,8 @@ export interface CreatureImportData {
   bonus_actions?: Array<{name: string; desc: string[]}>;
   reactions?: Array<{name: string; desc: string[]}>;
   legendary_actions?: Array<{name: string; desc: string[]}>;
+  lair_actions?: Array<{name: string; desc?: string[]; description?: string}>;
+  spellcasting?: CreatureSpellcasting;
   
   // Новый формат (CreatureData совместимый)
   armorClass?: number;
@@ -220,7 +222,8 @@ export interface CreatureImportData {
   damageImmunities?: DamageType[];
   conditionImmunities?: ConditionType[];
   bonusActions?: Array<{name: string; desc?: string[]; description?: string}>;
-  legendaryActions?: Array<{name: string; desc?: string[]; description?: string}>;
+  legendaryActions?: CreatureLegendaryActions | Array<{name: string; desc?: string[]; description?: string}>;
+  lairActions?: Array<{name: string; desc?: string[]; description?: string}>;
   
   // Метаданные
   source?: string;

@@ -29,6 +29,7 @@ import {
   CreatureData, 
   parseCreatureData, 
   Creature,
+  CreatureStats,
   calculateProficiencyBonus,
   getExperiencePoints
 } from '../types/creature';
@@ -181,6 +182,8 @@ export const CreatureImporter: React.FC<CreatureImporterProps> = ({
       bonus_actions: rawData.bonusActions || rawData.bonus_actions,
       reactions: rawData.reactions || rawData.Reactions,
       legendary_actions: rawData.legendaryActions || rawData.legendary_actions,
+      lair_actions: rawData.lairActions || rawData.lair_actions,
+      spellcasting: rawData.spellcasting,
       
       // Дополнительные поля нового формата
       proficiency_bonus: rawData.proficiencyBonus || rawData.proficiency_bonus,
@@ -276,8 +279,12 @@ export const CreatureImporter: React.FC<CreatureImporterProps> = ({
 
   // Конвертация импортированных данных в формат CreatureData
   const convertImportDataToCreatureData = (importData: CreatureImportData): CreatureData => {
+    console.log('convertImportDataToCreatureData - входные данные:', importData);
+    console.log('convertImportDataToCreatureData - legendaryActions в входных данных:', importData.legendaryActions);
+    
     // Проверяем, не является ли это уже готовыми данными CreatureData
     if ('armorClass' in importData && 'hitPoints' in importData && 'stats' in importData) {
+      console.log('Обрабатываем как новый формат CreatureData (оригинальный JSON)');
       const data = importData as any as CreatureData;
       
       // Проверяем и приводим числовые поля к правильному типу
@@ -344,15 +351,76 @@ export const CreatureImporter: React.FC<CreatureImporterProps> = ({
         recharge: action.recharge
       })) || [],
         // Обрабатываем legendaryActions если есть
-        legendaryActions: data.legendaryActions ? {
-          perTurn: Number(data.legendaryActions.perTurn) || 3,
-          actions: data.legendaryActions.actions?.map(action => ({
-            name: action.name,
-            description: action.description || (action as any).desc || '',
-            type: action.type || 'legendary_action' as const,
-            damage: action.damage
-          })) || []
-        } : undefined,
+        legendaryActions: (() => {
+          console.log('Обрабатываем legendaryActions...');
+          console.log('data.legendaryActions:', data.legendaryActions);
+          console.log('(importData as any).legendary_actions:', (importData as any).legendary_actions);
+          
+          const legendarySource = data.legendaryActions || (importData as any).legendary_actions;
+          console.log('legendarySource:', legendarySource);
+          
+          if (legendarySource) {
+            const result = {
+              perTurn: Number(legendarySource.perTurn) || 3,
+              actions: legendarySource.actions?.map((action: any) => ({
+                name: action.name,
+                description: action.description || action.desc || '',
+                type: action.type || 'legendary_action' as const,
+                damage: action.damage,
+                attackBonus: action.attackBonus,
+                savingThrow: action.savingThrow
+              })) || []
+            };
+            console.log('Результат обработки legendaryActions:', result);
+            return result;
+          }
+          console.log('legendaryActions не найдены');
+          return undefined;
+        })(),
+        
+        // Обрабатываем lairActions если есть
+        lairActions: (() => {
+          console.log('Обрабатываем lairActions в новом формате...');
+          const lairSource = data.lairActions || (importData as any).lair_actions;
+          console.log('lairSource в новом формате:', lairSource);
+          
+          if (lairSource && Array.isArray(lairSource)) {
+            const result = lairSource.map((action: any) => ({
+              name: action.name,
+              description: action.description || action.desc || '',
+              type: action.type || 'lair_action' as const,
+              damage: action.damage,
+              attackBonus: action.attackBonus,
+              savingThrow: action.savingThrow,
+              recharge: action.recharge
+            }));
+            console.log('Результат обработки lairActions в новом формате:', result);
+            return result;
+          }
+          console.log('lairActions не найдены в новом формате');
+          return undefined;
+        })(),
+        
+        // Обрабатываем spellcasting если есть
+        spellcasting: (() => {
+          console.log('Обрабатываем spellcasting в новом формате...');
+          const spellcastingSource = data.spellcasting || (importData as any).spellcasting;
+          console.log('spellcastingSource в новом формате:', spellcastingSource);
+          
+          if (spellcastingSource) {
+            const result = {
+              level: Number(spellcastingSource.level) || 1,
+              ability: spellcastingSource.ability || 'int' as keyof CreatureStats,
+              saveDc: Number(spellcastingSource.saveDc) || 10,
+              attackBonus: Number(spellcastingSource.attackBonus) || 0,
+              spells: spellcastingSource.spells || {}
+            };
+            console.log('Результат обработки spellcasting в новом формате:', result);
+            return result;
+          }
+          console.log('spellcasting не найден в новом формате');
+          return undefined;
+        })(),
         
         // Добавляем дополнительные поля
         armorType: data.armorType,
@@ -372,6 +440,8 @@ export const CreatureImporter: React.FC<CreatureImporterProps> = ({
         skills: data.skills
       };
       
+      console.log('convertImportDataToCreatureData - финальный результат:', result);
+      console.log('convertImportDataToCreatureData - legendaryActions в результате:', result.legendaryActions);
       return result;
     }
     
@@ -425,6 +495,74 @@ export const CreatureImporter: React.FC<CreatureImporterProps> = ({
                     (action.desc || (action as any).description || ''),
         type: 'reaction' as const
       })),
+      // Добавляем обработку легендарных действий для старого формата
+      legendaryActions: (() => {
+        console.log('Обрабатываем legendaryActions в старом формате...');
+        const legendarySource = (importData as any).legendary_actions || importData.legendaryActions;
+        console.log('legendarySource в старом формате:', legendarySource);
+        
+        if (legendarySource && legendarySource.actions) {
+          const result = {
+            perTurn: Number(legendarySource.perTurn) || 3,
+            actions: legendarySource.actions.map((action: any) => ({
+              name: action.name || 'Безымянное легендарное действие',
+              description: Array.isArray(action.desc) ? action.desc.join(' ') : 
+                          (action.desc || action.description || ''),
+              type: action.type || 'legendary_action' as const,
+              damage: action.damage,
+              attackBonus: action.attackBonus,
+              savingThrow: action.savingThrow
+            }))
+          };
+          console.log('Результат обработки legendaryActions в старом формате:', result);
+          return result;
+        }
+        console.log('legendaryActions не найдены в старом формате');
+        return undefined;
+      })(),
+      // Добавляем обработку действий логова для старого формата
+      lairActions: (() => {
+        console.log('Обрабатываем lairActions в старом формате...');
+        const lairSource = (importData as any).lair_actions || importData.lairActions;
+        console.log('lairSource в старом формате:', lairSource);
+        
+        if (lairSource && Array.isArray(lairSource)) {
+          const result = lairSource.map((action: any) => ({
+            name: action.name || 'Безымянное действие логова',
+            description: Array.isArray(action.desc) ? action.desc.join(' ') : 
+                        (action.desc || action.description || ''),
+            type: action.type || 'lair_action' as const,
+            damage: action.damage,
+            attackBonus: action.attackBonus,
+            savingThrow: action.savingThrow,
+            recharge: action.recharge
+          }));
+          console.log('Результат обработки lairActions в старом формате:', result);
+          return result;
+        }
+        console.log('lairActions не найдены в старом формате');
+        return undefined;
+      })(),
+      // Добавляем обработку заклинательства для старого формата
+      spellcasting: (() => {
+        console.log('Обрабатываем spellcasting в старом формате...');
+        const spellcastingSource = (importData as any).spellcasting;
+        console.log('spellcastingSource в старом формате:', spellcastingSource);
+        
+        if (spellcastingSource) {
+          const result = {
+            level: Number(spellcastingSource.level) || 1,
+            ability: spellcastingSource.ability || 'int' as keyof CreatureStats,
+            saveDc: Number(spellcastingSource.saveDc) || 10,
+            attackBonus: Number(spellcastingSource.attackBonus) || 0,
+            spells: spellcastingSource.spells || {}
+          };
+          console.log('Результат обработки spellcasting в старом формате:', result);
+          return result;
+        }
+        console.log('spellcasting не найден в старом формате');
+        return undefined;
+      })(),
       tags: (importData as any).tags || [],
       environment: (importData as any).environment || [],
       source: (importData as any).source,

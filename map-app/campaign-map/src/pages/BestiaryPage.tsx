@@ -327,13 +327,15 @@ export const BestiaryPage: React.FC = () => {
           recharge: action.recharge
         })) || [],
         // Обрабатываем legendaryActions если есть
-        legendaryActions: data.legendaryActions ? {
-          perTurn: Number(data.legendaryActions.perTurn) || 3,
-          actions: data.legendaryActions.actions?.map(action => ({
+        legendaryActions: (data.legendaryActions || (importData as any).legendary_actions) ? {
+          perTurn: Number((data.legendaryActions || (importData as any).legendary_actions).perTurn) || 3,
+          actions: (data.legendaryActions || (importData as any).legendary_actions).actions?.map((action: any) => ({
             name: action.name,
-            description: action.description || (action as any).desc || '',
+            description: action.description || action.desc || '',
             type: action.type || 'legendary_action' as const,
-            damage: action.damage
+            damage: action.damage,
+            attackBonus: action.attackBonus,
+            savingThrow: action.savingThrow
           })) || []
         } : undefined
       };
